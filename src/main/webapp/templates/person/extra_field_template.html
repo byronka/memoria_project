@@ -1,0 +1,8 @@
+<li id="extra_data_item{{ count }}" class="extra_field_item">
+    <button class="extra_data_item_delete" onclick="addExtra.deleteButtonClickHandler">X</button>
+    <input readonly type="hidden" name="extra_data_key{{ count }}" value="{{ key }}">
+    <span>{{key_html_cleaned}}</span>
+    <input readonly type="hidden" name="extra_data_type{{ count }}" value="{{ type }}" >
+    <input readonly type="hidden" name="extra_data_value{{ count }}" value="{{ value }}">
+    <span>{{ value_html_cleaned }}</span>
+</li>

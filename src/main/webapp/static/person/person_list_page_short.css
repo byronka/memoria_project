@@ -1,0 +1,125 @@
+html {
+    height: 100%;
+    background-color: #ea7e0073;
+    background-image: url('/general/black-paper.png');
+}
+
+
+#outer_container {
+    margin: 10px;
+    background-color: #dcbfad;
+    padding: 10px;
+    border-radius: 10px;
+    border: 3px solid #3d1e07;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+    background-image: url(/general/billie-holiday.png);
+}
+
+.persons_container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    margin: 40px
+}
+
+#search_query {
+    text-align: center;
+}
+
+a.person_icon_link {
+    width: 120px;
+    margin: 0px;
+    margin-bottom: 15px;
+    text-decoration: none;
+    text-align: center;
+    color: black !important;
+}
+
+span.birthdate {
+    font-size: 10px;
+    display: block;
+}
+
+img.person_image {
+    height: 120px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 3px solid #2a1002;
+}
+
+.persons_list {
+    display: flex;
+    align-items: baseline;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+    animation: transitionIn 0.35s;
+    animation-fill-mode: forwards;
+}
+
+.persons_list li {
+    list-style: none;
+    display: flex;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+@keyframes transitionIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+
+@media only screen and (max-width: 600px){
+
+    .persons_container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+        margin: 0px
+    }
+
+    .persons_list {
+        display: flex;
+        align-items: baseline;
+        padding: 0;
+        margin: 0;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    a.person_icon_link {
+        width: 105px;
+        height: 100%;
+        margin: 0px;
+        text-decoration: none;
+        text-align: center;
+        display: block;
+    }
+
+    .persons_list li {
+        list-style: none;
+        display: flex;
+    }
+
+    span.name {
+        font-size: 11px;
+        display: block;
+    }
+
+    span.birthdate {
+        font-size: 9px;
+        display: block;
+    }
+
+    img.person_image {
+        height: 100px;
+        object-fit: cover;
+        border-radius: 7px;
+    }
+}

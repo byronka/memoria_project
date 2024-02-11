@@ -1,0 +1,6 @@
+1. coding is complete
+2. user story checklist considered
+3. code reviewed
+4. automation runs successfully
+5. manual careful review (local dev testing)
+6. validation by customer/user (if available)

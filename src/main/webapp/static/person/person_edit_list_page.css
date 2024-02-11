@@ -1,0 +1,91 @@
+#container {
+    margin: 10px;
+}
+
+#search_pane {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#sort_pane {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.person-container {
+    border-bottom: 1px inset black;
+    margin-top: 1px;
+    margin-bottom: 11px;
+    padding-bottom: 11px;
+    display: flex;
+}
+
+.person-container > .name-and-lifespan > .lifespan {
+    font-size: 12px;
+}
+
+.person-container > .name-and-lifespan {
+    position: absolute;
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    background: grey;
+    color: white;
+    border-top-left-radius: 5px;
+}
+
+.person-container > .other_components
+ {
+    margin-top: 23px;
+}
+
+.other_components > .modified_datestamp {
+    font-size: 12px;
+}
+
+.person-container > .add_relations
+ {
+    margin-top: 23px;
+    margin-left: 10px;
+    display: block;
+}
+
+.new-relation {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    margin: 0;
+    padding: 0;
+}
+
+.person-container > .other_components a:hover {
+    background-color: cadetblue;
+    transition: background-color .2s;
+}
+
+.person-container > .thumbnail {
+    flex-grow: 1;
+}
+
+.person-container > .thumbnail > img {
+    height: 110px;
+    width: initial;
+    margin-top: 3px;
+    margin-right: 3px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    float: right;
+}
+
+div#list_person_pane {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 800px;
+}
+
+/*
+shown if we fail to delete a person
+*/
+.failed-border {
+  border: 3px solid red;
+  transition: border 2s;
+}

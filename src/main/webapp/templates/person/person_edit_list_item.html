@@ -1,0 +1,78 @@
+        <div id="{{id}}_details" class="person-container">
+
+            <div class="name-and-lifespan">
+                <span class="name">
+                    {{name}}
+                </span>
+
+                <span class="lifespan">
+                    {{lifespan}}
+                </span>
+            </div>
+
+            <div class="other_components">
+                <div>
+                    <a href="person?id={{id}}">view</a>
+                    <a href="editperson?id={{id}}">edit</a>
+                </div>
+
+                <div class="delete">
+                    <details>
+                        <summary>Delete</summary>
+                        <form action="persondelete" method="POST">
+                            <input type="hidden" name="id" value="{{id}}" />
+                            <button
+                                class="delete_button"
+                                data-personid="{{id}}">Delete</button>
+                        </form>
+                    </details>
+                </div>
+
+                <div class="photos">
+                    <a href="photos?personid={{id}}">Photos({{photo_count}})</a>
+                </div>
+
+                <div class="modified_datestamp">
+                    <span>Modified: </span>
+                    <span class="last_modified">{{last_modified}}</span>
+                </div>
+            </div>
+
+            <div class="add_relations">
+                <form method="post" action="addrelation">
+                    <label>
+                        Relation name:
+                        <input required type="text" name="relation_name_input" value="" >
+                    </label>
+                    <input type="submit" value="Create relation">
+                    <input type="hidden" name="person_id" value="{{id}}">
+                    <fieldset class="new-relation">
+                        <legend>Create a new relation:</legend>
+
+                        <label>
+                            Child
+                            <input type="radio" name="relation" value="child" required />
+                        </label>
+
+                        <label>
+                            Parent
+                            <input type="radio" name="relation" value="parent" required />
+                        </label>
+
+                        <label>
+                            Spouse
+                            <input type="radio" name="relation" value="spouse" required />
+                        </label>
+
+                        <label>
+                            Sibling
+                            <input type="radio" name="relation" value="sibling" required />
+                        </label>
+                    </fieldset>
+
+                </form>
+            </div>
+            <div class="thumbnail">
+                {{person_image}}
+            </div>
+        </div>

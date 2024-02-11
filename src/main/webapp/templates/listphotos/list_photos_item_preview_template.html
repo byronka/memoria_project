@@ -1,0 +1,40 @@
+<tr data-photo="{{photo_url}}">
+    <td>
+        <a class="caption" href="photo?name={{photo_url}}">
+            <img class="thumbnail-image" width=40 height=64 src="photo?name={{photo_url}}&size=small" alt="thumbnail of {{short_description_attr}}">
+        </a>
+    </td>
+    <td>
+        <div class="short_description_container">
+            <textarea readonly class="short_description" photoid="{{photo_url}}">{{short_description}}</textarea>
+        </div>
+    </td>
+    <td>
+        <div class="long_description_container">
+            <textarea readonly class="long_description"  photoid="{{photo_url}}">{{description}}</textarea>
+        </div>
+    </td>
+    <td>
+        <div class="filename_container">
+            <textarea readonly class="filename" >{{photo_url}}</textarea>
+        </div>
+    </td>
+    <td>
+        <button type="button" onclick="copyTextToClipboard(document.getElementById('photo_img_{{photo_url}}').text)">Copy &lt;img&gt;</button>
+        <script id="photo_img_{{photo_url}}" type="text/html"><img src="photo?name={{photo_url}}" alt="{{short_description_attr}}"></script>
+    </td>
+    <td>
+        <button type="button" onclick="copyTextToClipboard('photo?name={{photo_url}}')">Copy URL</button>
+    </td>
+    <td>
+        <button type="button" onclick="copyTextToClipboard(document.getElementById('photo_figure_{{photo_url}}').text)">Copy &lt;figure&gt;</button>
+        <script id="photo_figure_{{photo_url}}" type="text/html" >
+            <figure>
+                <img src="photo?name={{photo_url_html}}" alt="">
+                <figcaption>
+                    {{description_for_figcaption}}
+                </figcaption>
+            </figure>
+        </script>
+    </td>
+</tr>

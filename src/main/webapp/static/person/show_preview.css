@@ -1,0 +1,36 @@
+.preview_window {
+    width: 140px;
+    line-height: 12px;
+    left: 0;
+    top: 50px;
+    color: black;
+    box-shadow: 2px 3px 13px black;
+    border-radius: 10px;
+    padding: 10px;
+    z-index: 1;
+}
+
+.preview_window > div {
+
+}
+
+.preview_window .person_preview_image {
+    box-shadow: none;
+    border: none;
+    object-fit: contain;
+}
+
+.preview_window > div > p {
+    font-size: 14px;
+    border-bottom: 1px groove lightgray;
+    padding-bottom: 1px;
+    padding-top: 0px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+
+@keyframes transitionIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

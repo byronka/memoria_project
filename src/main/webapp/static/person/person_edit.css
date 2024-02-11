@@ -1,0 +1,118 @@
+#container {
+    margin: 10px;
+}
+
+label {
+    font-weight: bold;
+}
+
+#essential_info {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+#essential_info input[type=text] {
+    width: 98%;
+    border-radius: 8px;
+    height: 24px;
+    padding: 4px;
+}
+
+#essential_info input[type=number],
+#essential_info input[type=date]
+ {
+    width: 200px;
+}
+
+form#editperson-form > fieldset > div > div {
+    background: aliceblue;
+    border: 1px solid cadetblue;
+    padding: 5px;
+    border-radius: 10px;
+    margin: 5px;
+}
+
+fieldset#gender {
+    border-radius: 10px
+}
+
+#relations_section > div > textarea
+ {
+    width: 98%;
+    height: 150px;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+#biographical_information_section > div > textarea {
+    width: 98%;
+    height: 300px;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+#extra_fields_list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.extra_field_item {
+    display: flex;
+    flex-direction: column;
+    background-color: aliceblue;
+    border: 1px solid cadetblue;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 5px;
+    padding-bottom: 15px;
+    width: 200px;
+    border-radius: 10px;
+    margin: 5px;
+}
+
+.extra_field_item > button.extra_data_item_delete {
+    align-self: end;
+    width: 29px;
+}
+
+
+div#search_result_container {
+    position: absolute;
+    font-size: inherit;
+    background: white;
+    border: 1px solid grey;
+    width: 58%;
+    display: none;
+    left: 130px;
+}
+
+#search_result_container > ul > li:hover,
+#search_result_container > ul > li[selected]
+{
+    background: lightblue;
+}
+
+ul#search_result_list {
+    list-style: none;
+    padding-inline-start: 0;
+    display: inline-block;
+}
+
+.linkages {
+    width: 58%;
+}
+
+.photo-preview {
+    position: absolute;
+    width: 98%;
+    height: 400px;
+    overflow-y: auto;
+    transition: 0.6s;
+}
+
+.is-hidden {
+  visibility: hidden;
+  opacity: 0;
+  transform: scale(0);
+}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>List Photos | Inmra</title>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="listphotos/list_photos.css" />
+        <link rel="stylesheet" href="general/main.css" />
+        <meta name="filename" content="list_photos_template.html" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="general/copy_to_clipboard.js" ></script>
+        <script src="listphotos/list_photos_template.js"></script>
+        <script src="/uploadphoto/upload_photo.js"></script>
+        <link rel="stylesheet" href="uploadphoto/upload_photo.css" />
+    </head>
+    <body>
+        <nav>
+            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
+            <a id="help" href="/general/adminhelp.html">ⓘ</a>
+            {{header}}
+        </nav>
+        <div id="container">
+            <div id="photo_upload_section">
+                <form action="upload" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" value="{{person_id}}" name="person_id" >
+                    <div>
+                        <label for="image_uploads">Choose an image to upload (jpg and png only)</label>
+                        <input required type="file" id="image_uploads" name="image_uploads" accept=".jpg, .jpeg, .png">
+                    </div>
+                    <div class="preview">
+                        <p>No file currently selected for upload</p>
+                    </div>
+                    <div>
+                        <p>
+                            <label for="short_description">Caption:</label>
+                            <input minlength="3" maxlength="100" required type="text" id="short_description" name="short_description"  />
+                        </p>
+
+                        <p>
+                            <label for="long_description">Description:</label>
+                            <textarea id="long_description" name="long_description"></textarea>
+                        </p>
+                    </div>
+                    <div>
+                        <button>Enter</button>
+                    </div>
+                </form>
+            </div>
+            <p>
+                <a id="view-person-detail-link" href="person?id={{person_id}}">{{person_name}}</a>
+            </p>
+            <p>
+                <a id="edit-person-link" href="editperson?id={{person_id}}">Edit</a>
+            </p>
+            <table>
+                <thead>
+                <tr>
+                    <th class="thumbnail_header">Thumbnail link</th>
+                    <th class="short_description_header">Caption / alt text</th>
+                    <th class="description_header">Description</th>
+                    <th class="copy_image_header"></th>
+                    <th class="copy_url_header"></th>
+                    <th class="copy_figure_header"></th>
+                    <th class="delete_header"></th>
+                    <th class="copy_to_other_person"></th>
+                </tr>
+                </thead>
+                <tbody>
+                    {{photo_html}}
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>

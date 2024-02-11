@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Registration | Inmra</title>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="filename" content="register_page_template.html" />
+        <link rel="stylesheet" href="general/main.css" />
+    </head>
+    <body>
+        <nav>
+            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
+            <a id="help" href="/general/adminhelp.html">ⓘ</a>
+            {{header}}
+        </nav>
+        <form action="registeruser" method="post">
+            <h1>Register</h1>
+            <p>
+                <label for="username">Username:</label>
+                <input id="username" type="text" name="username" placeholder="username" autocomplete="off" autofocus="autofocus" minlength="3" maxlength="50" required >
+            </p>
+
+            <p>
+                <label for="password">Password:</label>
+                <input id="password" type="password" name="password" placeholder="password" autocomplete="off" minlength="12" maxlength="255" required >
+            </p>
+
+            <button id="register_user_button">Enter</button>
+        </form>
+    </body>
+</html>

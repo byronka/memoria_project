@@ -1,0 +1,31 @@
+#admin-container {
+    margin: 10px;
+}
+
+textarea {
+  width: 600px;
+  max-width: 90%;
+}
+
+#sessions {
+  height: 50px;
+}
+
+#users {
+  height: 70px;
+}
+
+#inmates {
+  height: 50px;
+}
+
+div#admin-container {
+    display: flex;
+    flex-direction: column;
+}
+
+div#admin-container > div {
+    display: flex;
+    flex-direction: column;
+}
+

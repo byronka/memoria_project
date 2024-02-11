@@ -1,0 +1,19 @@
+div.preview {
+    width: 400px;
+}
+
+div.preview img {
+    width: 100%;
+}
+
+#photo_upload_section {
+    width: 600px;
+    margin: 20px;
+    padding: 20px;
+    border: 3px dashed grey;
+    border-radius: 15px;
+}
+
+#photo_upload_section.highlight {
+    border-color: blue;
+}

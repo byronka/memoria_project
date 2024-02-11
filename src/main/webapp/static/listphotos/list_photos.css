@@ -1,0 +1,134 @@
+#container {
+    margin: 10px;
+}
+
+.person-photo-container {
+    border: 1px solid grey;
+    margin-top: 10px;
+}
+
+table form {
+    display: flex;
+    width: 100%;
+}
+
+form[action=deletephoto] {
+    justify-content: center;
+}
+
+table div.long_description_container,
+table div.short_description_container {
+   display: flex;
+   align-items: center;
+}
+
+table th.thumbnail_header,
+table th.copy_image_header,
+table th.copy_url_header,
+table th.copy_figure_header {
+    width: 0%;
+}
+
+table th.delete_header {
+    width: 10%;
+}
+
+table th.copy_to_other_person {
+    width: 6%;
+}
+
+table button {
+  background-color: #594cea;
+  box-shadow: 0 5px 0 darkblue;
+  color: white;
+  position: relative;
+  text-decoration: none;
+}
+
+table button:hover,
+table button:focus {
+  background-color: #3f36ac;
+  cursor: pointer;
+}
+
+table button:active {
+  box-shadow: none;
+  top: 5px;
+}
+
+table button {
+    font-size: 16px;
+    padding-block: 3.2px;
+}
+
+table button.short_description_save_button {
+    padding-block: 13px;
+}
+
+table button.long_description_save_button {
+    padding-block: 13px;
+}
+
+table button.delete_button {
+    background-color: red;
+    box-shadow: 0 5px 0 darkred;
+}
+
+table button.delete_button:hover,
+table button.delete_button:focus {
+  background-color: #950505;
+}
+
+table {
+    margin: auto;
+    border: 1px solid;
+}
+
+table td {
+    width: 350px;
+    text-align: center;
+}
+
+table tr {
+    height: 72px;
+}
+
+table tr:nth-child(even) {background: #CCC}
+
+table tr:nth-child(odd) {background: lightblue}
+
+table textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    height: 65px;
+    border: 3px solid white;
+    transition: border 1s;
+}
+
+table summary {
+  font-weight: bold;
+}
+
+/* This shows an indication that an action took place successfully
+   by putting a green border on an element temporarily using the magic
+   of CSS animations
+*/
+table .all-good-border {
+  border: 3px solid green;
+  transition: border 2s;
+}
+
+/* This shows an indication that an action failed,
+   by putting a red border on an element temporarily using the magic
+   of CSS animations
+*/
+table .failed-border {
+  border: 3px solid red;
+  transition: border 2s;
+}
+
+.thumbnail-image {
+    height: 64px;
+    width: initial;
+}

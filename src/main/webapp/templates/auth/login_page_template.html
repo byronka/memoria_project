@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="auth/auth.css" />
+        <link rel="stylesheet" href="general/main.css" />
+        <title>Login | Inmra</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="file" content="login_page_template.html" >
+    </head>
+    <body>
+        <nav>
+            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
+            <a id="help" href="/general/help.html">ⓘ</a>
+        </nav>
+        <form method="post" action="loginuser">
+            <table>
+                <tbody>
+                <tr>
+                    <td>
+                        <label for="username">Username</label>
+                        <input autofocus type="text" name="username" id="username" minlength="3" maxlength="50" required />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" minlength="12" maxlength="255" required />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button id="login_button" class="submit">Login</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </form>
+    </body>
+</html>

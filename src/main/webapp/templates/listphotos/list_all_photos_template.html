@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>List Photos | Inmra</title>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="listphotos/list_photos.css" />
+        <link rel="stylesheet" href="general/main.css" />
+        <meta name="filename" content="list_all_photos_template.html" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="general/copy_to_clipboard.js" ></script>
+        <script src="listphotos/list_photos_template.js"></script>
+    </head>
+    <body>
+        <nav>
+            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
+            <a id="help" href="/general/adminhelp.html">ⓘ</a>
+            {{header}}
+        </nav>
+        <div id="container">
+            {{ list_all_photos_core }}
+        </div>
+    </body>
+</html>

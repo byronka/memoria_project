@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{{ title }} | Inmra</title>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="person/person_edit.css" />
+        <link rel="stylesheet" href="general/main.css" />
+        <link rel="stylesheet" href="listphotos/list_photos.css" />
+        <meta name="filename" content="person_edit.html" />
+        <meta name="description" content="a page for editing details of a person - core details, relations, biographical" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" type="image/png" href="/favicon.ico"/>
+        <script src="general/copy_to_clipboard.js"></script>
+        <script src="person/add_extra.js"></script>
+        <script src="person/editpage_person_search.js"></script>
+        <script src="person/editpage_person_date.js"></script>
+        <script src="person/person_edit_page.js"></script>
+    </head>
+    <body>
+        <nav>
+            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
+            <a id="help" href="/general/adminhelp.html">ⓘ</a>
+            {{header}}
+        </nav>
+        <div id="container">
+
+            <h1 id="javascript-warning" >
+                This page requires JavaScript for proper use.
+                Some capabilities will be highly limited.
+            </h1>
+            <script>
+                // if the browser lacks javascript, show a warning for this page.
+                document.getElementById('javascript-warning').style.display='none';
+            </script>
+
+            <h4>Person details</h4>
+            <form id="editperson-form" action="editperson" method="post">
+                <fieldset>
+                    <legend>Core details</legend>
+                    <input type="hidden" name="id" value="{{id}}" >
+                    <div id="essential_info">
+
+                        <div id="name_section">
+                            <label for="name_input">Name</label>
+                            <input required type="text" placeholder="name" id="name_input" name="name_input" value="{{name_input_value}}" />
+                        </div>
+
+                        <div id="image_section">
+                            <label for="image_input">Image url (may be relative)</label>
+                            <input type="text" placeholder="image URL" id="image_input" name="image_input" value="{{image_input_value}}" />
+                        </div>
+
+                        <div id="birthdate_section" data-bornordied="born" class="date_section">
+                            <label for="born_input">Born:</label>
+                            <input type="{{born_date_input_type}}" class="date-input" name="born_input" id="born_input" value="{{born_input_value}}" {{is_born_date_unknown}}  />
+                            <label for="born_date_unknown_checkbox" title="check this when the date exists but is unknown">
+                                <input class="unknown-date-checkbox" id="born_date_unknown_checkbox" type="checkbox" name="born_date_unknown" {{is_born_date_unknown_checked}} /> Unknown
+                            </label>
+                            <label for="born_date_year_only_checkbox" title="check this when the only known date is a year">
+                                <input class="year-only-checkbox" id="born_date_year_only_checkbox" type="checkbox" name="born_date_year_only" {{is_born_date_year_only_checked}} {{is_born_date_unknown}} /> Year-only
+                            </label>
+                        </div>
+
+                        <div id="deathdate_section" data-bornordied="died" class="date_section">
+                            <label for="died_input">Died:</label>
+                            <input type="{{died_date_input_type}}" class="date-input" name="died_input" id="died_input" value="{{died_input_value}}" {{is_died_date_unknown}}  />
+                            <label for="death_date_unknown_checkbox" title="check this when the date exists but is unknown">
+                                <input class="unknown-date-checkbox" id="death_date_unknown_checkbox" type="checkbox" name="death_date_unknown" {{is_died_date_unknown_checked}} /> Unknown
+                            </label>
+                            <label for="died_date_year_only_checkbox" title="check this when the only known date is a year">
+                                <input class="year-only-checkbox" id="died_date_year_only_checkbox" type="checkbox" name="death_date_year_only" {{is_died_date_year_only_checked}} {{is_died_date_unknown}} /> Year-only
+                            </label>
+                        </div>
+
+                        <fieldset id="gender">
+                            <legend>Gender:</legend>
+                            <div>
+                                <input type="radio" id="unset" name="gender_input" value="" {{ unset_checked }} />
+                                <label for="unset">unset</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="male" name="gender_input" value="male" {{ male_checked }}  />
+                                <label for="male">male</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="female" name="gender_input" value="female" {{ female_checked }}  />
+                                <label for="female">female</label>
+                            </div>
+                        </fieldset>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend>Relations</legend>
+                    <div id="relations_section">
+                        <div>
+                            <label for="siblings_input">Siblings</label>
+                            <textarea name="siblings_input" id="siblings_input" >{{siblings_input_value}}</textarea>
+                            <div>
+                                <label for="add_sibling">Search relations:</label>
+                                <input type="search" id="add_sibling" class="linkages">
+                                <button type="button" onclick="copyTextToClipboard(document.getElementById('add_sibling').value)">Copy</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="spouses_input">Spouses</label>
+                            <textarea name="spouses_input" id="spouses_input" >{{spouses_input_value}}</textarea>
+                            <div>
+                                <label for="add_spouse">Search relations:</label>
+                                <input type="search" id="add_spouse" class="linkages">
+                                <button type="button" onclick="copyTextToClipboard(document.getElementById('add_spouse').value)">Copy</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="parents_input">Parents</label>
+                            <textarea name="parents_input" id="parents_input" >{{parents_input_value}}</textarea>
+                            <div>
+                                <label for="add_parent">Search relations:</label>
+                                <input type="search" id="add_parent" class="linkages">
+                                <button type="button" onclick="copyTextToClipboard(document.getElementById('add_parent').value)">Copy</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="children_input">Children</label>
+                            <textarea name="children_input" id="children_input" >{{children_input_value}}</textarea>
+                            <div>
+                                <label for="add_child">Search relations:</label>
+                                <input type="search" id="add_child" class="linkages">
+                                <button type="button" onclick="copyTextToClipboard(document.getElementById('add_child').value)">Copy</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend>Biographical</legend>
+                    <div id="biographical_information_section">
+                        <div>
+                            <label for="biography_input">Biography:</label>
+                            <textarea id="biography_input" name="biography_input">{{biography_input_value}}</textarea>
+                            <button id="photo_preview_window_toggle" type="button">Review photos</button>
+                            <div style="position: relative">
+                                <div id="photo_preview_window" class="photo-preview is-hidden" >
+                                    <table>
+                                        <thead>
+                                        <tr>
+                                            <th class="thumbnail_header">Thumbnail link</th>
+                                            <th class="short_description_header">Caption / alt text</th>
+                                            <th class="description_header">Description</th>
+                                            <th class="photo_url_header">Filename</th>
+                                            <th class="copy_image_header"></th>
+                                            <th class="copy_url_header"></th>
+                                            <th class="copy_figure_header"></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {{photo_html}}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            const elToggle  = document.querySelector("#photo_preview_window_toggle");
+                            const elContent = document.querySelector("#photo_preview_window");
+
+                            elToggle.addEventListener("click", () => {
+                                elContent.classList.toggle("is-hidden");
+                            });
+                        </script>
+
+                        <div>
+                            <label for="notes_input">Notes:</label>
+                            <textarea id="notes_input" name="notes_input">{{notes_input_value}}</textarea>
+                        </div>
+                    </div>
+                    <script>
+                        // adding as a script so if the user has javascript disabled, they
+                        // won't see this.  It only works with javascript.  Fortunately, it is
+                        // optional.
+                        const extraFieldButton = document.createElement('button');
+                        extraFieldButton.setAttribute('id','add_extra_field_button');
+                        extraFieldButton.innerText = 'Add Extra Field';
+                        const bioSection = document.getElementById('biographical_information_section');
+                        bioSection.append(extraFieldButton);
+                    </script>
+
+                    <input id="extra_field_count" type="hidden" name="extra_field_count" value="{{ extra_field_count }}"/>
+                    <input id="extra_field_array" type="hidden" name="extra_field_array" value="{{ extra_field_array }}"/>
+
+                    <ul id="extra_fields_list">
+                        {{ extra_fields }}
+                    </ul>
+                </fieldset>
+
+                <datalist id="extra_key_options">
+                    <option value="Wedding date"></option>
+                    <option value="Graduation date"></option>
+                    <option value="Birthplace"></option>
+                    <option value="Deathplace"></option>
+                    <option value="Occupation"></option>
+                    <option value="Immigration date"></option>
+                </datalist>
+
+                <input id="form_submit_button" type="submit" value="Enter" />
+                <a id="cancel_button" href="{{cancel_href}}">Cancel</a>
+            </form>
+
+        </div>
+
+        <div id="search_result_container">
+            <ul id="search_result_list"></ul>
+        </div>
+        <template id="extra_field_template">
+            <li id="extra_data_item" class="extra_field_item">
+                <button class="extra_data_item_delete">X</button>
+                <div class="input_section extra_data_key">
+                    <label for="extra_data_key">Extra key:</label>
+                    <select required
+                            name="extra_data_key"
+                            id="extra_data_key"
+                            class="extra_data_key">
+                        <option value="">Choose a key for this data</option>
+                        <option value="Wedding date">Wedding date</option>
+                        <option value="Graduation date">Graduation date</option>
+                        <option value="Immigration date">Immigration date</option>
+                        <option value="Birthplace">Birthplace</option>
+                        <option value="Deathplace">Deathplace</option>
+                        <option value="Occupation">Occupation</option>
+                    </select>
+                </div>
+
+                <div class="input_section extra_data_type" style="display:none">
+                    <label for="extra_data_type" >Type of value:</label>
+                    <select required name="extra_data_type" id="extra_data_type" class="extra_data_type">
+                        <option value="">Choose a type for this data</option>
+                        <option value="string">String</option>
+                        <option value="date">Date</option>
+                        <option value="number">Number</option>
+                    </select>
+                </div>
+
+                <div class="input_section year_only_for_extra_value" style="display: none">
+                    <label for="year_only_for_extra_value">Year-only:</label>
+                    <input type="checkbox" id="year_only_for_extra_value" name="year_only_for_extra_value" >
+                </div>
+
+                <div class="input_section extra_data_value">
+                    <label for="extra_data_value">Extra value:</label>
+                    <input
+                            required
+                            type="text"
+                            id="extra_data_value"
+                            name="extra_data_value"
+                            class="extra_data_value"
+                            value=""
+                    />
+                </div>
+            </li>
+        </template>
+    </body>
+</html>

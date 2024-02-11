@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.renomad</groupId>
+  <artifactId>inmra_ui_tests</artifactId>
+  <version>1.0.0</version>
+
+  <name>inmra_ui_tests</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+  </properties>
+
+
+  <dependencies>
+    <!--
+    The Minum web framework
+    https://mvnrepository.com/artifact/com.renomad/minum
+    -->
+    <dependency>
+      <groupId>com.renomad</groupId>
+      <artifactId>minum</artifactId>
+      <version>2.3.0</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <!--
+    JUnit is our testing framework
+    https://mvnrepository.com/artifact/junit/junit
+    -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      This is a tool that keeps us updated with the version of web driver needed when
+      running Selenium.  It works for chrome, gecko, edge, opera, and ie.
+      See https://bonigarcia.dev/webdrivermanager/
+      see https://central.sonatype.com/artifact/io.github.bonigarcia/webdrivermanager/4.4.3/overview
+    -->
+    <dependency>
+      <groupId>io.github.bonigarcia</groupId>
+      <artifactId>webdrivermanager</artifactId>
+      <version>5.6.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      Selenium is our UI testing tool.  It simply controls the browser like a human
+      would, typing, clicking on buttons, etc.
+    -->
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
+      <version>4.13.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+    The following is only necessary for making Webdrivermanager's complaints
+    disappear.
+    https://mvnrepository.com/artifact/org.slf4j/slf4j-nop
+    -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>1.7.30</version>
+      <scope>test</scope>
+    </dependency>
+
+
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
+        <plugin>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>3.1.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.1.2</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-project-info-reports-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+
+      <!--
+      A plugin that captures code coverage during our test runs,
+      and really, anytime we want.  For example, we might choose
+      to run the Jacoco agent while the app is running locally,
+      and capture code coverage from a manual testing.  Or something.
+      -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.10</version>
+        <executions>
+          <execution>
+            <id>default-prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-report</id>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-check</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <rules>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+
+  </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>3.1.2</version>
+        <configuration>
+          <outputDirectory>${basedir}/target/newsite</outputDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>2.1</version>
+        <configuration>
+          <outputDirectory>${basedir}/target/newsite</outputDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <!-- select non-aggregate reports -->
+              <report>report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+        <configuration>
+          <outputDirectory>${basedir}/target/newsite</outputDirectory>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+</project>

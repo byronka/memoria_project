@@ -1,0 +1,37 @@
+
+div#search_result_container {
+    position: absolute;
+    font-size: inherit;
+    background: white;
+    border: 1px solid grey;
+    width: 58%;
+    display: none;
+    left: 59px;
+}
+
+#search_result_container > ul > li:hover,
+#search_result_container > ul > li[selected]
+{
+    background: lightblue;
+}
+
+ul#search_result_list {
+    list-style: none;
+    padding-inline-start: 0;
+    display: inline-block;
+}
+
+.linkages {
+    width: 58%;
+}
+
+#preview {
+    margin: 0 auto;
+    margin-top: 10px;
+    width: 400px;
+}
+
+#preview > img {
+    height: auto;
+    max-height: 400px;
+}

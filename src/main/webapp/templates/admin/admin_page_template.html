@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <title>The admin page | Inmra</title>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="admin/admin_page.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="filename" content="admin_page_template.html" />
+        <link rel="stylesheet" href="general/main.css" />
+    </head>
+    <body>
+        <nav>
+            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
+            <a id="help" href="/general/adminhelp.html">ⓘ</a>
+            {{auth_header}}
+        </nav>
+
+        <div id="admin-container">
+            <h1>Administration</h1>
+
+            <div>
+                <label for="users">Registered Users</label>
+                <textarea id="users">{{users}}</textarea>
+            </div>
+
+            <div>
+                <label for="sessions">Users with live sessions</label>
+                <textarea id="sessions">{{live_sessions}}</textarea>
+            </div>
+
+            <div>
+                <label for="inmates">Inmates (newest first)</label>
+                <textarea id="inmates">{{inmates}}</textarea>
+            </div>
+
+            <div>
+                <h2>Log settings</h2>
+                <p>{{log_settings}}</p>
+            </div>
+
+            <div>
+                <h2>Running version information</h2>
+                <p>{{version_info}}</p>
+            </div>
+        </div>
+
+    </body>
+</html>

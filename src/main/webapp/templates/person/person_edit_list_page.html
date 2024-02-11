@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>List Persons | Inmra</title>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="person/person_edit_list_page.css" />
+        <link rel="stylesheet" href="general/main.css" />
+        <meta name="filename" content="person_edit_list_page.html" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="/person/sorting_behavior.js"></script>
+        <script src="person/person_edit_list_page.js" ></script>
+    </head>
+    <body>
+        <nav>
+            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
+            <a id="help" href="/general/adminhelp.html">ⓘ</a>
+            {{header}}
+        </nav>
+        <div id="container">
+            <div id="search_pane">
+                <p id="current_search">Current search: {{current_search}}</p>
+                <form>
+                    <label for="search_field">Search:</label>
+                    <input type="text" id="search_field" required name="search" />
+                    <input id="search-submit" type="submit" value="Search" />
+                    <input type="hidden" name="sort" value="{{current_sort_code}}" />
+                </form>
+                <form>
+                    <input type="hidden" name="sort" value="{{current_sort_code}}" />
+                    <input id="clear-search-submit" type="submit" value="Clear search" />
+                </form>
+            </div>
+            <div id="sort_pane">
+                <p id="current_sort" >Current sort: {{current_sort}}</p>
+                <form>
+                    <label for="sort-select" >Sort: </label>
+                    <select name="sort" id="sort-select">
+                        <option value="" selected disabled hidden>--Please choose an option--</option>
+                        <option value="bda">birth date ascending</option>
+                        <option value="bdd">birth date descending</option>
+                        <option value="dda">death date ascending</option>
+                        <option value="ddd">death date descending</option>
+                        <option value="na">name ascending</option>
+                        <option value="nd">name descending</option>
+                        <option value="pca">photo count ascending</option>
+                        <option value="pcd">photo count descending</option>
+                        <option value="lma">last modified ascending</option>
+                        <option value="lmd">last modified descending</option>
+                    </select>
+                    <input type="hidden" name="search" value="{{current_search_raw}}" />
+                    <input id="sort-submit" type="submit" value="Sort" />
+                    <script>
+                        // if we have JavaScript running, hide the submit button
+                        document.getElementById('sort-submit').style.display = 'none';
+                    </script>
+                </form>
+                <form>
+                    <input type="hidden" name="search" value="{{current_search_raw}}" />
+                    <input id="clear-sort-submit" type="submit" value="Clear sort" />
+                </form>
+            </div>
+            <div id="list_person_pane">
+                {{list_items}}
+            </div>
+            <div id="back_button">
+                <form>
+                    <input type="hidden" name="page" value="{{previous_page}}">
+                    <input type="hidden" name="search" value="{{current_search_raw}}" />
+                    <input type="hidden" name="sort" value="{{current_sort_code}}" />
+                    <button>back</button>
+                </form>
+            </div>
+            <div id="forward_button">
+                <form>
+                    <input type="hidden" name="page" value="{{next_page}}">
+                    <input type="hidden" name="search" value="{{current_search_raw}}" />
+                    <input type="hidden" name="sort" value="{{current_sort_code}}" />
+                    <button>forward</button>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

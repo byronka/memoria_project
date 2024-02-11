@@ -1,0 +1,24 @@
+<div class="person-photo-container">
+    <header>
+        <h1>{{person_name}}</h1>
+        <a class="view-person-link" href="person?id={{person_id}}">View</a>
+        <a class="view-person-photos-link" href="photos?personid={{person_id}}">Photos</a>
+        <a class="edit-person-link" href="editperson?id={{person_id}}">Edit</a>
+    </header>
+    <table>
+        <thead>
+            <tr>
+                <th class="thumbnail_header">Thumbnail link</th>
+                <th class="short_description_header">Caption / alt text</th>
+                <th class="description_header">Description</th>
+                <th class="copy_image_header"></th>
+                <th class="copy_url_header"></th>
+                <th class="copy_figure_header"></th>
+                <th class="delete_header"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{photo_html}}
+        </tbody>
+    </table>
+</div>
