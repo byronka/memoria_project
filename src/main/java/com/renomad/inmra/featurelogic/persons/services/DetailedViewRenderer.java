@@ -47,7 +47,7 @@ public class DetailedViewRenderer {
      * Renders the detailed view of a person.  This is what typical users
      * get to see - the point of all our work.
      */
-    public String renderPersonView(PersonFile deserializedPersonFile, String authHeader) {
+    public String renderPersonView(PersonFile deserializedPersonFile, String authHeader, String helpLink) {
         var myMap = fillInTemplatePartially(deserializedPersonFile);
         addImageToTemplate(deserializedPersonFile, myMap);
         addExtraFieldsToTemplate(deserializedPersonFile, myMap);
@@ -57,6 +57,7 @@ public class DetailedViewRenderer {
         String renderedLifespan = lifespan.renderLifespan(deserializedPersonFile);
         myMap.put("lifespan", renderedLifespan);
         myMap.put("header", authHeader);
+        myMap.put("help_link", helpLink);
 
         return personDetailPageTemplateProcessor.renderTemplate(myMap);
     }

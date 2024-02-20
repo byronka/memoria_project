@@ -161,9 +161,15 @@ public class PersonListEndpoints {
         }
 
         String renderedAuthHeader = personEndpoints.authHeader.getRenderedAuthHeader(r, id);
+
+        AuthResult authResult = this.auth.processAuth(r);
+        String helpLink = String.format("""
+                <a id="help" href="/general/%s.html">ⓘ</a>""", authResult.isAuthenticated() ? "adminhelp" : "help");
+
         String renderedTemplate = detailedViewRenderer.renderPersonView(
                 deserializedPersonFile,
-                renderedAuthHeader);
+                renderedAuthHeader,
+                helpLink);
         return Respond.htmlOk(renderedTemplate);
 
     }
