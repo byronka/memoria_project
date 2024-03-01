@@ -141,9 +141,10 @@ public class TheRegister {
                 MyThread.sleep(500);
                 System.out.println("\n****************************************\n\n");
                 System.out.println("Creating a new admin password, see \"admin_password\"");
-                System.out.println("use a username of \"admin\" at localhost:8080\\login");
+                System.out.println("in the root of the database directory.");
+                System.out.println("Use a user name of \"admin\" at localhost:8080\\login");
                 System.out.println("\n\n************************************************\n\n");
-                Files.writeString(Path.of("admin_password"), newPassword);
+                Files.writeString(Path.of(constants.DB_DIRECTORY).resolve(Path.of("admin_password")), newPassword);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

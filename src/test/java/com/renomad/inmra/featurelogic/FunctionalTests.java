@@ -829,7 +829,7 @@ public class FunctionalTests {
 
     private static String loginAndGetCookie() throws IOException {
         String cookieHeader;
-        String password = Files.readString(Path.of("admin_password"));
+        String password = Files.readString(Path.of(context.getConstants().DB_DIRECTORY).resolve(Path.of("admin_password")));
         logger.test("POST login with admin and proper password, get cookie and store for later");
         {
             var response = ft.post("loginuser", "username=admin&password=" + password);

@@ -1,0 +1,11 @@
+services:
+  app:
+    image: amazoncorretto:21
+    ports:
+      - "8080:8080"
+    working_dir: /inmra
+    entrypoint: java -jar inmra.jar 
+    volumes:
+      - type: bind
+        source: .
+        target: /inmra

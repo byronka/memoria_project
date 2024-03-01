@@ -26,9 +26,10 @@ SYSTEM_RUNNING
 # Sometimes the Java compiler will fail and output these files, like javac.20230430_000504.args
 *.args
 
-# Don't save the generated admin password
-admin_password
-
 # if we run the program with a script, it will create this
 # file to store the process id, for later killing
 pid_inmra
+
+# If the user unpacks inmra.tar.gz in the docs directory, we 
+# don't want to accidentally include that in our repo.
+docs/inmra

@@ -38,10 +38,11 @@ cd inmra
 Quick Start, downloading binary
 -------------------------------
 
-- Download it [here](https://github.com/byronka/large_sample_project/raw/master/docs/inmra.tar.gz)
+- Download it [here](https://github.com/byronka/memoria_project/raw/master/docs/inmra.tar.gz)
 - decompress it: `tar zxf inmra.tar.gz`
 - change to its directory: `cd inmra`
-- start the program: `java -jar inmra.jar`
+- start the program: `java -jar inmra.jar` or `docker compose up -d`
+  - the README in the inmra directory has useful info
 
 More-detailed Quick Start
 -------------------------
@@ -53,7 +54,7 @@ is incomplete, it acts as a realistic example for the [Minum](https://github.com
 * To load a sample database: `make restore_sampledb`, then run with `make run`.  Wait until the
   message "System is ready" and then hit http://localhost:8080
   * To operate as an administrator, login at http://localhost:8080/login with a username of admin and 
-    the password in the file "admin_password" in the root of the directory. 
+    the password in the file "admin_password" in the root of the database directory. 
 * To run tests: `make test`
 * For help: `make`
 * Production version running at https://inmra.com

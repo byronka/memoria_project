@@ -531,7 +531,7 @@ public class SmokeTest {
     driver.findElement(By.id("password")).click();
     String adminPassword;
     try {
-      adminPassword = Files.readString(Path.of("../admin_password"));
+      adminPassword = Files.readString(Path.of("../target/simple_db/admin_password"));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -549,7 +549,7 @@ public class SmokeTest {
     driver.findElement(By.id("change_password")).click();
 
     try {
-      Files.writeString(Path.of("../admin_password"), newPassword);
+      Files.writeString(Path.of("../target/simple_db/admin_password"), newPassword);
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }

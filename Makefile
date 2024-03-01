@@ -93,7 +93,7 @@ jar::
 	 cp target/inmra-*-jar-with-dependencies.jar target/$(PROJ_NAME)/inmra.jar
 	 @echo "Your new jar is at target/inmra/inmra.jar"
 	 @echo "copy the scripts from cloud_operations/scripts/ into target/$(PROJ_NAME)"
-	 cp cloud_operations/scripts/* target/$(PROJ_NAME)
+	 cp -a cloud_operations/scripts/* target/$(PROJ_NAME)
 	 @echo "copy webapp resources into the target/$(PROJ_NAME) directory"
 	 rsync --recursive --update --perms src/main/webapp/static src/main/webapp/templates target/$(PROJ_NAME)
 
