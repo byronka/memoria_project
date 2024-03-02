@@ -42,7 +42,7 @@ Quick Start, downloading binary
 - decompress it: `tar zxf inmra.tar.gz`
 - change to its directory: `cd inmra`
 - start the program: `java -jar inmra.jar` or `docker compose up -d`
-  - the README in the inmra directory has useful info
+  - the README in that directory has important information.
 
 More-detailed Quick Start
 -------------------------
