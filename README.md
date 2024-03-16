@@ -26,6 +26,8 @@ _Build and run:_
 make restore_sampledb
 make run
 ```
+then visit http://localhost:8080
+
 _Run pre-built system:_
 
 ```shell
@@ -34,6 +36,7 @@ tar zxf inmra.tar.gz
 cd inmra
 ./start.sh
 ```
+then visit http://localhost:8080
 
 Quick Start, downloading binary
 -------------------------------
@@ -42,7 +45,9 @@ Quick Start, downloading binary
 - decompress it: `tar zxf inmra.tar.gz`
 - change to its directory: `cd inmra`
 - start the program: `java -jar inmra.jar` or `docker compose up -d`
-  - the README in that directory has important information.
+- visit http://localhost:8080
+- To shut down - if run using `java -jar`, press ctrl-c.  If docker, run `docker compose down`
+  - Note: the README in the inmra directory has critical information to login as admin
 
 More-detailed Quick Start
 -------------------------
