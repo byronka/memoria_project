@@ -58,8 +58,8 @@ public class PersonCreateServices {
 
         // we will store old data for persons in the audit directories.  Yes, each time an
         // edit takes place, we'll add the whole data as an audit entry.
-        personAuditDirectory = Path.of(context.getConstants().DB_DIRECTORY).resolve("person_audit_logs");
-        personFileAuditDirectory = Path.of(context.getConstants().DB_DIRECTORY).resolve("person_file_audit_logs");
+        personAuditDirectory = Path.of(context.getConstants().dbDirectory).resolve("person_audit_logs");
+        personFileAuditDirectory = Path.of(context.getConstants().dbDirectory).resolve("person_file_audit_logs");
         buildNecessaryDirectories(logger, fileUtils, personAuditDirectory, personFileAuditDirectory);
     }
 
@@ -531,7 +531,7 @@ public class PersonCreateServices {
 
         personAuditor.storePersonToAudit(updatedPerson.getId(), updatedPerson.serialize(), personAuditDirectory, person.getName());
 
-        personEndpoints.getPersonDb().update(updatedPerson);
+        personEndpoints.getPersonDb().write(updatedPerson);
         // if we edited a person, remove them from the cache
         personLruCache.removeFromPersonFileLruCache(id);
         return person;

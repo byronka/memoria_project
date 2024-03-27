@@ -4,12 +4,12 @@ import com.renomad.inmra.security.ISecurityUtils;
 import com.renomad.minum.Context;
 import com.renomad.minum.logging.TestLogger;
 import com.renomad.minum.security.ITheBrig;
+import com.renomad.minum.security.Inmate;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import static com.renomad.minum.testing.TestFramework.*;
 
@@ -102,9 +102,11 @@ public class BruteForceCheckerTests {
     private class MyFakeBrig implements ITheBrig {
         @Override public ITheBrig initialize() {return null;}
         @Override public void stop() {}
-        @Override public void sendToJail(String clientIdentifier, long sentenceDuration) {}
+        @Override public boolean sendToJail(String clientIdentifier, long sentenceDuration) {
+            return true;
+        }
         @Override public boolean isInJail(String clientIdentifier) {return isInJail;}
-        @Override public List<Map.Entry<String, Long>> getInmates() {return null;}
+        @Override public List<Inmate> getInmates() {return null;}
     }
 }
 

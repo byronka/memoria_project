@@ -10,6 +10,7 @@ import com.renomad.minum.Context;
 import com.renomad.minum.database.Db;
 import com.renomad.minum.logging.LoggingLevel;
 import com.renomad.minum.security.ITheBrig;
+import com.renomad.minum.security.Inmate;
 import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.StringUtils;
 import com.renomad.minum.web.*;
@@ -47,7 +48,7 @@ public class Admin {
     }
 
     public Response get(Request request) {
-        if (! authUtils.processAuth(request).isAuthenticated()) return new Response(StatusLine.StatusCode._403_FORBIDDEN);
+        if (! authUtils.processAuth(request).isAuthenticated()) return new Response(StatusLine.StatusCode.CODE_403_FORBIDDEN);
         Map<String, String> adminPageValues = new HashMap<>();
 
         // get all the users
@@ -74,12 +75,12 @@ public class Admin {
         // get the inmates from the brig - client ip's that are considered to be attackers.
         String inmates = theBrig
                 .getInmates().stream()
-                .sorted((Map.Entry.comparingByValue(Comparator.reverseOrder())))
-                .map(x -> x.getKey() + " in jail until " + Instant.ofEpochMilli(x.getValue()).atZone(ZoneId.systemDefault()).toLocalDateTime())
+                .sorted(Comparator.comparingLong(Inmate::getReleaseTime).reversed())
+                .map(x -> x.getClientId() + " in jail until " + Instant.ofEpochMilli(x.getReleaseTime()).atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .collect(Collectors.joining("\n"));
         adminPageValues.put("inmates", StringUtils.safeHtml(inmates));
 
-        List<LoggingLevel> logLevels = constants.LOG_LEVELS;
+        List<LoggingLevel> logLevels = constants.logLevels;
         adminPageValues.put("log_settings", StringUtils.safeHtml(logLevels.toString()));
 
         String s;

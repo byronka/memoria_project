@@ -144,7 +144,7 @@ public class TheRegister {
                 System.out.println("in the root of the database directory.");
                 System.out.println("Use a user name of \"admin\" at localhost:8080\\login");
                 System.out.println("\n\n************************************************\n\n");
-                Files.writeString(Path.of(constants.DB_DIRECTORY).resolve(Path.of("admin_password")), newPassword);
+                Files.writeString(Path.of(constants.dbDirectory).resolve(Path.of("admin_password")), newPassword);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

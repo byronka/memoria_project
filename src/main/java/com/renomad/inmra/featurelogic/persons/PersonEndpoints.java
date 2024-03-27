@@ -50,7 +50,7 @@ public class PersonEndpoints {
                            AuthHeader authHeader
                            ) {
         Constants constants = context.getConstants();
-        var dbDir = Path.of(constants.DB_DIRECTORY);
+        var dbDir = Path.of(constants.dbDirectory);
 
         personDirectory = dbDir.resolve("person_files");
         this.personLruCache = new PersonLruCache(getPersonDirectory());

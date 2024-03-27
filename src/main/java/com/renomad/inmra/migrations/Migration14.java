@@ -55,14 +55,9 @@ public class Migration14 {
         fileUtils.deleteDirectoryRecursivelyIfExists(photoOriginalDirectory, logger);
 
         // build new directories
-        try {
-            fileUtils.makeDirectory(photoThumbnailDirectory);
-            fileUtils.makeDirectory(photoMediumDirectory);
-            fileUtils.makeDirectory(photoOriginalDirectory);
-        } catch (IOException e) {
-            logger.logAsyncError(() -> StacktraceUtils.stackTraceToString(e));
-            throw new RuntimeException(e);
-        }
+        fileUtils.makeDirectory(photoThumbnailDirectory);
+        fileUtils.makeDirectory(photoMediumDirectory);
+        fileUtils.makeDirectory(photoOriginalDirectory);
 
         logger.logDebug(() -> "get all the paths (that is, all the photos) in the photos archive directory");
         List<Path> listPhotos = getPaths(photoArchiveDirectory);

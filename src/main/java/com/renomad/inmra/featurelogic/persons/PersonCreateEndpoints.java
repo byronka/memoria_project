@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.renomad.minum.utils.SearchUtils.findExactlyOne;
-import static com.renomad.minum.web.StatusLine.StatusCode._500_INTERNAL_SERVER_ERROR;
+import static com.renomad.minum.web.StatusLine.StatusCode.CODE_500_INTERNAL_SERVER_ERROR;
 
 public class PersonCreateEndpoints {
     private final IAuthUtils auth;
@@ -54,7 +54,7 @@ public class PersonCreateEndpoints {
                 );
         this.personTrasher = new PersonTrasher(
                 personEndpoints.getPersonDirectory(),
-                Path.of(context.getConstants().DB_DIRECTORY),
+                Path.of(context.getConstants().dbDirectory),
                 logger,
                 personEndpoints.getPersonDb(),
                 personEndpoints.personLruCache,
@@ -157,7 +157,7 @@ public class PersonCreateEndpoints {
             return Respond.userInputError();
         }
 
-        return new Response(StatusLine.StatusCode._303_SEE_OTHER, Map.of("location","person?id="+person.getId()));
+        return new Response(StatusLine.StatusCode.CODE_303_SEE_OTHER, Map.of("location","person?id="+person.getId()));
     }
 
     /**
@@ -176,7 +176,7 @@ public class PersonCreateEndpoints {
 
         if (id == null) {
             logger.logDebug(() -> "User failed to include id of person to delete");
-            return new Response(StatusLine.StatusCode._400_BAD_REQUEST);
+            return new Response(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
         }
         Person person = findExactlyOne(
                 personEndpoints.getPersonDb().values().stream(),
@@ -184,7 +184,7 @@ public class PersonCreateEndpoints {
 
         if (person == null) {
             logger.logDebug(() -> "User provided an id that matched no one: " + id);
-            return new Response(StatusLine.StatusCode._400_BAD_REQUEST);
+            return new Response(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
         }
 
         String username = authResult.user().getUsername();
@@ -195,14 +195,14 @@ public class PersonCreateEndpoints {
         } catch (IOException e) {
             String exception = StacktraceUtils.stackTraceToString(e);
             logger.logAsyncError(() -> String.format("Error: Failed to put person %s (%d) in trash: %s", person.getName(), person.getIndex(), exception));
-            return new Response(_500_INTERNAL_SERVER_ERROR);
+            return new Response(CODE_500_INTERNAL_SERVER_ERROR);
         }
 
         if (isPost) {
             String message = String.format("A person named %s has been deleted", person.getName());
             return Message.redirect(message, "/editpersons");
         } else {
-            return new Response(StatusLine.StatusCode._204_NO_CONTENT);
+            return new Response(StatusLine.StatusCode.CODE_204_NO_CONTENT);
         }
     }
 

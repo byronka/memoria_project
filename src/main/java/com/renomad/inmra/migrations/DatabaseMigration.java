@@ -38,7 +38,7 @@ public class DatabaseMigration {
         this.logger = context.getLogger();
         this.fileUtils = memoriaContext.fileUtils();
         this.constants = context.getConstants();
-        Path dbDirectory = Path.of(constants.DB_DIRECTORY);
+        Path dbDirectory = Path.of(constants.dbDirectory);
         migrationsRecords = dbDirectory.resolve("migrations.ddps");
         migrations = determineFinishedMigrations();
         this.migration1 = new Migration1(dbDirectory, logger);
@@ -129,7 +129,7 @@ public class DatabaseMigration {
         final List<String> migrations;
         try {
             if (!Files.exists(migrationsRecords)) {
-                fileUtils.makeDirectory(Path.of(constants.DB_DIRECTORY));
+                fileUtils.makeDirectory(Path.of(constants.dbDirectory));
                 Files.createFile(migrationsRecords);
                 migrations = new ArrayList<>();
             } else {

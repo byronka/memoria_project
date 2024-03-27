@@ -146,7 +146,7 @@ public class PhotoServiceTests {
     }
 
     @Test
-    public void testStoringPhotoToAudit() {
+    public void testStoringPhotoToAudit() throws Exception {
         IFileWriteStringWrapper fileWriteStringWrapper = (path, csq, options) -> {
             throw new IOException("foo foo did a foo");
         };
@@ -155,6 +155,6 @@ public class PhotoServiceTests {
                 Path.of(""),
                 logger,
                 fileWriteStringWrapper).run();
-        assertTrue(logger.findFirstMessageThatContains("foo foo did a foo").length() > 0);
+        assertTrue(logger.doesMessageExist("foo foo did a foo"));
     }
 }

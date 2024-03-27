@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.renomad.minum.utils.SearchUtils.findExactlyOne;
-import static com.renomad.minum.web.StatusLine.StatusCode._403_FORBIDDEN;
+import static com.renomad.minum.web.StatusLine.StatusCode.CODE_403_FORBIDDEN;
 
 
 /**
@@ -74,7 +74,7 @@ public class AuthUtils implements IAuthUtils {
         // extract session identifiers from the cookies
         final var cookieMatcher = IAuthUtils.sessionIdCookieRegex.matcher(cookieHeaders);
         final var listOfSessionIds = new ArrayList<String>();
-        for(int i = 0; cookieMatcher.find() && i < constants.MOST_COOKIES_WELL_LOOK_THROUGH; i++) {
+        for(int i = 0; cookieMatcher.find() && i < constants.mostCookiesWellLookThrough; i++) {
             final var sessionIdValue = cookieMatcher.group("sessionIdValue");
             listOfSessionIds.add(sessionIdValue);
         }
@@ -110,7 +110,7 @@ public class AuthUtils implements IAuthUtils {
 
         // update the time we will kill this session
         SessionId updatedSessionId = sessionFoundInDatabase.updateSessionDeadline(Instant.now());
-        sessionDiskData.update(updatedSessionId);
+        sessionDiskData.write(updatedSessionId);
 
         return new AuthResult(true, sessionFoundInDatabase.getCreationDateTime(), authenticatedUser);
     }
@@ -124,6 +124,6 @@ public class AuthUtils implements IAuthUtils {
 
     @Override
     public Response htmlForbidden() {
-        return new Response(_403_FORBIDDEN, getForbiddenPage(), Map.of("content-type","text/html"));
+        return new Response(CODE_403_FORBIDDEN, getForbiddenPage(), Map.of("content-type","text/html"));
     }
 }

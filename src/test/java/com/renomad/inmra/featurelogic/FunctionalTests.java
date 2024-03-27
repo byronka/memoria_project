@@ -43,7 +43,7 @@ public class FunctionalTests {
         Properties properties = com.renomad.minum.Constants.getConfiguredProperties();
         properties.setProperty("DB_DIRECTORY", "target/simple_db_for_tests");
         context = buildTestingContext("_integration_test", properties);
-        context.getFileUtils().deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().DB_DIRECTORY), context.getLogger());
+        context.getFileUtils().deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().dbDirectory), context.getLogger());
 
         // override the COUNT_OF_PHOTO_CHECKS since our functional tests don't rely
         // on photo conversion and there's no sense in waiting a while for nothing.
@@ -56,13 +56,13 @@ public class FunctionalTests {
         new FullSystem(context).start();
         new TheRegister(context, memoriaContext).registerDomains();
         logger = (TestLogger) context.getLogger();
-        ft = new FunctionalTesting(context);
+        ft = new FunctionalTesting(context, "localhost", 8080);
     }
 
     @AfterClass
     public static void cleanup() {
         var fs = context.getFullSystem();
-        fs.close();
+        fs.shutdown();
         context.getLogger().stop();
         context.getExecutorService().shutdownNow();
     }
@@ -86,7 +86,7 @@ public class FunctionalTests {
 
         logger.test("GET editpersons unauth, expect failure page"); {
             var response = ft.get("editpersons");
-            assertEquals(response.statusLine().status(), _403_FORBIDDEN);
+            assertEquals(response.statusLine().status(), CODE_403_FORBIDDEN);
         }
 
         logger.test("GET login page, confirm the username and password fields are there"); {
@@ -107,7 +107,7 @@ public class FunctionalTests {
         logger.test("POST a new person, alice, auth'd"); {
             String payload = "id=&image_input=&name_input=Alice+Katz&born_input=1921-11-21&died_input=2020-03-12&siblings_input=Florence&spouses_input=&parents_input=Robert+and+Ethel&children_input=ron&biography_input=%3Cp%3EEllis+was+born+21+November%2C+1921+in+Atlanta%2C+GA.+As+his+Dad+was+a%3C%2Fp%3E";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _303_SEE_OTHER);
+            assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
             aliceUrl = response.headers().valueByKey("location").get(0);
         }
         String aliceId = RegexUtils.find("id=(?<aliceid>.*)", aliceUrl, "aliceid");
@@ -122,27 +122,27 @@ public class FunctionalTests {
         logger.test("GET the detail view of a person, negative case - bad id");
         {
             var response = ft.get("person?id=" + "abc123");
-            assertEquals(response.statusLine().status(), _404_NOT_FOUND);
+            assertEquals(response.statusLine().status(), CODE_404_NOT_FOUND);
         }
 
         logger.test("POST a new person, unauth'd"); {
             String payload = "id=&image_input=&name_input=byron";
             var response = ft.post("editperson", payload);
-            assertEquals(response.statusLine().status(), _403_FORBIDDEN);
+            assertEquals(response.statusLine().status(), CODE_403_FORBIDDEN);
         }
 
         // "persons" page - show the data for all persons.
 
         logger.test("GET editpersons auth'd, expect to find Alice."); {
             var response = ft.get("editpersons", List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _200_OK);
+            assertEquals(response.statusLine().status(), CODE_200_OK);
             var aliceResult = response.search(TagName.SPAN, Map.of("class", "name")).get(0);
             assertEquals(aliceResult.innerContent().get(0).textContent().trim(), "Alice Katz");
         }
 
         logger.test("GET editpersons auth'd again, should use cache, expect to find Alice."); {
             var response = ft.get("editpersons", List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _200_OK);
+            assertEquals(response.statusLine().status(), CODE_200_OK);
             var aliceResult = response.search(TagName.SPAN, Map.of("class", "name")).get(0);
             assertEquals(aliceResult.innerContent().get(0).textContent().trim(), "Alice Katz");
         }
@@ -238,7 +238,7 @@ public class FunctionalTests {
         logger.test("Edit a person, Alice, auth'd"); {
             String payload = "id="+aliceId+"&image_input=&name_input=Foo&born_input=&died_input=&siblings_input=&spouses_input=&parents_input=&children_input=&biography_input=";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _303_SEE_OTHER);
+            assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
         }
 
         /*
@@ -253,14 +253,14 @@ public class FunctionalTests {
 
         logger.test("GET editpersons auth'd, expect 403"); {
             var response = ft.get("editpersons", List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _403_FORBIDDEN);
+            assertEquals(response.statusLine().status(), CODE_403_FORBIDDEN);
         }
 
         logger.test("grab the photos page unauthenticated - but no .. only auth users can see it.");
-        assertEquals(ft.get("photos").statusLine().status(), StatusLine.StatusCode._303_SEE_OTHER);
+        assertEquals(ft.get("photos").statusLine().status(), StatusLine.StatusCode.CODE_303_SEE_OTHER);
 
         logger.test("Go to the login page, unauthenticated");
-        assertEquals(ft.get("login").statusLine().status(), StatusLine.StatusCode._200_OK);
+        assertEquals(ft.get("login").statusLine().status(), StatusLine.StatusCode.CODE_200_OK);
 
         logger.test("check out what's on the photos page now, unauthenticated");
         var response2 = ft.get("photos");
@@ -271,14 +271,14 @@ public class FunctionalTests {
         ft.get(photoSrc, List.of(cookieHeader));
 
         logger.test("logout");
-        assertEquals(ft.post("logout", "", List.of(cookieHeader)).statusLine().status(), StatusLine.StatusCode._303_SEE_OTHER);
+        assertEquals(ft.post("logout", "", List.of(cookieHeader)).statusLine().status(), StatusLine.StatusCode.CODE_303_SEE_OTHER);
 
         logger.test("if we try to upload a photo unauth, we're prevented");
-        assertEquals(ft.post("upload", "foo=bar").statusLine().status(), _403_FORBIDDEN);
+        assertEquals(ft.post("upload", "foo=bar").statusLine().status(), CODE_403_FORBIDDEN);
 
         logger.test("a person should be disallowed from viewing the page for creating persons, while unauth'd"); {
             var response = ft.get("editperson");
-            assertEquals(response.statusLine().status(), _403_FORBIDDEN);
+            assertEquals(response.statusLine().status(), CODE_403_FORBIDDEN);
         }
 
     }
@@ -319,15 +319,15 @@ public class FunctionalTests {
     public void testLetsEncrypt() throws IOException {
         // fail to include the challenge value
         var firstResponse = ft.get(".well-known/acme-challenge");
-        assertEquals(firstResponse.statusLine().status(), _400_BAD_REQUEST);
+        assertEquals(firstResponse.statusLine().status(), CODE_400_BAD_REQUEST);
 
         // include an attack file - like, trying to get into a parent directory
         var attackResponse = ft.get(".well-known/acme-challenge/..hello");
-        assertEquals(attackResponse.statusLine().status(), _400_BAD_REQUEST);
+        assertEquals(attackResponse.statusLine().status(), CODE_400_BAD_REQUEST);
 
         String failureToken = "foobar";
         var failureResponse = ft.get(".well-known/acme-challenge/" + failureToken);
-        assertEquals(failureResponse.statusLine().status(), _500_INTERNAL_SERVER_ERROR);
+        assertEquals(failureResponse.statusLine().status(), CODE_500_INTERNAL_SERVER_ERROR);
     }
 
     @Test
@@ -343,7 +343,7 @@ public class FunctionalTests {
     public void testListAllPhotos() throws IOException {
         // cannot see this page unauth'd
         var response = ft.get("photos");
-        assertEquals(response.statusLine().status(), _303_SEE_OTHER);
+        assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
 
 
         String cookieHeader = loginAndGetCookie();
@@ -360,11 +360,11 @@ public class FunctionalTests {
     public void testGetPhoto() throws IOException {
         // if we pass in an empty string for the id of a photo, get a 404
         var photoResponse = ft.get("photo?name=");
-        assertEquals(photoResponse.statusLine().status(), _404_NOT_FOUND);
+        assertEquals(photoResponse.statusLine().status(), CODE_404_NOT_FOUND);
 
         // if we pass in an id of a photo that is unrecognized, get a 404
         var photoResponse2 = ft.get("photo?name=foo");
-        assertEquals(photoResponse2.statusLine().status(), _404_NOT_FOUND);
+        assertEquals(photoResponse2.statusLine().status(), CODE_404_NOT_FOUND);
 
         // if we ask for a photo that has 0 bytes, get a 404
         Path path = Path.of("target/simple_db_for_tests/photo_files_medium/bar.jpg");
@@ -375,7 +375,7 @@ public class FunctionalTests {
             // wait for the operating system to finish receiving the file to disk
             MyThread.sleep(30);
             var photoResponse3 = ft.get("photo?name=bar");
-            assertEquals(photoResponse3.statusLine().status(), _404_NOT_FOUND);
+            assertEquals(photoResponse3.statusLine().status(), CODE_404_NOT_FOUND);
         } finally {
             Files.delete(path);
             // wait for the operating system to do its stuff
@@ -387,7 +387,7 @@ public class FunctionalTests {
             // wait for the operating system to finish receiving the file to disk
             MyThread.sleep(30);
             var photoResponse3 = ft.get("photo?name=bar.jpg");
-            assertEquals(photoResponse3.statusLine().status(), _404_NOT_FOUND);
+            assertEquals(photoResponse3.statusLine().status(), CODE_404_NOT_FOUND);
         } finally {
             Files.delete(path);
             // wait for the operating system to do its stuff
@@ -400,7 +400,7 @@ public class FunctionalTests {
             // wait for the operating system to finish receiving the file to disk
             MyThread.sleep(30);
             var photoResponse3 = ft.get("photo?name=bar.jpg");
-            assertEquals(photoResponse3.statusLine().status(), _200_OK);
+            assertEquals(photoResponse3.statusLine().status(), CODE_200_OK);
         } finally {
             Files.delete(path);
             // wait for the operating system to do its stuff
@@ -413,7 +413,7 @@ public class FunctionalTests {
             // wait for the operating system to finish receiving the file to disk
             MyThread.sleep(30);
             var photoResponse3 = ft.get("photo?name=bar.jpg&size=original");
-            assertEquals(photoResponse3.statusLine().status(), _200_OK);
+            assertEquals(photoResponse3.statusLine().status(), CODE_200_OK);
         } finally {
             Files.delete(pathOrginal);
             // wait for the operating system to do its stuff
@@ -429,43 +429,43 @@ public class FunctionalTests {
         // first, we cannot get this page or post to this page without being auth'd
         // cannot see this page unauth'd
         var postResponse = ft.post("upload", "");
-        assertEquals(postResponse.statusLine().status(), _403_FORBIDDEN);
+        assertEquals(postResponse.statusLine().status(), CODE_403_FORBIDDEN);
 
         // login
         String cookieHeader = loginAndGetCookie();
 
         // fail to send the photograph
         var noPhotoSentResponse = ft.post("upload", "", List.of(cookieHeader));
-        assertEquals(noPhotoSentResponse.statusLine().status(), _400_BAD_REQUEST);
+        assertEquals(noPhotoSentResponse.statusLine().status(), CODE_400_BAD_REQUEST);
 
         // fail to send the short description
         var noShortDescSentResponse = ft.post("upload", "image_uploads=123", List.of(cookieHeader));
-        assertEquals(noShortDescSentResponse.statusLine().status(), _400_BAD_REQUEST);
+        assertEquals(noShortDescSentResponse.statusLine().status(), CODE_400_BAD_REQUEST);
 
         // short description sent, but missing a person id
         var missingPersonResponse = ft.post("upload", "image_uploads=123&short_description=cool", List.of(cookieHeader));
-        assertEquals(missingPersonResponse.statusLine().status(), _400_BAD_REQUEST);
+        assertEquals(missingPersonResponse.statusLine().status(), CODE_400_BAD_REQUEST);
 
         // all required fields - but not a multipart, and the id is an invalid UUID
         var invalidUuidResponse = ft.post(
                 "upload",
                 "image_uploads=123&short_description=cool&person_id=123",
                 List.of(cookieHeader));
-        assertEquals(invalidUuidResponse.statusLine().status(), _400_BAD_REQUEST);
+        assertEquals(invalidUuidResponse.statusLine().status(), CODE_400_BAD_REQUEST);
 
         // all required fields - but not a multipart, and the id is an invalid id
         var invalidIdResponse = ft.post(
                 "upload",
                 "image_uploads=123&short_description=cool&person_id=991a0ad8-463a-43c6-a253-88f4746cff76",
                 List.of(cookieHeader));
-        assertEquals(invalidIdResponse.statusLine().status(), _400_BAD_REQUEST);
+        assertEquals(invalidIdResponse.statusLine().status(), CODE_400_BAD_REQUEST);
 
         // add a person to add a photograph
         String photoPersonUrl;
         logger.test("POST a new person, photoPerson, auth'd"); {
             String payload = "id=&image_input=&name_input=photoPerson+Katz&born_input=1921-11-21&died_input=&siblings_input=&spouses_input=&parents_input=&children_input=&biography_input=";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _303_SEE_OTHER);
+            assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
             photoPersonUrl = response.headers().valueByKey("location").get(0);
         }
 
@@ -475,7 +475,7 @@ public class FunctionalTests {
                 "upload",
                 "image_uploads=123&short_description=cool&person_id=" + photoPersonUrl.replace("person?id=", ""),
                 List.of(cookieHeader));
-        assertEquals(validResponse.statusLine().status(), _303_SEE_OTHER);
+        assertEquals(validResponse.statusLine().status(), CODE_303_SEE_OTHER);
 
         // delete the new user
         ft.send(RequestLine.Method.DELETE, photoPersonUrl);
@@ -509,7 +509,7 @@ public class FunctionalTests {
 
         // if we try registering that user again, we'll get a complaint
         var complaintResponse = ft.post("registeruser", "username=foo&password=bar", List.of(cookieHeader));
-        assertEquals(complaintResponse.statusLine().status(), _401_UNAUTHORIZED);
+        assertEquals(complaintResponse.statusLine().status(), CODE_401_UNAUTHORIZED);
     }
 
     @Test
@@ -520,7 +520,7 @@ public class FunctionalTests {
         logger.test("POST a new person, john, auth'd"); {
             String payload = "id=&image_input=&name_input=john+Katz&born_input=1921-11-21&died_input=2020-03-12&siblings_input=Florence&spouses_input=&parents_input=Robert+and+Ethel&children_input=ron&biography_input=%3Cp%3Ejohn+was+born+to+die%3C%2Fp%3E";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _303_SEE_OTHER);
+            assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
             johnUrl = response.headers().valueByKey("location").get(0);
         }
         String johnId = RegexUtils.find("id=(?<johnid>.*)", johnUrl, "johnid");
@@ -528,25 +528,25 @@ public class FunctionalTests {
         // try deleting, but with some edge cases:
 
         logger.test("delete, but forget to include an id"); {
-            var response = ft.send(RequestLine.Method.DELETE, "person", List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            var response = ft.send(RequestLine.Method.DELETE, "person", new byte[0], List.of(cookieHeader));
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
 
         logger.test("delete, but the id is invalid"); {
-            var response = ft.send(RequestLine.Method.DELETE, "person?id=bad_id_here", List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            var response = ft.send(RequestLine.Method.DELETE, "person?id=bad_id_here", new byte[0], List.of(cookieHeader));
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
 
         logger.test("delete, happy path"); {
-            var response = ft.send(RequestLine.Method.DELETE, "person?id=" + johnId, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _204_NO_CONTENT);
+            var response = ft.send(RequestLine.Method.DELETE, "person?id=" + johnId, new byte[0], List.of(cookieHeader));
+            assertEquals(response.statusLine().status(), CODE_204_NO_CONTENT);
         }
 
         String georgeUrl;
         logger.test("POST a new person, george, auth'd"); {
             String payload = "id=&image_input=&name_input=george+Katz&born_input=1921-11-21&died_input=2020-03-12&siblings_input=Florence&spouses_input=&parents_input=Robert+and+Ethel&children_input=ron&biography_input=%3Cp%3Ejohn+was+born+to+die%3C%2Fp%3E";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _303_SEE_OTHER);
+            assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
             georgeUrl = response.headers().valueByKey("location").get(0);
         }
         String georgeId = RegexUtils.find("id=(?<georgeid>.*)", georgeUrl, "georgeid");
@@ -570,20 +570,20 @@ public class FunctionalTests {
                     "&children_input=ron" +
                     "&biography_input=%3Cp%3Ehenry+was+born+to+die%3C%2Fp%3E";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _303_SEE_OTHER);
+            assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
             henryUrl = response.headers().valueByKey("location").get(0);
         }
         String henryId = RegexUtils.find("id=(?<henryid>.*)", henryUrl, "henryid");
 
         logger.test("modify, but the id is invalid"); {
             var response = ft.post("editperson", "id=bad_id_here&name_input=hello", List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
 
         logger.test("modify, happy path"); {
             String body = buildEditPersonBody(henryId);
             var response = ft.post("editperson?id=" + henryId, body, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _303_SEE_OTHER);
+            assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
         }
     }
 
@@ -642,7 +642,7 @@ public class FunctionalTests {
         logger.test("POST a new person, george, auth'd"); {
             String payload = "id=&image_input=&name_input=george+Katz&born_input=1921-11-21&died_input=2020-03-12&siblings_input=Florence&spouses_input=&parents_input=Robert+and+Ethel&children_input=ron&biography_input=%3Cp%3Egeorge+was+born+to+have+siblings%3C%2Fp%3E";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _303_SEE_OTHER);
+            assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
             georgeUrl = response.headers().valueByKey("location").get(0);
         }
         String georgeId = RegexUtils.find("id=(?<georgeid>.*)", georgeUrl, "georgeid");
@@ -706,31 +706,31 @@ public class FunctionalTests {
         logger.test("POST a relation that does not exist (instead of spouse, use house)"); {
             String payload = String.format("person_id=%s&relation_name_input=%s&relation=house", georgeId, "artichoke");
             var addHouseResponse = ft.post("addrelation", payload, List.of(cookieHeader));
-            assertEquals(addHouseResponse.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(addHouseResponse.statusLine().status(), CODE_400_BAD_REQUEST);
         }
 
         logger.test("POST a relation unauthenticated"); {
             String payload = String.format("person_id=%s&relation_name_input=%s&relation=spouse", georgeId, "artichoke");
             var response = ft.post("addrelation", payload, List.of());
-            assertEquals(response.statusLine().status(), _403_FORBIDDEN);
+            assertEquals(response.statusLine().status(), CODE_403_FORBIDDEN);
         }
 
         logger.test("POST a relation, forget to include the relation's name"); {
             String payload = String.format("person_id=%s&relation_name_input=%s&relation=spouse", georgeId, "");
             var response = ft.post("addrelation", payload, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
 
         logger.test("POST a relation, forget to include the relation's name"); {
             String payload = String.format("person_id=%s&relation=spouse", georgeId);
             var response = ft.post("addrelation", payload, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
 
         logger.test("POST a relation without a target person id"); {
             String payload = String.format("relation_name_input=%s&relation=spouse", "artichoke");
             var response = ft.post("addrelation", payload, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
 
     }
@@ -783,13 +783,13 @@ public class FunctionalTests {
         logger.test("authenticated - but did not provide an id of photo to delete - should get 400 user error");
         {
             var response = ft.post("deletephoto", "", List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
 
         logger.test("authenticated - provided invalid id - should get 400 user error");
         {
             var response = ft.post("deletephoto", "photoid=abc123", List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
     }
 
@@ -806,7 +806,7 @@ public class FunctionalTests {
 
         logger.test("edge case - photo now found by id - should return 400");{
             var response = ft.post("photolongdescupdate", "long_description=foo&photoid=bar", List.of(cookie));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
     }
 
@@ -823,13 +823,13 @@ public class FunctionalTests {
 
         logger.test("edge case - photo now found by id - should return 400");{
             var response = ft.post("photocaptionupdate", "caption=foo&photoid=bar", List.of(cookie));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
     }
 
     private static String loginAndGetCookie() throws IOException {
         String cookieHeader;
-        String password = Files.readString(Path.of(context.getConstants().DB_DIRECTORY).resolve(Path.of("admin_password")));
+        String password = Files.readString(Path.of(context.getConstants().dbDirectory).resolve(Path.of("admin_password")));
         logger.test("POST login with admin and proper password, get cookie and store for later");
         {
             var response = ft.post("loginuser", "username=admin&password=" + password);
@@ -849,7 +849,7 @@ public class FunctionalTests {
 
         logger.test("if login fails (unrecognized user), reply with a 403 forbidden");{
             var response = ft.post("loginuser", "username=foo&password=");
-            assertEquals(response.statusLine().status(), _403_FORBIDDEN);
+            assertEquals(response.statusLine().status(), CODE_403_FORBIDDEN);
             MyThread.sleep(150);
             String msg = logger.findFirstMessageThatContains("login attempted, but no user named", 20);
             assertTrue(msg.length() > 0);
@@ -857,7 +857,7 @@ public class FunctionalTests {
 
         logger.test("if login fails (bad credentials for existing user), reply with a 403"); {
             var response = ft.post("loginuser", "username=admin&password=");
-            assertEquals(response.statusLine().status(), _403_FORBIDDEN);
+            assertEquals(response.statusLine().status(), CODE_403_FORBIDDEN);
             MyThread.sleep(150);
             String msg = logger.findFirstMessageThatContains("Failed login for user named: ", 20);
             assertTrue(msg.length() > 0);
@@ -868,7 +868,7 @@ public class FunctionalTests {
     public void testResetPassword_EdgeCases() throws IOException {
         logger.test("Should not be able to reset a password unauthenticated"); {
             var response = ft.post("resetpassword", "");
-            assertEquals(response.statusLine().status(), _401_UNAUTHORIZED);
+            assertEquals(response.statusLine().status(), CODE_401_UNAUTHORIZED);
         }
 
         /*
@@ -877,17 +877,17 @@ public class FunctionalTests {
         logger.test("missing password"); {
             String cookie = loginAndGetCookie();
             var response = ft.post("resetpassword", "", List.of(cookie));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
         logger.test("empty password"); {
             String cookie = loginAndGetCookie();
             var response = ft.post("resetpassword", "newpassword=", List.of(cookie));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
         logger.test("short password"); {
             String cookie = loginAndGetCookie();
             var response = ft.post("resetpassword", "newpassword=abc123", List.of(cookie));
-            assertEquals(response.statusLine().status(), _400_BAD_REQUEST);
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
     }
 

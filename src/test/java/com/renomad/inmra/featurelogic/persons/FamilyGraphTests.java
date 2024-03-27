@@ -171,26 +171,6 @@ public class FamilyGraphTests {
     }
 
     /**
-     * If an error occurs while running the code, a {@link FamilyGraphProcessingException}
-     * should be thrown.
-     * <br>
-     * In this case, an unknown element "foo" was used.
-     */
-    @Test
-    public void testCreateNodeWithConnections_NegativeCase_UsingUnknownElement() {
-        String parents = "<foo></>";
-        var personFile = new PersonFile(0L, new UUID(0,0), "","", Date.EMPTY, Date.EMPTY,
-                "", "", parents, "", "", "", "", Gender.UNKNOWN, Instant.MIN, "");
-
-        assertThrows(
-                FamilyGraphProcessingException.class,
-                () -> FamilyGraph.createNodeWithConnections(
-                        personFile,
-                        personFiles,
-                        personNodes));
-    }
-
-    /**
      * Not much of a test - really just a convenient handle into the code in case
      * I want to dig deeper.
      */

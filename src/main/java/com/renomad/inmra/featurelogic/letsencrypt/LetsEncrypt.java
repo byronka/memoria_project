@@ -55,14 +55,14 @@ public class LetsEncrypt {
         final var challengeMatcher = requestRegex.matcher(request.requestLine().getPathDetails().isolatedPath());
         // When the find command is run, it changes state so we can search by matching group
         if (! challengeMatcher.find()) {
-            return new Response(StatusLine.StatusCode._400_BAD_REQUEST);
+            return new Response(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
         }
         String tokenFileName = challengeMatcher.group("challengeValue");
         logger.logAudit(() -> "Received acme challenge request for this token: " + tokenFileName);
 
         if (badFilePathPatterns.matcher(tokenFileName).find()) {
             logger.logDebug(() -> "Received a potentially dangerous token: " + tokenFileName);
-            return new Response(StatusLine.StatusCode._400_BAD_REQUEST);
+            return new Response(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
         };
 
         Path path = Path.of("");
@@ -72,11 +72,11 @@ public class LetsEncrypt {
             logger.logAudit(() -> "Reading a file at " + finalPath1);
             byte[] body = Files.readAllBytes(path);
             logger.logAudit(() -> "Successfully read " + body.length + " bytes from file at " + finalPath1);
-            return new Response(StatusLine.StatusCode._200_OK, body, Map.of("Content-Type", "application/octet-stream"));
+            return new Response(StatusLine.StatusCode.CODE_200_OK, body, Map.of("Content-Type", "application/octet-stream"));
         } catch (IOException e) {
             Path finalPath = path;
             logger.logDebug(() -> "Failed to read file at " + finalPath);
-            return new Response(StatusLine.StatusCode._500_INTERNAL_SERVER_ERROR);
+            return new Response(StatusLine.StatusCode.CODE_500_INTERNAL_SERVER_ERROR);
         }
     }
 }

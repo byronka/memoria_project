@@ -50,8 +50,8 @@ public class PersonCreateEndpointsTests {
         defaultRemoteRequester = "";
 
         IAuthUtils fakeAuth = makeFakeAuthUtils();
-        fakeHeaders = Headers.make(context, null);
-        fakeStartLine = RequestLine.EMPTY(context);
+        fakeHeaders = Headers.make(context);
+        fakeStartLine = RequestLine.empty(context);
         personDb = context.getDb("personcreateendpointstests_deleting_user_birthdate", Person.EMPTY);
         var photoDb = context.getDb("personcreateendpointstests_photodb", Photograph.EMPTY);
         var photoToPersonDb = context.getDb("personcreateendpointstests_photo_to_person", PhotoToPerson.EMPTY);
@@ -83,7 +83,7 @@ public class PersonCreateEndpointsTests {
         //have to set up some state first.
 
         Person person = new Person(
-                1L,
+                0L,
                 defaultPersonId,
                 "testPerson",
                 new Date(2023, Month.JANUARY, 4), Date.EMPTY);

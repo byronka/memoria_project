@@ -57,7 +57,7 @@ public class ListPhotos {
         this.logger = context.getLogger();
         IFileUtils fileUtils = memoriaContext.fileUtils();
         this.constants = context.getConstants();
-        this.dbDir = Path.of(constants.DB_DIRECTORY);
+        this.dbDir = Path.of(constants.dbDirectory);
         listPhotosTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("listphotos/list_photos_template.html"));
         listAllPhotosTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("listphotos/list_all_photos_template.html"));
         listAllPhotosCoreTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("listphotos/list_all_photos_core_template.html"));
@@ -183,7 +183,7 @@ public class ListPhotos {
 
         // if the name query is null or blank, return 404
         if (filename == null || filename.isBlank()) {
-            return new Response(_404_NOT_FOUND);
+            return new Response(CODE_404_NOT_FOUND);
         }
 
         // See docs/image_processing/README.md for more about this design
@@ -206,9 +206,9 @@ public class ListPhotos {
         // first, is it already in our cache?
         if (lruCache.containsKey(photoPath.toString())) {
             logger.logTrace(() -> "Found " + photoPath + " in the cache. Serving.");
-            return new Response(_200_OK, lruCache.get(photoPath.toString()),
+            return new Response(CODE_200_OK, lruCache.get(photoPath.toString()),
                     Map.of(
-                            "Cache-Control","max-age=" + constants.STATIC_FILE_CACHE_TIME * 60 + ", immutable",
+                            "Cache-Control","max-age=" + constants.staticFileCacheTime * 60 + ", immutable",
                             "Content-Type", "image/jpeg"
                     ));
         }
@@ -218,7 +218,7 @@ public class ListPhotos {
         // user's cache.
         if (! Files.exists(photoPath)) {
             logger.logDebug(() -> "User requested a filename of " + photoPath + " that does not exist in the directory");
-            return new Response(_404_NOT_FOUND);
+            return new Response(CODE_404_NOT_FOUND);
         }
 
         // otherwise, read the bytes
@@ -243,7 +243,7 @@ public class ListPhotos {
             byte[] bytes = out.toByteArray();
             if (bytes.length == 0) {
                 logger.logDebug(() -> finalPhotoPath2 + " photo filesize was 0.  Sending 404");
-                return new Response(_404_NOT_FOUND);
+                return new Response(CODE_404_NOT_FOUND);
             } else {
                 String s = finalPhotoPath2 + " photo filesize was " + bytes.length + " bytes.";
                 logger.logDebug(() -> s);
@@ -251,16 +251,16 @@ public class ListPhotos {
                 logger.logDebug(() -> "Storing " + finalPhotoPath2 + " in the cache");
                 lruCache.put(finalPhotoPath2.toString(), bytes);
 
-                return new Response(_200_OK, bytes,
+                return new Response(CODE_200_OK, bytes,
                         Map.of(
-                                "Cache-Control","max-age=" + constants.STATIC_FILE_CACHE_TIME * 60,
+                                "Cache-Control","max-age=" + constants.staticFileCacheTime * 60,
                                 "Content-Type", "image/jpeg"
                         ));
 
             }
         } catch (IOException e){
             logger.logAsyncError(() -> "There was an issue reading a file at " + finalPhotoPath2 + ". " + StacktraceUtils.stackTraceToString(e));
-            return new Response(_500_INTERNAL_SERVER_ERROR);
+            return new Response(CODE_500_INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -33,10 +33,10 @@ public class Main {
         Constants constants = context.getConstants();
         System.out.printf(
                 "\n\nSystem is ready.  Access at http://%s:%d or https://%s:%d\n\n",
-                constants.HOST_NAME,
-                constants.SERVER_PORT,
-                constants.HOST_NAME,
-                constants.SECURE_SERVER_PORT);
+                constants.hostName,
+                constants.serverPort,
+                constants.hostName,
+                constants.secureServerPort);
 
         fullSystem.block();
     }

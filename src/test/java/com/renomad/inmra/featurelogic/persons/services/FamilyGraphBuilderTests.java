@@ -25,14 +25,14 @@ public class FamilyGraphBuilderTests {
         Context context = buildTestingContext("FamilyGraphBuilderTests");
         TestLogger logger = (TestLogger) context.getLogger();
         FileUtils fileUtils = context.getFileUtils();
-        fileUtils.deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().DB_DIRECTORY).resolve("family_graph_builder_tests_person"), logger);
+        fileUtils.deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().dbDirectory).resolve("family_graph_builder_tests_person"), logger);
         var personDb = context.getDb("family_graph_builder_tests_person", Person.EMPTY);
 
         var personFiles = addPersonFilesTestData();
         personLruCache = buildLruCache(personFiles);
         // build a database for our testing
         for (var p : personFiles) {
-            personDb.write(new Person(p.getIndex(), p.getId(), p.getName(), p.getBorn(), p.getDied()));
+            personDb.write(new Person(0L, p.getId(), p.getName(), p.getBorn(), p.getDied()));
         }
 
         familyGraphBuilder = new FamilyGraphBuilder(context, personDb, personLruCache, logger);

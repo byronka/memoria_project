@@ -47,7 +47,7 @@ public class DatabaseMigrationTests {
         fileUtils = memoriaContext.fileUtils();
         minumFileUtils = context.getFileUtils();
         logger = context.getLogger();
-        rootDbDirectory = Path.of(context.getConstants().DB_DIRECTORY + "migration_tests");
+        rootDbDirectory = Path.of(context.getConstants().dbDirectory + "migration_tests");
     }
 
     @AfterClass

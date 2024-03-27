@@ -61,7 +61,7 @@ public class PhotoService {
                         IAuthUtils auth) {
         this.photographDb = photographDb;
         this.logger = context.getLogger();
-        this.dbDir = Path.of(context.getConstants().DB_DIRECTORY);
+        this.dbDir = Path.of(context.getConstants().dbDirectory);
         this.photoLruCache = photoLruCache;
         this.photoToPersonDb = photoToPersonDb;
         this.personDb = personDb;
@@ -82,7 +82,7 @@ public class PhotoService {
 
         // we will store old data for photos in the audit directory.  Yes, each time an
         // edit takes place, we'll add the whole data as an audit entry.
-        this.photoAuditDirectory = Path.of(context.getConstants().DB_DIRECTORY).resolve("photo_audit_logs");
+        this.photoAuditDirectory = Path.of(context.getConstants().dbDirectory).resolve("photo_audit_logs");
 
         IFileUtils fileUtils = memoriaContext.fileUtils();
         fileWriteStringWrapper = new FileWriteStringWrapper();
@@ -440,7 +440,7 @@ public class PhotoService {
                     request.requestLine().queryString().get("id"));
         } catch (NumberFormatException ex) {
             logger.logDebug(() -> "User failed to include valid id of photograph to delete. " + ex);
-            return new Response(StatusLine.StatusCode._400_BAD_REQUEST);
+            return new Response(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
         }
 
         Photograph photo = SearchUtils.findExactlyOne(
@@ -449,7 +449,7 @@ public class PhotoService {
 
         if (photo == null) {
             logger.logDebug(() -> "User provided an invalid file to delete: " + id);
-            return new Response(StatusLine.StatusCode._400_BAD_REQUEST);
+            return new Response(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
         }
 
         // get the person for this photo, so we can redirect to them.
@@ -460,14 +460,14 @@ public class PhotoService {
             deletePhotograph(username, photo);
         } catch (IOException e) {
             logger.logDebug(() -> "Failed to delete photograph fully: " + e);
-            return new Response(_500_INTERNAL_SERVER_ERROR);
+            return new Response(CODE_500_INTERNAL_SERVER_ERROR);
         }
 
         if (isPost) {
             Person person = findExactlyOne(personDb.values().stream(), x -> x.getIndex() == personByPhoto);
             return Message.redirect("The photo has been deleted", "/photos?personid=" + person.getId().toString());
         } else {
-            return new Response(StatusLine.StatusCode._204_NO_CONTENT);
+            return new Response(StatusLine.StatusCode.CODE_204_NO_CONTENT);
         }
     }
 
@@ -488,7 +488,7 @@ public class PhotoService {
             photoId = Long.parseLong(isPost ? request.body().asString("photoid") : request.requestLine().queryString().get("id"));
         } catch (NumberFormatException ex) {
             logger.logDebug(() -> "User failed to include valid id of photograph to delete. " + ex);
-            return new Response(StatusLine.StatusCode._400_BAD_REQUEST);
+            return new Response(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
         }
 
         Photograph originalPhoto = SearchUtils.findExactlyOne(photographDb.values().stream(), x -> x.getIndex() == photoId);
@@ -501,7 +501,7 @@ public class PhotoService {
                     originalPhoto.getPhotoUrl(),
                     originalPhoto.getShortDescription(),
                     updatedDescription);
-            photographDb.update(dataUpdate);
+            photographDb.write(dataUpdate);
 
             if (isPost) {
                 // get the person for this photo, so we can redirect to them.
@@ -509,10 +509,10 @@ public class PhotoService {
                 Person person = findExactlyOne(personDb.values().stream(), x -> x.getIndex() == personByPhoto);
                 return Message.redirect("The photo's long description has been modified", "/photos?personid=" + person.getId().toString());
             } else {
-                return new Response(_204_NO_CONTENT);
+                return new Response(CODE_204_NO_CONTENT);
             }
         } else {
-            return new Response(_400_BAD_REQUEST);
+            return new Response(CODE_400_BAD_REQUEST);
         }
 
     }
@@ -535,7 +535,7 @@ public class PhotoService {
             photoId = Long.parseLong(isPost ? request.body().asString("photoid") : request.requestLine().queryString().get("id"));
         } catch (NumberFormatException ex) {
             logger.logDebug(() -> "User failed to include valid id of photograph to delete. " + ex);
-            return new Response(StatusLine.StatusCode._400_BAD_REQUEST);
+            return new Response(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
         }
 
         Photograph originalPhoto = SearchUtils.findExactlyOne(photographDb.values().stream(), x -> x.getIndex() == photoId);
@@ -549,7 +549,7 @@ public class PhotoService {
                     originalPhoto.getPhotoUrl(),
                     updatedShortDescription,
                     originalPhoto.getDescription());
-            photographDb.update(dataUpdate);
+            photographDb.write(dataUpdate);
 
             if (isPost) {
                 // get the person for this photo, so we can redirect to them.
@@ -558,10 +558,10 @@ public class PhotoService {
 
                 return Message.redirect("The photo's caption has been modified", "/photos?personid=" + person.getId().toString());
             } else {
-                return new Response(_204_NO_CONTENT);
+                return new Response(CODE_204_NO_CONTENT);
             }
         } else {
-            return new Response(_400_BAD_REQUEST);
+            return new Response(CODE_400_BAD_REQUEST);
         }
 
     }
