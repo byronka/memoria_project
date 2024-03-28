@@ -105,3 +105,5 @@ Root-level files:
 <img src='docs/pics/editing_person.jpg' alt='Editing the details of a person' width=100%>
 <hr>
 <img src='docs/pics/photo_editing_form.jpg' alt='Editing the photos associated with a person' width=100%>
+
+[![Introductory walkthrough of some code](https://renomad.com/memoria_walkthrough_1_preview.jpg)](https://renomad.com/memoria_walkthrough_1.mp4)
