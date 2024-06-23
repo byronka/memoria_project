@@ -238,9 +238,6 @@ public class DetailedViewRenderer {
         var myMap = new HashMap<String, String>();
         myMap.put("id", safeAttr(deserializedPersonFile.getId().toString()));
         myMap.put("name", safeHtml(deserializedPersonFile.getName()));
-        myMap.put("name_attr", safeAttr(deserializedPersonFile.getName()));
-        myMap.put("born", deserializedPersonFile.getBorn().toHtmlString());
-        myMap.put("died", deserializedPersonFile.getDied().toHtmlString());
         myMap.put("gender", deserializedPersonFile.getGender().serialize());
         myMap.put("siblings", Cleaners.cleanScript(deserializedPersonFile.getSiblings()));
         myMap.put("spouses", Cleaners.cleanScript(deserializedPersonFile.getSpouses()));

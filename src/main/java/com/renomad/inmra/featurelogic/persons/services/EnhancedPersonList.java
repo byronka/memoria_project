@@ -126,7 +126,6 @@ public class EnhancedPersonList {
         Map<String, String> myMap = new HashMap<>();
         myMap.put("id", deserializedPersonFile.getId().toString());
         myMap.put("name", safeHtml(deserializedPersonFile.getName()));
-        myMap.put("name_attr", safeAttr(deserializedPersonFile.getName()));
         myMap.put("photo_count", String.valueOf(getPhotoIdsForPerson(p).size()));
         myMap.put("last_modified",deserializedPersonFile.getLastModified().truncatedTo(ChronoUnit.SECONDS).toString());
         myMap.put("lifespan", lifespan.renderLifespan(deserializedPersonFile));
