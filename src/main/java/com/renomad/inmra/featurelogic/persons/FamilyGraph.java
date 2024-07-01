@@ -55,19 +55,19 @@ public class FamilyGraph {
             var personNode = getPersonNode(personFile.getId(), personFile.getName(), personNodes, personFile.getGender());
 
             List<HtmlParseNode> parsedSiblings = htmlParser.parse(personFile.getSiblings()).stream()
-                    .filter(x -> x.tagInfo().tagName().equals(TagName.A)).toList();
+                    .filter(x -> x.getTagInfo().getTagName().equals(TagName.A)).toList();
             addVerifiedRelations(parsedSiblings, personFiles, personNode, "sibling", personNodes);
 
             List<HtmlParseNode> parsedParents = htmlParser.parse(personFile.getParents()).stream()
-                    .filter(x -> x.tagInfo().tagName().equals(TagName.A)).toList();
+                    .filter(x -> x.getTagInfo().getTagName().equals(TagName.A)).toList();
             addVerifiedRelations(parsedParents, personFiles, personNode, "parent", personNodes);
 
             List<HtmlParseNode> parsedSpouse = htmlParser.parse(personFile.getSpouses()).stream()
-                    .filter(x -> x.tagInfo().tagName().equals(TagName.A)).toList();
+                    .filter(x -> x.getTagInfo().getTagName().equals(TagName.A)).toList();
             addVerifiedRelations(parsedSpouse, personFiles, personNode, "spouse", personNodes);
 
             List<HtmlParseNode> parsedChildren = htmlParser.parse(personFile.getChildren()).stream()
-                    .filter(x -> x.tagInfo().tagName().equals(TagName.A)).toList();
+                    .filter(x -> x.getTagInfo().getTagName().equals(TagName.A)).toList();
             addVerifiedRelations(parsedChildren, personFiles, personNode, "child", personNodes);
 
             return personNode;
@@ -93,7 +93,7 @@ public class FamilyGraph {
             Map<UUID, PersonNode> personNodes) {
         List<Map.Entry<String, PersonNode>> connections = personNode.getConnections();
         for (var personAnchorElement : parsedRelationHtmlNodes) {
-            String hrefValue = personAnchorElement.tagInfo().attributes().get("href");
+            String hrefValue = personAnchorElement.getTagInfo().getAttribute("href");
             String personUuid = hrefValue.replace("person?id=", "");
 
             // now we have the UUID, check that person's details:
@@ -141,7 +141,7 @@ public class FamilyGraph {
                 1,
                 x -> x.getKey().equals("sibling")
         );
-        siblings.remove(0);
+        siblings.removeFirst();
         return siblings;
     }
 
@@ -208,7 +208,7 @@ public class FamilyGraph {
         var queue = new ArrayDeque<Relationship>();
         var seenSet = new HashSet<UUID>();
         seenSet.add(personNode.getId());
-        queue.add(relationships.get(0));
+        queue.add(relationships.getFirst());
 
         while(!queue.isEmpty()) {
             Relationship relationship = queue.poll();

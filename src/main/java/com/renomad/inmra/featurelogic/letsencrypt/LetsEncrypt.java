@@ -1,9 +1,7 @@
 package com.renomad.inmra.featurelogic.letsencrypt;
 
-import com.renomad.inmra.auth.AuthUtils;
-import com.renomad.minum.Context;
 import com.renomad.minum.logging.ILogger;
-import com.renomad.minum.utils.FileUtils;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.web.Request;
 import com.renomad.minum.web.Response;
 import com.renomad.minum.web.StatusLine;
@@ -12,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -52,7 +49,7 @@ public class LetsEncrypt {
     public Response challengeResponse(Request request) {
         logger.logDebug(() -> "Incoming certbot request: " + request);
         // extract session identifiers from the cookies
-        final var challengeMatcher = requestRegex.matcher(request.requestLine().getPathDetails().isolatedPath());
+        final var challengeMatcher = requestRegex.matcher(request.requestLine().getPathDetails().getIsolatedPath());
         // When the find command is run, it changes state so we can search by matching group
         if (! challengeMatcher.find()) {
             return new Response(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
@@ -63,7 +60,7 @@ public class LetsEncrypt {
         if (badFilePathPatterns.matcher(tokenFileName).find()) {
             logger.logDebug(() -> "Received a potentially dangerous token: " + tokenFileName);
             return new Response(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
-        };
+        }
 
         Path path = Path.of("");
         try {

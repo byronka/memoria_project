@@ -82,7 +82,7 @@ public class PhotoConversionTests {
 
     /**
      * A bit more involved of a test - this resizes the image
-     * inside an {@link com.renomad.minum.utils.ActionQueue}, so we
+     * inside an {@link com.renomad.minum.queue.ActionQueue}, so we
      * have to wait a bit until the file shows up.
      */
     @Test

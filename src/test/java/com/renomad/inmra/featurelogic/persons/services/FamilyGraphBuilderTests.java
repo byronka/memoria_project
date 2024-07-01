@@ -2,10 +2,9 @@ package com.renomad.inmra.featurelogic.persons.services;
 
 import com.renomad.inmra.featurelogic.persons.*;
 import com.renomad.inmra.featurelogic.persons.Date;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.TestLogger;
 import com.renomad.minum.utils.FileUtils;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -24,7 +23,7 @@ public class FamilyGraphBuilderTests {
     public static void init() throws IOException {
         Context context = buildTestingContext("FamilyGraphBuilderTests");
         TestLogger logger = (TestLogger) context.getLogger();
-        FileUtils fileUtils = context.getFileUtils();
+        FileUtils fileUtils = new FileUtils(logger, context.getConstants());
         fileUtils.deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().dbDirectory).resolve("family_graph_builder_tests_person"), logger);
         var personDb = context.getDb("family_graph_builder_tests_person", Person.EMPTY);
 

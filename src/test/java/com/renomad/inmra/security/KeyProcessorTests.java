@@ -1,6 +1,6 @@
 package com.renomad.inmra.security;
 
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.testing.TestFramework;
 import org.junit.Test;
 

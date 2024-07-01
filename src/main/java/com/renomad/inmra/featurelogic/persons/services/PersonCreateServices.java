@@ -6,7 +6,7 @@ import com.renomad.inmra.featurelogic.persons.*;
 import com.renomad.inmra.utils.FileWriteStringWrapper;
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.StacktraceUtils;

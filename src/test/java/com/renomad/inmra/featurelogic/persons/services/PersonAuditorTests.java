@@ -1,9 +1,9 @@
 package com.renomad.inmra.featurelogic.persons.services;
 
 import com.renomad.inmra.utils.IFileWriteStringWrapper;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.TestLogger;
-import com.renomad.minum.utils.ActionQueueKiller;
+import com.renomad.minum.queue.ActionQueueKiller;
 import com.renomad.minum.utils.MyThread;
 import org.junit.After;
 import org.junit.Before;
@@ -47,7 +47,6 @@ public class PersonAuditorTests {
                 "Theodore the test");
 
         MyThread.sleep(100);
-        String exceptionThrown = logger.findFirstMessageThatContains("exception thrown while writing audit");
-        assertTrue(exceptionThrown.length() > 0);
+        assertTrue(logger.doesMessageExist("exception thrown while writing audit"));
     }
 }

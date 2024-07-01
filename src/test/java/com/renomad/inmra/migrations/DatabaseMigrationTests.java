@@ -1,10 +1,9 @@
 package com.renomad.inmra.migrations;
 
 import com.renomad.inmra.featurelogic.persons.PersonFile;
-import com.renomad.inmra.featurelogic.photo.PhotoService;
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.testing.TestFramework;
 import com.renomad.minum.utils.FileUtils;
@@ -45,13 +44,13 @@ public class DatabaseMigrationTests {
         context = TestFramework.buildTestingContext("_unit_tests");
         MemoriaContext memoriaContext = MemoriaContext.buildMemoriaContext(context);
         fileUtils = memoriaContext.fileUtils();
-        minumFileUtils = context.getFileUtils();
+        minumFileUtils = new FileUtils(context.getLogger(), context.getConstants());
         logger = context.getLogger();
         rootDbDirectory = Path.of(context.getConstants().dbDirectory + "migration_tests");
     }
 
     @AfterClass
-    public static void cleanup() throws IOException {
+    public static void cleanup() {
         minumFileUtils.deleteDirectoryRecursivelyIfExists(rootDbDirectory, logger);
     }
 

@@ -2,8 +2,8 @@ package com.renomad.inmra;
 
 import com.renomad.inmra.migrations.DatabaseMigration;
 import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.minum.Constants;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Constants;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.web.FullSystem;
 
 import static com.renomad.inmra.utils.MemoriaContext.buildMemoriaContext;
@@ -42,3 +42,5 @@ public class Main {
     }
 
 }
+
+

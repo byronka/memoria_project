@@ -1,7 +1,7 @@
 package com.renomad.inmra.featurelogic.photo;
 
 import com.renomad.inmra.utils.IFileDeleteWrapper;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.TestLogger;
 import org.junit.Before;
 import org.junit.Test;

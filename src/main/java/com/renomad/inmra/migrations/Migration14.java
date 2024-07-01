@@ -1,10 +1,9 @@
 package com.renomad.inmra.migrations;
 
 import com.renomad.inmra.featurelogic.photo.PhotoResizing;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.utils.FileUtils;
-import com.renomad.minum.utils.StacktraceUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -38,7 +37,7 @@ public class Migration14 {
         this.dbDirectory = dbDirectory;
         this.logger = logger;
         this.photoResizing = new PhotoResizing(context);
-        this.fileUtils = context.getFileUtils();
+        this.fileUtils = new FileUtils(logger, context.getConstants());
     }
 
     public void run() throws IOException {

@@ -4,7 +4,7 @@ import com.renomad.inmra.featurelogic.persons.Date;
 import com.renomad.inmra.featurelogic.persons.Month;
 import com.renomad.inmra.featurelogic.persons.RelationType;
 import com.renomad.inmra.utils.IFileUtils;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.TestLogger;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class PersonCreateServicesTests {
                 Path.of(""),
                 Path.of(""));
 
-        assertTrue(logger.findFirstMessageThatContains("Hi, the directory creation failed").length() > 0);
+        assertTrue(logger.doesMessageExist("Hi, the directory creation failed"));
     }
 
     /**

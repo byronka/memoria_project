@@ -2,7 +2,7 @@ package com.renomad.inmra.auth;
 
 import com.renomad.inmra.migrations.DatabaseMigration;
 import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.database.Db;
 import com.renomad.minum.web.*;
 import org.junit.BeforeClass;
@@ -57,8 +57,8 @@ public class AuthTests {
      */
     private Request makeRequestWithCookie(String sessionIdValue) {
         return new Request(
-                new Headers(List.of("Cookie: sessionid=" + sessionIdValue), context),
-                new RequestLine(RequestLine.Method.GET, new RequestLine.PathDetails("", null, Map.of()),HttpVersion.ONE_DOT_ONE, "GET / HTTP/1.1", context),
+                new Headers(List.of("Cookie: sessionid=" + sessionIdValue)),
+                new RequestLine(RequestLine.Method.GET, new PathDetails("", null, Map.of()),HttpVersion.ONE_DOT_ONE, "GET / HTTP/1.1", context.getLogger(), context.getConstants().maxQueryStringKeysCount),
                 Body.EMPTY, "");
     }
 }

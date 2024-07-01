@@ -2,8 +2,8 @@ package com.renomad.inmra.migrations;
 
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.minum.Constants;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Constants;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.ILogger;
 
 import java.io.IOException;

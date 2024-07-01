@@ -6,7 +6,7 @@ import com.renomad.inmra.featurelogic.persons.services.*;
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.MemoriaContext;
 import com.renomad.inmra.utils.Respond;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.database.Db;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.templating.TemplateProcessor;

@@ -1,6 +1,6 @@
 package com.renomad.inmra.utils;
 
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 
 /**
  * An object we pass around throughout Memoria, holds instances of some
@@ -18,7 +18,7 @@ public record MemoriaContext(Constants constants, IFileUtils fileUtils) {
      */
     public static MemoriaContext buildMemoriaContext(Context context) {
         Constants constants = new Constants();
-        var fileUtils = new FileUtils(context.getFileUtils(), constants);
+        var fileUtils = new FileUtils(new com.renomad.minum.utils.FileUtils(context.getLogger(), context.getConstants()), constants);
         return new MemoriaContext(constants, fileUtils);
     }
 

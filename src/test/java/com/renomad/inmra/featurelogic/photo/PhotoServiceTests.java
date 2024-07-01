@@ -2,7 +2,7 @@ package com.renomad.inmra.featurelogic.photo;
 
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.IFileWriteStringWrapper;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.TestLogger;
 import com.renomad.minum.testing.StopwatchUtils;
 import com.renomad.minum.utils.FileUtils;
@@ -29,7 +29,7 @@ public class PhotoServiceTests {
     public static void init() throws IOException {
         Context context = buildTestingContext("PhotoServiceTests");
         logger = (TestLogger)context.getLogger();
-        FileUtils fileUtils = context.getFileUtils();
+        FileUtils fileUtils = new FileUtils(logger, context.getConstants());
 
         thumbnailPhotos = Path.of("target/simple_db_for_photo_service_tests/photo_files_thumbnail");
         mediumPhotos = Path.of("target/simple_db_for_photo_service_tests/photo_files_medium");
@@ -123,7 +123,7 @@ public class PhotoServiceTests {
 
         PhotoService.buildNecessaryDirectories(fileUtils, path, path, path, path, path, path, path, logger);
 
-        assertTrue(logger.findFirstMessageThatContains("Hi, the directory creation failed").length() > 0);
+        assertTrue(logger.doesMessageExist("Hi, the directory creation failed"));
     }
 
     /**

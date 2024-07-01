@@ -4,7 +4,7 @@ import com.renomad.inmra.TheRegister;
 import com.renomad.inmra.utils.FileUtils;
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.htmlparsing.HtmlParseNode;
 import com.renomad.minum.htmlparsing.TagName;
 import com.renomad.minum.logging.TestLogger;
@@ -40,10 +40,11 @@ public class FunctionalTests {
 
     @BeforeClass
     public static void init() throws IOException {
-        Properties properties = com.renomad.minum.Constants.getConfiguredProperties();
+        Properties properties = com.renomad.minum.state.Constants.getConfiguredProperties();
         properties.setProperty("DB_DIRECTORY", "target/simple_db_for_tests");
         context = buildTestingContext("_integration_test", properties);
-        context.getFileUtils().deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().dbDirectory), context.getLogger());
+        com.renomad.minum.utils.FileUtils fileUtils1 = new com.renomad.minum.utils.FileUtils(context.getLogger(), context.getConstants());
+        fileUtils1.deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().dbDirectory), context.getLogger());
 
         // override the COUNT_OF_PHOTO_CHECKS since our functional tests don't rely
         // on photo conversion and there's no sense in waiting a while for nothing.
@@ -51,7 +52,7 @@ public class FunctionalTests {
         memoriaProperties.setProperty("COUNT_OF_PHOTO_CHECKS", "0");
         com.renomad.inmra.utils.Constants constants = new com.renomad.inmra.utils.Constants(memoriaProperties);
 
-        fileUtils = new FileUtils(context.getFileUtils(), constants);
+        fileUtils = new FileUtils(fileUtils1, constants);
         var memoriaContext = new MemoriaContext(constants, fileUtils);
         new FullSystem(context).start();
         new TheRegister(context, memoriaContext).registerDomains();
@@ -137,14 +138,14 @@ public class FunctionalTests {
             var response = ft.get("editpersons", List.of(cookieHeader));
             assertEquals(response.statusLine().status(), CODE_200_OK);
             var aliceResult = response.search(TagName.SPAN, Map.of("class", "name")).get(0);
-            assertEquals(aliceResult.innerContent().get(0).textContent().trim(), "Alice Katz");
+            assertEquals(aliceResult.getInnerContent().get(0).getTextContent().trim(), "Alice Katz");
         }
 
         logger.test("GET editpersons auth'd again, should use cache, expect to find Alice."); {
             var response = ft.get("editpersons", List.of(cookieHeader));
             assertEquals(response.statusLine().status(), CODE_200_OK);
             var aliceResult = response.search(TagName.SPAN, Map.of("class", "name")).get(0);
-            assertEquals(aliceResult.innerContent().get(0).textContent().trim(), "Alice Katz");
+            assertEquals(aliceResult.getInnerContent().get(0).getTextContent().trim(), "Alice Katz");
         }
 
         logger.test("POST some new persons, to assist in the sorting test"); {
@@ -231,7 +232,7 @@ public class FunctionalTests {
 
         logger.test("When we edit a person, it shows their current details in every field"); {
             var response = ft.get("editperson?id=" + aliceId, List.of(cookieHeader));
-            assertEquals(response.searchOne(TagName.INPUT, Map.of("id", "name_input")).tagInfo().attributes().get("value"), "Alice Katz");
+            assertEquals(response.searchOne(TagName.INPUT, Map.of("id", "name_input")).getTagInfo().getAttribute("value"), "Alice Katz");
         }
 
         // rename Alice to Foo
@@ -653,11 +654,11 @@ public class FunctionalTests {
             String newParentLocation = addParentResponse.headers().valueByKey("Location").get(0);
             String cleanedLocation = newParentLocation.replace("/editperson", "person");
             var newRelationResponse = ft.get(cleanedLocation);
-            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "children")).innerContent().get(0).innerText();
+            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "children")).getInnerContent().get(0).innerText();
             assertEquals(mangoChild, "george Katz");
 
             var response = ft.get("person?id=" + georgeId);
-            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "parents")).innerContent().get(1).innerText();
+            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "parents")).getInnerContent().get(1).innerText();
             assertEquals(georgeParent, "mango");
         }
 
@@ -667,11 +668,11 @@ public class FunctionalTests {
             String newChildLocation = addChildResponse.headers().valueByKey("Location").get(0);
             String cleanedLocation = newChildLocation.replace("/editperson", "person");
             var newRelationResponse = ft.get(cleanedLocation);
-            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "parents")).innerContent().get(0).innerText();
+            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "parents")).getInnerContent().get(0).innerText();
             assertEquals(mangoChild, "george Katz");
 
             var response = ft.get("person?id=" + georgeId);
-            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "children")).innerContent().get(1).innerText();
+            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "children")).getInnerContent().get(1).innerText();
             assertEquals(georgeParent, "banana");
         }
 
@@ -681,11 +682,11 @@ public class FunctionalTests {
             String newSiblingLocation = addSiblingResponse.headers().valueByKey("Location").get(0);
             String cleanedLocation = newSiblingLocation.replace("/editperson", "person");
             var newRelationResponse = ft.get(cleanedLocation);
-            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "siblings")).innerContent().get(0).innerText();
+            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "siblings")).getInnerContent().get(0).innerText();
             assertEquals(mangoChild, "george Katz");
 
             var response = ft.get("person?id=" + georgeId);
-            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "siblings")).innerContent().get(1).innerText();
+            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "siblings")).getInnerContent().get(1).innerText();
             assertEquals(georgeParent, "carrot");
         }
 
@@ -695,11 +696,11 @@ public class FunctionalTests {
             String newSpouseLocation = addSpouseResponse.headers().valueByKey("Location").get(0);
             String cleanedLocation = newSpouseLocation.replace("/editperson", "person");
             var newRelationResponse = ft.get(cleanedLocation);
-            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "spouses")).innerContent().get(0).innerText();
+            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "spouses")).getInnerContent().get(0).innerText();
             assertEquals(mangoChild, "george Katz");
 
             var response = ft.get("person?id=" + georgeId);
-            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "spouses")).innerContent().get(0).innerText();
+            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "spouses")).getInnerContent().get(0).innerText();
             assertEquals(georgeParent, "artichoke");
         }
 

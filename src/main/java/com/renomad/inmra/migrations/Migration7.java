@@ -3,7 +3,7 @@ package com.renomad.inmra.migrations;
 import com.renomad.inmra.featurelogic.persons.Person;
 import com.renomad.inmra.featurelogic.photo.PhotoToPerson;
 import com.renomad.inmra.featurelogic.photo.Photograph;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.database.Db;
 import com.renomad.minum.logging.ILogger;
 
@@ -46,7 +46,7 @@ public class Migration7 {
      * entries in the database.  The reverse would mean putting invalid
      * entries back into the database.
      */
-    private void run(boolean runReverse) throws IOException {
+    private void run(boolean runReverse) {
         var photoDb = new Db<>(dbDirectory.resolve("photos"), context, Photograph.EMPTY);
         var personsDb = new Db<>(dbDirectory.resolve("persons"), context, Person.EMPTY);
         var photoToPersonDb = new Db<>(dbDirectory.resolve("photo_to_person"), context, PhotoToPerson.EMPTY);

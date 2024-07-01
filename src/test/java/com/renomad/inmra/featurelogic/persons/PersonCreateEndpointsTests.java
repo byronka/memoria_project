@@ -8,10 +8,11 @@ import com.renomad.inmra.featurelogic.photo.PhotoService;
 import com.renomad.inmra.featurelogic.photo.PhotoToPerson;
 import com.renomad.inmra.featurelogic.photo.Photograph;
 import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.database.Db;
 import com.renomad.minum.logging.TestLogger;
-import com.renomad.minum.utils.ActionQueueKiller;
+import com.renomad.minum.queue.ActionQueueKiller;
+import com.renomad.minum.utils.FileUtils;
 import com.renomad.minum.utils.LRUCache;
 import com.renomad.minum.utils.MyThread;
 import com.renomad.minum.web.*;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -45,13 +47,13 @@ public class PersonCreateEndpointsTests {
     public static void init() {
         context = buildTestingContext("unit_tests");
         var memoriaContext = MemoriaContext.buildMemoriaContext(context);
-        minumFileUtils = context.getFileUtils();
+        minumFileUtils = new FileUtils(context.getLogger(), context.getConstants());
         logger = (TestLogger)context.getLogger();
         defaultRemoteRequester = "";
 
         IAuthUtils fakeAuth = makeFakeAuthUtils();
-        fakeHeaders = Headers.make(context);
-        fakeStartLine = RequestLine.empty(context);
+        fakeHeaders = new Headers(List.of());
+        fakeStartLine = RequestLine.empty();
         personDb = context.getDb("personcreateendpointstests_deleting_user_birthdate", Person.EMPTY);
         var photoDb = context.getDb("personcreateendpointstests_photodb", Photograph.EMPTY);
         var photoToPersonDb = context.getDb("personcreateendpointstests_photo_to_person", PhotoToPerson.EMPTY);
@@ -79,7 +81,7 @@ public class PersonCreateEndpointsTests {
      deleting that data.
      */
     @Test
-    public void test_UserBirthdate_Delete() throws IOException {
+    public void test_UserBirthdate_Delete() {
         //have to set up some state first.
 
         Person person = new Person(

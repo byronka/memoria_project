@@ -1,13 +1,13 @@
 package com.renomad.inmra.featurelogic.persons.services;
 
 import com.renomad.inmra.featurelogic.persons.*;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.database.Db;
 import com.renomad.minum.htmlparsing.HtmlParseNode;
 import com.renomad.minum.htmlparsing.HtmlParser;
 import com.renomad.minum.htmlparsing.TagName;
 import com.renomad.minum.logging.ILogger;
-import com.renomad.minum.utils.ActionQueue;
+import com.renomad.minum.queue.ActionQueue;
 import com.renomad.minum.utils.StacktraceUtils;
 
 import java.util.*;
@@ -99,15 +99,15 @@ public class FamilyGraphBuilder {
         List<HtmlParseNode> parsedRelations = new ArrayList<>();
         // get the relatives from all the relations fields
         parsedRelations.addAll(htmlParser.parse(personFile.getSiblings()).stream()
-                .filter(x -> x.tagInfo().tagName().equals(TagName.A)).toList());
+                .filter(x -> x.getTagInfo().getTagName().equals(TagName.A)).toList());
         parsedRelations.addAll(htmlParser.parse(personFile.getChildren()).stream()
-                .filter(x -> x.tagInfo().tagName().equals(TagName.A)).toList());
+                .filter(x -> x.getTagInfo().getTagName().equals(TagName.A)).toList());
         parsedRelations.addAll(htmlParser.parse(personFile.getParents()).stream()
-                .filter(x -> x.tagInfo().tagName().equals(TagName.A)).toList());
+                .filter(x -> x.getTagInfo().getTagName().equals(TagName.A)).toList());
         parsedRelations.addAll(htmlParser.parse(personFile.getSpouses()).stream()
-                .filter(x -> x.tagInfo().tagName().equals(TagName.A)).toList());
+                .filter(x -> x.getTagInfo().getTagName().equals(TagName.A)).toList());
         for (var personAnchorElement : parsedRelations) {
-            String hrefValue = personAnchorElement.tagInfo().attributes().get("href");
+            String hrefValue = personAnchorElement.getTagInfo().getAttribute("href");
             String potentialUuid = hrefValue.replace("person?id=", "");
             try {
                 UUID uuid = UUID.fromString(potentialUuid);

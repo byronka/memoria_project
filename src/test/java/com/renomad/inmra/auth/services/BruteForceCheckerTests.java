@@ -1,7 +1,7 @@
 package com.renomad.inmra.auth.services;
 
 import com.renomad.inmra.security.ISecurityUtils;
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.TestLogger;
 import com.renomad.minum.security.ITheBrig;
 import com.renomad.minum.security.Inmate;

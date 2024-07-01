@@ -1,9 +1,9 @@
 package com.renomad.inmra.featurelogic.photo;
 
-import com.renomad.minum.Context;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.testing.StopwatchUtils;
-import com.renomad.minum.utils.ActionQueue;
+import com.renomad.minum.queue.ActionQueue;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
