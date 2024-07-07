@@ -48,7 +48,7 @@ public class Admin {
     }
 
     public Response get(Request request) {
-        if (! authUtils.processAuth(request).isAuthenticated()) return new Response(StatusLine.StatusCode.CODE_403_FORBIDDEN);
+        if (! authUtils.processAuth(request).isAuthenticated()) return Response.buildLeanResponse(StatusLine.StatusCode.CODE_403_FORBIDDEN);
         Map<String, String> adminPageValues = new HashMap<>();
 
         // get all the users

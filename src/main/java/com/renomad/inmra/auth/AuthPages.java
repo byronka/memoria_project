@@ -148,7 +148,7 @@ public class AuthPages {
      */
     public Response loginUserPost(Request r) {
         boolean isBruteForcing = bruteForceChecker.check(r.remoteRequester());
-        if (isBruteForcing) return new Response(CODE_429_TOO_MANY_REQUESTS);
+        if (isBruteForcing) return Response.buildLeanResponse(CODE_429_TOO_MANY_REQUESTS);
 
         // if already authenticated, send them to the index
         if (authUtils.processAuth(r).isAuthenticated()) {
@@ -162,17 +162,17 @@ public class AuthPages {
         return switch (loginResult.status()) {
             case SUCCESS -> {
                 logger.logAudit(() -> String.format("Successful user login for: %s, id: %s", loginResult.user().getUsername(), loginResult.user().getIndex()));
-                yield new Response(CODE_303_SEE_OTHER, Map.of(
+                yield Response.buildLeanResponse(CODE_303_SEE_OTHER, Map.of(
                         "Location","index",
                         "Set-Cookie","%s=%s; Secure; HttpOnly; Domain=%s".formatted(cookieKey, loginResult.sessionId().getSessionCode(), constants.hostName)));
             }
             case DID_NOT_MATCH_PASSWORD -> {
                 logger.logDebug(() -> "Failed login for user named: " + username);
-                yield new Response(CODE_403_FORBIDDEN, "Invalid account credentials", Map.of("Content-Type","text/plain"));
+                yield Response.buildResponse(CODE_403_FORBIDDEN, Map.of("Content-Type","text/plain"), "Invalid account credentials");
             }
             case NO_USER_FOUND -> {
                 logger.logDebug(() -> "login attempted, but no user named: " + username);
-                yield new Response(CODE_403_FORBIDDEN, "Invalid account credentials", Map.of("Content-Type","text/plain"));
+                yield Response.buildResponse(CODE_403_FORBIDDEN, Map.of("Content-Type","text/plain"), "Invalid account credentials");
             }
         };
     }
@@ -210,12 +210,12 @@ public class AuthPages {
 
         if (registrationResult.status() == ALREADY_EXISTING_USER) {
             logger.logAudit(() -> String.format("registration for %s failed - already registered", username));
-            return new Response(
+            return Response.buildResponse(
                     CODE_401_UNAUTHORIZED,
-                    "<p>This user is already registered</p><p><a href=\"/\">Index</a></p>",
-                    Map.of("content-type","text/html"));
+                    Map.of("content-type","text/html"),
+                    "<p>This user is already registered</p><p><a href=\"/\">Index</a></p>");
         }
-        return new Response(CODE_303_SEE_OTHER, Map.of("Location","/auth/registered.html"));
+        return Response.buildLeanResponse(CODE_303_SEE_OTHER, Map.of("Location","/auth/registered.html"));
 
     }
 

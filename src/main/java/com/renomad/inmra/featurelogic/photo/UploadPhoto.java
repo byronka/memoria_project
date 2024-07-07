@@ -54,7 +54,7 @@ public class UploadPhoto {
         // make sure they are authenticated for this
         AuthResult authResult = auth.processAuth(request);
         if (! authResult.isAuthenticated()) {
-            return new Response(CODE_403_FORBIDDEN);
+            return Response.buildLeanResponse(CODE_403_FORBIDDEN);
         }
 
         String shortDescription;
@@ -65,7 +65,7 @@ public class UploadPhoto {
             shortDescription = photoService.checkShortDescription(request.body());
             person = photoService.checkPersonId(request.body());
         } catch (InvalidPhotoException ex) {
-            return new Response(CODE_400_BAD_REQUEST, ex.getMessage(),Map.of("content-type", "text/plain") );
+            return Response.buildResponse(CODE_400_BAD_REQUEST, Map.of("content-type", "text/plain"), ex.getMessage());
         }
 
         // it's ok if they didn't enter a long description
@@ -77,13 +77,13 @@ public class UploadPhoto {
             newFilename = photoService.writePhotoData(suffix, shortDescription, description, photoBytes, person);
         } catch (IOException ex) {
             logger.logAsyncError(() -> StacktraceUtils.stackTraceToString(ex));
-            return new Response(CODE_500_INTERNAL_SERVER_ERROR, ex.toString());
+            return Response.buildResponse(CODE_500_INTERNAL_SERVER_ERROR, Map.of("Content-Type", "text/plain"), ex.toString());
         }
 
         // wait until we see the files end up in their destination directories.
         photoService.waitUntilPhotosConverted(newFilename, constants.COUNT_OF_PHOTO_CHECKS, constants.WAIT_TIME_PER_PHOTO_CHECK);
 
-        return new Response(CODE_303_SEE_OTHER,
+        return Response.buildLeanResponse(CODE_303_SEE_OTHER,
                 Map.of(
                 "location", "photos?personid=" + person.getId().toString(),
                 "x-photo-name", newFilename)
@@ -95,7 +95,7 @@ public class UploadPhoto {
         // make sure they are authenticated for this
         AuthResult authResult = auth.processAuth(request);
         if (! authResult.isAuthenticated()) {
-            return new Response(CODE_403_FORBIDDEN);
+            return Response.buildLeanResponse(CODE_403_FORBIDDEN);
         }
 
         String shortDescription;
@@ -106,7 +106,7 @@ public class UploadPhoto {
             person = photoService.checkPersonId(request.body());
             photoId = photoService.checkPhotoId(request.body());
         } catch (InvalidPhotoException ex) {
-            return new Response(CODE_400_BAD_REQUEST, ex.getMessage(),Map.of("content-type", "text/plain") );
+            return Response.buildResponse(CODE_400_BAD_REQUEST, Map.of("content-type", "text/plain"), ex.getMessage());
         }
         // it's ok if they didn't enter a long description
         var description = request.body().asString("long_description");
@@ -115,7 +115,7 @@ public class UploadPhoto {
         // which we will attach to a new person)
         photoService.copyPhoto(photoId, shortDescription, description, person);
 
-        return new Response(CODE_303_SEE_OTHER,
+        return Response.buildLeanResponse(CODE_303_SEE_OTHER,
                 Map.of(
                         "location", "photos?personid=" + person.getId().toString())
         );
@@ -150,7 +150,7 @@ public class UploadPhoto {
         // make sure they are authenticated for this
         AuthResult authResult = auth.processAuth(request);
         if (! authResult.isAuthenticated()) {
-            return new Response(CODE_403_FORBIDDEN);
+            return Response.buildLeanResponse(CODE_403_FORBIDDEN);
         }
 
         String renderedAuthHeader = authHeader.renderTemplate(Map.of("edit_this_person", ""));

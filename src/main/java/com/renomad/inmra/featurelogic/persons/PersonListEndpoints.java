@@ -111,7 +111,7 @@ public class PersonListEndpoints {
                 .map(homepagePersonRenderer::renderPersonTemplate)
                 .collect(Collectors.joining("\n"));
         if (names.isBlank()) {
-            return new Response(CODE_204_NO_CONTENT);
+            return Response.buildLeanResponse(CODE_204_NO_CONTENT);
         } else {
             return Respond.htmlOk(names);
         }
@@ -146,18 +146,18 @@ public class PersonListEndpoints {
      */
     public Response viewPersonGet(Request r) {
         String id = r.requestLine().queryString().get("id");
-        if (id == null) return new Response(CODE_400_BAD_REQUEST);
+        if (id == null) return Response.buildLeanResponse(CODE_400_BAD_REQUEST);
 
         PersonFile deserializedPersonFile;
         try {
             deserializedPersonFile = personEndpoints.personLruCache.getCachedPersonFile(id);
         } catch (Exception ex) {
             logger.logAsyncError(() -> "Error while viewing a person: " + StacktraceUtils.stackTraceToString(ex));
-            return new Response(CODE_500_INTERNAL_SERVER_ERROR);
+            return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
         }
 
         if (deserializedPersonFile.equals(PersonFile.EMPTY)) {
-            return new Response(CODE_404_NOT_FOUND);
+            return Response.buildLeanResponse(CODE_404_NOT_FOUND);
         }
 
         String renderedAuthHeader = personEndpoints.authHeader.getRenderedAuthHeader(r, id);
@@ -185,7 +185,7 @@ public class PersonListEndpoints {
         String renderedHtml = relationSearch.searchRelations(query);
 
         if (renderedHtml.isBlank()) {
-            return new Response(CODE_204_NO_CONTENT);
+            return Response.buildLeanResponse(CODE_204_NO_CONTENT);
         } else {
             return Respond.htmlOk(renderedHtml);
         }

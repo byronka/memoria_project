@@ -124,6 +124,6 @@ public class AuthUtils implements IAuthUtils {
 
     @Override
     public Response htmlForbidden() {
-        return new Response(CODE_403_FORBIDDEN, getForbiddenPage(), Map.of("content-type","text/html"));
+        return Response.buildResponse(CODE_403_FORBIDDEN, Map.of("content-type","text/html"), getForbiddenPage());
     }
 }

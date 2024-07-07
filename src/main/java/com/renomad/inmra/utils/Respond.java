@@ -29,7 +29,7 @@ public class Respond {
         // this lets us tell the browser we want to always use secure when possible
         headers.put("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
         headers.putAll(extraHeaders);
-        return new Response(statusCode, headers, body);
+        return Response.buildResponse(statusCode, headers, body);
     }
 
     /**
