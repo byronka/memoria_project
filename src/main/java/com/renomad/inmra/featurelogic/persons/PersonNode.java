@@ -3,7 +3,6 @@ package com.renomad.inmra.featurelogic.persons;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 public class PersonNode {
 

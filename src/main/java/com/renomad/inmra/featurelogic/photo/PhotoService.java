@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import static com.renomad.minum.utils.SearchUtils.findExactlyOne;
@@ -260,7 +261,13 @@ public class PhotoService {
      * make sure they sent a photo
      */
     byte[] checkPhotoWasSent(Body body) {
-        var photoBytes = body.asBytes("image_uploads");
+        byte[] photoBytes;
+        try {
+            photoBytes = body.getPartitionByName("image_uploads").getFirst().getContent();
+        } catch (NoSuchElementException ex) {
+            photoBytes = body.asBytes("image_uploads");
+            // do nothing - this exception will be thrown when we do testing and send a url-encoded body
+        }
         if (photoBytes == null || photoBytes.length == 0) {
             throw new InvalidPhotoException("Error: a photograph is required");
         }
@@ -271,7 +278,12 @@ public class PhotoService {
      * make sure they sent a short description
      */
     String checkShortDescription(Body body) {
-        var shortDescription = body.asString("short_description");
+        String shortDescription;
+        try {
+            shortDescription = body.getPartitionByName("short_description").getFirst().getContentAsString();
+        } catch (NoSuchElementException ex) {
+            shortDescription = body.asString("short_description");
+        }
         if (shortDescription == null || shortDescription.isBlank()) {
             throw new InvalidPhotoException("Error: caption (short description) is required");
         }
@@ -282,7 +294,12 @@ public class PhotoService {
      * make sure they sent a photo identifier (when copying)
      */
     String checkPhotoId(Body body) {
-        var photoId = body.asString("photo_id");
+        String photoId;
+        try {
+            photoId = body.getPartitionByName("photo_id").getFirst().getContentAsString();
+        } catch (NoSuchElementException ex) {
+            photoId = body.asString("photo_id");
+        }
         if (photoId == null || photoId.isBlank()) {
             throw new InvalidPhotoException("Error: photo id is required");
         }
@@ -293,14 +310,20 @@ public class PhotoService {
      * they must have a person id to associate with this photo
      */
     Person checkPersonId(Body body) {
-        var personIdString = body.asString("person_id");
+        String personIdString;
+        try {
+            personIdString = body.getPartitionByName("person_id").getFirst().getContentAsString();
+        } catch (NoSuchElementException ex) {
+            personIdString = body.asString("person_id");
+        }
         if (personIdString == null || personIdString.isBlank()) {
             throw new InvalidPhotoException("Error: a person_id is required and must be valid");
         }
+        String finalPersonIdString = personIdString;
         Person foundPerson = SearchUtils
                 .findExactlyOne(
                         personDb.values().stream(),
-                        x -> x.getId().toString().equals(personIdString));
+                        x -> x.getId().toString().equals(finalPersonIdString));
         if (foundPerson == null) {
             throw new InvalidPhotoException("Error: a valid person_id is required");
         }
@@ -395,7 +418,12 @@ public class PhotoService {
      * proper suffix.
      */
     String extractSuffix(Body body) {
-        Headers partitionHeaders = body.partitionHeaders("image_uploads");
+        Headers partitionHeaders = null;
+        try {
+            partitionHeaders = body.getPartitionByName("image_uploads").getFirst().getHeaders();
+        } catch (NoSuchElementException ex) {
+            // do nothing - this exception will be thrown when we do testing and send a url-encoded body
+        }
         List<String> contentTypeList = partitionHeaders != null ? partitionHeaders.valueByKey("content-type") : List.of();
         return determineSuffixByContentType(contentTypeList, logger);
     }
@@ -427,7 +455,7 @@ public class PhotoService {
      *               came from a Javascript request, and we'll just return 204
      *               if successful.
      */
-    public Response photoDelete(Request request, boolean isPost) {
+    public IResponse photoDelete(IRequest request, boolean isPost) {
         AuthResult authResult = auth.processAuth(request);
 
         if (!authResult.isAuthenticated()) {
@@ -437,8 +465,8 @@ public class PhotoService {
         // get the id from different spots, depending on if this is a post.
         long id;
         try {
-            id = Long.parseLong(isPost ? request.body().asString("photoid") :
-                    request.requestLine().queryString().get("id"));
+            id = Long.parseLong(isPost ? request.getBody().asString("photoid") :
+                    request.getRequestLine().queryString().get("id"));
         } catch (NumberFormatException ex) {
             logger.logDebug(() -> "User failed to include valid id of photograph to delete. " + ex);
             return Response.buildLeanResponse(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
@@ -478,15 +506,15 @@ public class PhotoService {
      * @param isPost if true, this request arrived as a POST request, and needs
      *               to be handled accordingly.  Otherwise, a JavaScript request.
      */
-    public Response photoLongDescriptionUpdate(Request request, boolean isPost) {
+    public IResponse photoLongDescriptionUpdate(IRequest request, boolean isPost) {
         AuthResult authResult = auth.processAuth(request);
         if (!authResult.isAuthenticated()) {
             return Response.redirectTo("/");
         }
-        String updatedDescription = isPost ? request.body().asString("long_description") : request.body().asString();
+        String updatedDescription = isPost ? request.getBody().asString("long_description") : request.getBody().asString();
         long photoId;
         try {
-            photoId = Long.parseLong(isPost ? request.body().asString("photoid") : request.requestLine().queryString().get("id"));
+            photoId = Long.parseLong(isPost ? request.getBody().asString("photoid") : request.getRequestLine().queryString().get("id"));
         } catch (NumberFormatException ex) {
             logger.logDebug(() -> "User failed to include valid id of photograph to delete. " + ex);
             return Response.buildLeanResponse(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
@@ -525,15 +553,15 @@ public class PhotoService {
      * @param isPost if true, this is being sent as a POST request, and we'll
      *               handle accordingly.  Otherwise, a request sent by Javascript.
      */
-    public Response photoShortDescriptionUpdate(Request request, boolean isPost) {
+    public IResponse photoShortDescriptionUpdate(IRequest request, boolean isPost) {
         AuthResult authResult = auth.processAuth(request);
         if (!authResult.isAuthenticated()) {
             return Response.redirectTo("/");
         }
-        String updatedShortDescription = isPost ? request.body().asString("caption") : request.body().asString();
+        String updatedShortDescription = isPost ? request.getBody().asString("caption") : request.getBody().asString();
         long photoId;
         try {
-            photoId = Long.parseLong(isPost ? request.body().asString("photoid") : request.requestLine().queryString().get("id"));
+            photoId = Long.parseLong(isPost ? request.getBody().asString("photoid") : request.getRequestLine().queryString().get("id"));
         } catch (NumberFormatException ex) {
             logger.logDebug(() -> "User failed to include valid id of photograph to delete. " + ex);
             return Response.buildLeanResponse(StatusLine.StatusCode.CODE_400_BAD_REQUEST);

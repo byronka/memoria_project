@@ -14,8 +14,8 @@ import com.renomad.minum.state.Context;
 import com.renomad.minum.database.Db;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.utils.StacktraceUtils;
-import com.renomad.minum.web.Request;
-import com.renomad.minum.web.Response;
+import com.renomad.minum.web.IRequest;
+import com.renomad.minum.web.IResponse;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -78,7 +78,7 @@ public class PersonEndpoints {
      * Get the HTML page for showing a user the controls
      * for creating or editing a person
      */
-    public Response createNewPersonGet(Request r) {
+    public IResponse createNewPersonGet(IRequest r) {
         return personCreateEndpoints.createOrEditPersonGet(r);
     }
 
@@ -86,14 +86,14 @@ public class PersonEndpoints {
      * The endpoint a user sends their data to when
      * creating or editing a person
      */
-    public Response editPersonPost(Request r) {
+    public IResponse editPersonPost(IRequest r) {
         return personCreateEndpoints.editPersonPost(r);
     }
 
     /**
      * Get a page showing all the persons
      */
-    public Response listAllPersonsGet(Request request) {
+    public IResponse listAllPersonsGet(IRequest request) {
         return personListEndpoints.listAllPersonsGet(request);
     }
 
@@ -101,7 +101,7 @@ public class PersonEndpoints {
      * Get a page showing all the persons, so that
      * the user can choose one to edit
      */
-    public Response editListGet(Request request) {
+    public IResponse editListGet(IRequest request) {
         return personListEndpoints.editListGet(request);
     }
 
@@ -113,30 +113,30 @@ public class PersonEndpoints {
         return personDb;
     }
 
-    public Response listPersonGet(Request request) {
+    public IResponse listPersonGet(IRequest request) {
         return personListEndpoints.viewPersonGet(request);
     }
 
-    public Response deletePerson(Request request) {
+    public IResponse deletePerson(IRequest request) {
         return personCreateEndpoints.deletePerson(request, false);
     }
 
-    public Response deletePersonPost(Request request) {
+    public IResponse deletePersonPost(IRequest request) {
         return personCreateEndpoints.deletePerson(request, true);
     }
 
-    public Response searchPersonGet(Request request) {
+    public IResponse searchPersonGet(IRequest request) {
         return personListEndpoints.searchPersonGet(request);
     }
 
     /**
      * Search for persons to add as relations
      */
-    public Response searchRelationGet(Request request) {
+    public IResponse searchRelationGet(IRequest request) {
         return personListEndpoints.searchRelationGet(request);
     }
 
-    public Response addRelationPost(Request request) {
+    public IResponse addRelationPost(IRequest request) {
         return personCreateEndpoints.addRelationPost(request);
     }
 

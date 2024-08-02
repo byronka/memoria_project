@@ -1,7 +1,6 @@
 package com.renomad.inmra.featurelogic.persons;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 

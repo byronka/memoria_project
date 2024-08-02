@@ -1,7 +1,7 @@
 package com.renomad.inmra.auth;
 
-import com.renomad.minum.web.Request;
-import com.renomad.minum.web.Response;
+import com.renomad.minum.web.IRequest;
+import com.renomad.minum.web.IResponse;
 
 import java.util.regex.Pattern;
 
@@ -12,9 +12,9 @@ public interface IAuthUtils {
      */
     Pattern sessionIdCookieRegex = Pattern.compile(cookieKey + "=(?<sessionIdValue>\\w+)");
 
-    AuthResult processAuth(Request request);
+    AuthResult processAuth(IRequest request);
 
     String getForbiddenPage();
 
-    Response htmlForbidden();
+    IResponse htmlForbidden();
 }

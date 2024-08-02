@@ -13,7 +13,6 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-import static com.renomad.minum.utils.StringUtils.safeAttr;
 import static com.renomad.minum.utils.StringUtils.safeHtml;
 
 /**

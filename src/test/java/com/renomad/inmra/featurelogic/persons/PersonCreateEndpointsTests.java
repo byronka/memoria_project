@@ -1,9 +1,6 @@
 package com.renomad.inmra.featurelogic.persons;
 
-import com.renomad.inmra.auth.AuthHeader;
-import com.renomad.inmra.auth.AuthResult;
-import com.renomad.inmra.auth.IAuthUtils;
-import com.renomad.inmra.auth.User;
+import com.renomad.inmra.auth.*;
 import com.renomad.inmra.featurelogic.photo.PhotoService;
 import com.renomad.inmra.featurelogic.photo.PhotoToPerson;
 import com.renomad.inmra.featurelogic.photo.Photograph;
@@ -20,7 +17,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -35,7 +31,6 @@ public class PersonCreateEndpointsTests {
     private static Context context;
     private static TestLogger logger;
     private static String defaultRemoteRequester;
-    private static Headers fakeHeaders;
     private static RequestLine fakeStartLine;
     private static Db<Person> personDb;
     private static PersonCreateEndpoints personCreateEndpoints;
@@ -52,8 +47,8 @@ public class PersonCreateEndpointsTests {
         defaultRemoteRequester = "";
 
         IAuthUtils fakeAuth = makeFakeAuthUtils();
-        fakeHeaders = new Headers(List.of());
-        fakeStartLine = RequestLine.empty();
+
+        fakeStartLine = RequestLine.EMPTY;
         personDb = context.getDb("personcreateendpointstests_deleting_user_birthdate", Person.EMPTY);
         var photoDb = context.getDb("personcreateendpointstests_photodb", Photograph.EMPTY);
         var photoToPersonDb = context.getDb("personcreateendpointstests_photo_to_person", PhotoToPerson.EMPTY);
@@ -100,13 +95,19 @@ public class PersonCreateEndpointsTests {
                             "name_input", "name does not matter".getBytes(),
                             "born_input", "".getBytes()),
                     new byte[0],
-                    Map.of()
+                    List.of(),
+                    BodyType.FORM_URL_ENCODED
             );
+            var fakeHeaders = new Headers(List.of("Content-Type: application/x-www-urlencoded"));
+            FakeSocketWrapper socketWrapper = new FakeSocketWrapper();
+            FakeBodyProcessor bodyProcessor = new FakeBodyProcessor();
+            bodyProcessor.data = bodyWithDeletedBirthdate;
             var request = new Request(
                     fakeHeaders,
                     fakeStartLine,
-                    bodyWithDeletedBirthdate,
-                    defaultRemoteRequester);
+                    defaultRemoteRequester,
+                    socketWrapper,
+                    bodyProcessor);
 
             // handle the request
             personCreateEndpoints.editPersonPost(request);
@@ -130,7 +131,7 @@ public class PersonCreateEndpointsTests {
     private static IAuthUtils makeFakeAuthUtils() {
         return new IAuthUtils() {
             @Override
-            public AuthResult processAuth(Request request) {
+            public AuthResult processAuth(IRequest request) {
                 LocalDateTime ldt = LocalDateTime.of(2023, java.time.Month.JANUARY, 1, 1, 1);
                 return new AuthResult(true, ldt.toInstant(ZoneOffset.UTC), User.EMPTY);
             }
@@ -141,7 +142,7 @@ public class PersonCreateEndpointsTests {
             }
 
             @Override
-            public Response htmlForbidden() {
+            public IResponse htmlForbidden() {
                 return null;
             }
         };

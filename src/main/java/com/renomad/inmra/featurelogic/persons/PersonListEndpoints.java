@@ -11,7 +11,8 @@ import com.renomad.minum.database.Db;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.StacktraceUtils;
-import com.renomad.minum.web.Request;
+import com.renomad.minum.web.IRequest;
+import com.renomad.minum.web.IResponse;
 import com.renomad.minum.web.Response;
 
 import java.util.List;
@@ -62,8 +63,8 @@ public class PersonListEndpoints {
     }
 
 
-    Response listAllPersonsGet(Request r) {
-        String searchQuery = r.requestLine().queryString().get("search");
+    IResponse listAllPersonsGet(IRequest r) {
+        String searchQuery = r.getRequestLine().queryString().get("search");
         List<Person> persons = personSearch.getPeople(searchQuery);
         var sb = new StringBuilder();
         if (persons.isEmpty()) {
@@ -104,8 +105,8 @@ public class PersonListEndpoints {
     /**
      * Handles the search requests from the search field on the homepage
      */
-    public Response searchPersonGet(Request request) {
-        String query = request.requestLine().queryString().get("query");
+    public IResponse searchPersonGet(IRequest request) {
+        String query = request.getRequestLine().queryString().get("query");
         List<Person> people = personSearch.getPeople(query);
         String names = people.stream()
                 .map(homepagePersonRenderer::renderPersonTemplate)
@@ -122,20 +123,20 @@ public class PersonListEndpoints {
      * If you are logged in and want to edit a person, this is the
      * list of persons
      */
-    Response editListGet(Request r) {
+    IResponse editListGet(IRequest r) {
         AuthResult authResult = auth.processAuth(r);
         if (! authResult.isAuthenticated()) {
             return auth.htmlForbidden();
         }
 
         // get the search string
-        String lowercaseSearch = Objects.requireNonNullElse(r.requestLine().queryString().get("search"), "").toLowerCase();
+        String lowercaseSearch = Objects.requireNonNullElse(r.getRequestLine().queryString().get("search"), "").toLowerCase();
         // get the sort string
-        String sort = Objects.requireNonNullElse(r.requestLine().queryString().get("sort"), "").toLowerCase();
+        String sort = Objects.requireNonNullElse(r.getRequestLine().queryString().get("sort"), "").toLowerCase();
         // get the page we're on, or default to page 1 (1 is the first page).
-        int page = Integer.parseInt(Objects.requireNonNullElse(r.requestLine().queryString().get("page"), "1"));
+        int page = Integer.parseInt(Objects.requireNonNullElse(r.getRequestLine().queryString().get("page"), "1"));
         // get the identifier.  If this is given, we ignore everything else and show just one person
-        String id = Objects.requireNonNullElse(r.requestLine().queryString().get("id"), "").toLowerCase();
+        String id = Objects.requireNonNullElse(r.getRequestLine().queryString().get("id"), "").toLowerCase();
         String authHeaderRendered = personEndpoints.authHeader.getRenderedAuthHeader(r);
         Map<String, String> listItems = enhancedPersonList.renderListOfPersons(lowercaseSearch, sort, page, authHeaderRendered, id);
         return Respond.htmlOk(personEditListPageTemplateProcessor.renderTemplate(listItems));
@@ -144,8 +145,8 @@ public class PersonListEndpoints {
     /**
      * View the details of a particular person
      */
-    public Response viewPersonGet(Request r) {
-        String id = r.requestLine().queryString().get("id");
+    public IResponse viewPersonGet(IRequest r) {
+        String id = r.getRequestLine().queryString().get("id");
         if (id == null) return Response.buildLeanResponse(CODE_400_BAD_REQUEST);
 
         PersonFile deserializedPersonFile;
@@ -179,8 +180,8 @@ public class PersonListEndpoints {
      * to a person - this is called by some JavaScript on the
      * edit page for adding new relations like siblings, spouses, etc.
      */
-    public Response searchRelationGet(Request request) {
-        String query = request.requestLine().queryString().get("query");
+    public IResponse searchRelationGet(IRequest request) {
+        String query = request.getRequestLine().queryString().get("query");
 
         String renderedHtml = relationSearch.searchRelations(query);
 

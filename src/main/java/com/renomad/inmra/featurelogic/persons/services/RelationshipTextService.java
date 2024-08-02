@@ -1,9 +1,6 @@
 package com.renomad.inmra.featurelogic.persons.services;
 
 import com.renomad.inmra.featurelogic.persons.Gender;
-import com.renomad.inmra.featurelogic.persons.PersonNode;
-
-import java.util.Map;
 
 /**
  * Here we handle some of the programs dealing with relationship

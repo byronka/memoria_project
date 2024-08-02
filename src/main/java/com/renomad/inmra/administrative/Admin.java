@@ -47,7 +47,7 @@ public class Admin {
         this.theBrig = context.getFullSystem().getTheBrig();
     }
 
-    public Response get(Request request) {
+    public IResponse get(IRequest request) {
         if (! authUtils.processAuth(request).isAuthenticated()) return Response.buildLeanResponse(StatusLine.StatusCode.CODE_403_FORBIDDEN);
         Map<String, String> adminPageValues = new HashMap<>();
 

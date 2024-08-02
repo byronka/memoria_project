@@ -11,9 +11,7 @@ import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.state.Context;
 import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.StacktraceUtils;
-import com.renomad.minum.web.Request;
-import com.renomad.minum.web.Response;
-import com.renomad.minum.web.StatusLine;
+import com.renomad.minum.web.*;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -62,12 +60,12 @@ public class PersonCreateEndpoints {
                 fileUtils);
     }
 
-    public Response createOrEditPersonGet(Request r) {
+    public IResponse createOrEditPersonGet(IRequest r) {
         AuthResult authResult = auth.processAuth(r);
         if (! authResult.isAuthenticated()) {
             return auth.htmlForbidden();
         }
-        String id = r.requestLine().queryString().get("id");
+        String id = r.getRequestLine().queryString().get("id");
         /*
         by default, we will show empty strings for the values for user attributes,
         since we're expecting the user to fill them in
@@ -102,14 +100,14 @@ public class PersonCreateEndpoints {
      * Add a spouse to a person.  Create a new person
      * and create appropriate linkages.
      */
-    public Response addRelationPost(Request request) {
+    public IResponse addRelationPost(IRequest request) {
         AuthResult authResult = auth.processAuth(request);
         if (! authResult.isAuthenticated()) {
             return auth.htmlForbidden();
         }
         String username = authResult.user().getUsername();
-        String personId = request.body().asString("person_id");
-        String relationTypeString = request.body().asString("relation");
+        String personId = request.getBody().asString("person_id");
+        String relationTypeString = request.getBody().asString("relation");
         RelationType relationType;
         try {
             relationType = RelationType.valueOf(relationTypeString.toUpperCase());
@@ -117,7 +115,7 @@ public class PersonCreateEndpoints {
             logger.logDebug(() -> "Relation much be parent, child, spouse or sibling: user provided: " + relationTypeString);
             return Respond.userInputError();
         }
-        String relationName = request.body().asString("relation_name_input");
+        String relationName = request.getBody().asString("relation_name_input");
 
         if (personId.isBlank()) {
             return Respond.userInputError();
@@ -143,7 +141,7 @@ public class PersonCreateEndpoints {
     /**
      * Handle a POST request for setting the values on a person.
      */
-    public Response editPersonPost(Request r) {
+    public IResponse editPersonPost(IRequest r) {
         AuthResult authResult = auth.processAuth(r);
         if (! authResult.isAuthenticated()) {
             return auth.htmlForbidden();
@@ -164,14 +162,14 @@ public class PersonCreateEndpoints {
      * associated data
      * @param isPost if true, we'll handle this as a POST request.
      */
-    public Response deletePerson(Request request, boolean isPost) {
+    public IResponse deletePerson(IRequest request, boolean isPost) {
         AuthResult authResult = auth.processAuth(request);
         if (!authResult.isAuthenticated()) {
             return auth.htmlForbidden();
         }
 
-        var id = isPost ? request.body().asString("id") :
-                request.requestLine().queryString().get("id");
+        var id = isPost ? request.getBody().asString("id") :
+                request.getRequestLine().queryString().get("id");
 
         if (id == null) {
             logger.logDebug(() -> "User failed to include id of person to delete");

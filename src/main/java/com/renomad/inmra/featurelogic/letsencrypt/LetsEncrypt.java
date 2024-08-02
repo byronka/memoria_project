@@ -2,9 +2,7 @@ package com.renomad.inmra.featurelogic.letsencrypt;
 
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.state.Context;
-import com.renomad.minum.web.Request;
-import com.renomad.minum.web.Response;
-import com.renomad.minum.web.StatusLine;
+import com.renomad.minum.web.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,10 +44,10 @@ public class LetsEncrypt {
     /**
      * See details at {@link LetsEncrypt}
      */
-    public Response challengeResponse(Request request) {
+    public IResponse challengeResponse(IRequest request) {
         logger.logDebug(() -> "Incoming certbot request: " + request);
         // extract session identifiers from the cookies
-        final var challengeMatcher = requestRegex.matcher(request.requestLine().getPathDetails().getIsolatedPath());
+        final var challengeMatcher = requestRegex.matcher(request.getRequestLine().getPathDetails().getIsolatedPath());
         // When the find command is run, it changes state so we can search by matching group
         if (! challengeMatcher.find()) {
             return Response.buildLeanResponse(StatusLine.StatusCode.CODE_400_BAD_REQUEST);

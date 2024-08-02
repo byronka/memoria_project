@@ -10,7 +10,8 @@ import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.StacktraceUtils;
-import com.renomad.minum.web.Request;
+import com.renomad.minum.web.IRequest;
+import com.renomad.minum.web.IResponse;
 import com.renomad.minum.web.Response;
 
 import java.io.IOException;
@@ -50,7 +51,7 @@ public class UploadPhoto {
         }
     }
 
-    public Response uploadPhotoReceivePhost(Request request) {
+    public IResponse uploadPhotoReceivePost(IRequest request) {
         // make sure they are authenticated for this
         AuthResult authResult = auth.processAuth(request);
         if (! authResult.isAuthenticated()) {
@@ -61,16 +62,16 @@ public class UploadPhoto {
         byte[] photoBytes;
         Person person;
         try {
-            photoBytes = photoService.checkPhotoWasSent(request.body());
-            shortDescription = photoService.checkShortDescription(request.body());
-            person = photoService.checkPersonId(request.body());
+            photoBytes = photoService.checkPhotoWasSent(request.getBody());
+            shortDescription = photoService.checkShortDescription(request.getBody());
+            person = photoService.checkPersonId(request.getBody());
         } catch (InvalidPhotoException ex) {
             return Response.buildResponse(CODE_400_BAD_REQUEST, Map.of("content-type", "text/plain"), ex.getMessage());
         }
 
         // it's ok if they didn't enter a long description
-        var description = request.body().asString("long_description");
-        String suffix = photoService.extractSuffix(request.body());
+        var description = request.getBody().asString("long_description");
+        String suffix = photoService.extractSuffix(request.getBody());
 
         String newFilename;
         try {
@@ -91,7 +92,7 @@ public class UploadPhoto {
     }
 
 
-    public Response copyPhotoReceivePost(Request request) {
+    public IResponse copyPhotoReceivePost(IRequest request) {
         // make sure they are authenticated for this
         AuthResult authResult = auth.processAuth(request);
         if (! authResult.isAuthenticated()) {
@@ -102,14 +103,14 @@ public class UploadPhoto {
         String photoId;
         Person person;
         try {
-            shortDescription = photoService.checkShortDescription(request.body());
-            person = photoService.checkPersonId(request.body());
-            photoId = photoService.checkPhotoId(request.body());
+            shortDescription = photoService.checkShortDescription(request.getBody());
+            person = photoService.checkPersonId(request.getBody());
+            photoId = photoService.checkPhotoId(request.getBody());
         } catch (InvalidPhotoException ex) {
             return Response.buildResponse(CODE_400_BAD_REQUEST, Map.of("content-type", "text/plain"), ex.getMessage());
         }
         // it's ok if they didn't enter a long description
-        var description = request.body().asString("long_description");
+        var description = request.getBody().asString("long_description");
 
         // create a new photograph (this is a copy - so not writing a new file, just a new record,
         // which we will attach to a new person)
@@ -122,31 +123,31 @@ public class UploadPhoto {
     }
 
 
-    public Response photoDelete(Request request) {
+    public IResponse photoDelete(IRequest request) {
         return photoService.photoDelete(request, false);
     }
 
-    public Response photoDeletePost(Request request) {
+    public IResponse photoDeletePost(IRequest request) {
         return photoService.photoDelete(request, true);
     }
 
-    public Response photoLongDescriptionUpdate(Request request) {
+    public IResponse photoLongDescriptionUpdate(IRequest request) {
         return photoService.photoLongDescriptionUpdate(request, false);
     }
 
-    public Response photoLongDescriptionUpdatePost(Request request) {
+    public IResponse photoLongDescriptionUpdatePost(IRequest request) {
         return photoService.photoLongDescriptionUpdate(request, true);
     }
 
-    public Response photoShortDescriptionUpdate(Request request) {
+    public IResponse photoShortDescriptionUpdate(IRequest request) {
         return photoService.photoShortDescriptionUpdate(request, false);
     }
 
-    public Response photoShortDescriptionUpdatePost(Request request) {
+    public IResponse photoShortDescriptionUpdatePost(IRequest request) {
         return photoService.photoShortDescriptionUpdate(request, true);
     }
 
-    public Response copyPhotoGet(Request request) {
+    public IResponse copyPhotoGet(IRequest request) {
         // make sure they are authenticated for this
         AuthResult authResult = auth.processAuth(request);
         if (! authResult.isAuthenticated()) {
@@ -155,7 +156,7 @@ public class UploadPhoto {
 
         String renderedAuthHeader = authHeader.renderTemplate(Map.of("edit_this_person", ""));
 
-        String photoUrl = request.requestLine().queryString().get("photo_url");
+        String photoUrl = request.getRequestLine().queryString().get("photo_url");
 
         String renderedTemplate = copyPhotoTemplateProcessor.renderTemplate(
                 Map.of(

@@ -11,7 +11,7 @@ import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.StacktraceUtils;
 import com.renomad.minum.utils.StringUtils;
-import com.renomad.minum.web.Request;
+import com.renomad.minum.web.IRequest;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -354,21 +354,21 @@ public class PersonCreateServices {
      * This method primarily focuses on extracting the data from
      * the key-value pairs sent in the body.
      */
-    public Person processPersonEditPost(Request r) throws BadUserInputException {
-        final var id                    =   r.body().asString("id");
-        final var imageInput            =   r.body().asString("image_input");
-        final var nameInput             =   r.body().asString("name_input");
-        final var bornInput             =   r.body().asString("born_input");
-        final var bornDateUnknownInput  =   r.body().asString("born_date_unknown");
-        final var diedInput             =   r.body().asString("died_input");
-        final var diedDateUnknownInput  =   r.body().asString("death_date_unknown");
-        final var siblingsInput         =   r.body().asString("siblings_input");
-        final var spousesInput          =   r.body().asString("spouses_input");
-        final var parentsInput          =   r.body().asString("parents_input");
-        final var childrenInput         =   r.body().asString("children_input");
-        final var biographyInput        =   r.body().asString("biography_input");
-        final var notesInput            =   r.body().asString("notes_input");
-        final var genderInput           =   r.body().asString("gender_input");
+    public Person processPersonEditPost(IRequest r) throws BadUserInputException {
+        final var id                    =   r.getBody().asString("id");
+        final var imageInput            =   r.getBody().asString("image_input");
+        final var nameInput             =   r.getBody().asString("name_input");
+        final var bornInput             =   r.getBody().asString("born_input");
+        final var bornDateUnknownInput  =   r.getBody().asString("born_date_unknown");
+        final var diedInput             =   r.getBody().asString("died_input");
+        final var diedDateUnknownInput  =   r.getBody().asString("death_date_unknown");
+        final var siblingsInput         =   r.getBody().asString("siblings_input");
+        final var spousesInput          =   r.getBody().asString("spouses_input");
+        final var parentsInput          =   r.getBody().asString("parents_input");
+        final var childrenInput         =   r.getBody().asString("children_input");
+        final var biographyInput        =   r.getBody().asString("biography_input");
+        final var notesInput            =   r.getBody().asString("notes_input");
+        final var genderInput           =   r.getBody().asString("gender_input");
 
 
         return processPersonData(r, nameInput, bornInput, bornDateUnknownInput,
@@ -381,7 +381,7 @@ public class PersonCreateServices {
      * writing the data to disk and database.
      */
     private Person processPersonData(
-            Request r,
+            IRequest r,
             String nameInput,
             String bornInput,
             String bornDateUnknownInput,
@@ -564,8 +564,8 @@ public class PersonCreateServices {
         return (dateInput != null && ! dateInput.isBlank()) ? com.renomad.inmra.featurelogic.persons.Date.extractDate(dateInput) : Date.EMPTY;
     }
 
-    private String obtainExtraFields(Request r) {
-        List<String> extraDataKeys = r.body().getKeys().stream().filter(x -> x.startsWith("extra_data_key_")).sorted().toList();
+    private String obtainExtraFields(IRequest r) {
+        List<String> extraDataKeys = r.getBody().getKeys().stream().filter(x -> x.startsWith("extra_data_key_")).sorted().toList();
 
         // a list to hold the extra field triples
         var myTriples = new ArrayList<PersonFile.ExtraFieldTriple>();
@@ -588,7 +588,7 @@ public class PersonCreateServices {
      * @param myTriples where we will store the extracted data
      */
     private static void getExtraFieldDataFromBody(
-            Request r,
+            IRequest r,
             List<String> extraDataKeys,
             int extraDataIndex,
             ArrayList<PersonFile.ExtraFieldTriple> myTriples) {
@@ -597,9 +597,9 @@ public class PersonCreateServices {
         // replace the string with empty string so we can easily get the number at the end.
         String numberAtEndString = k.replace("extra_data_key_", "");
         int numberAtEnd = Integer.parseInt(numberAtEndString);
-        String key = r.body().asString(k);
-        String value = r.body().asString("extra_data_value_" + numberAtEnd);
-        String type = r.body().asString("extra_data_type_" + numberAtEnd);
+        String key = r.getBody().asString(k);
+        String value = r.getBody().asString("extra_data_value_" + numberAtEnd);
+        String type = r.getBody().asString("extra_data_type_" + numberAtEnd);
 
         myTriples.add(new PersonFile.ExtraFieldTriple(key, value, type));
     }

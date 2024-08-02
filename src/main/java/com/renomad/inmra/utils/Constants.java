@@ -1,12 +1,9 @@
 package com.renomad.inmra.utils;
 
 import com.renomad.minum.utils.MyThread;
-import com.renomad.minum.utils.StacktraceUtils;
 import com.renomad.minum.utils.TimeUtils;
 
 import java.io.FileInputStream;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 
 public class Constants {

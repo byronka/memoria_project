@@ -6,7 +6,8 @@ import com.renomad.minum.state.Constants;
 import com.renomad.minum.state.Context;
 import com.renomad.minum.database.Db;
 import com.renomad.minum.logging.ILogger;
-import com.renomad.minum.web.Request;
+import com.renomad.minum.web.IRequest;
+import com.renomad.minum.web.IResponse;
 import com.renomad.minum.web.Response;
 
 import java.time.Instant;
@@ -61,9 +62,9 @@ public class AuthUtils implements IAuthUtils {
      * </ol>
      */
     @Override
-    public AuthResult processAuth(Request request) {
+    public AuthResult processAuth(IRequest request) {
         // grab the headers from the request.
-        final var headers = request.headers().getHeaderStrings();
+        final var headers = request.getHeaders().getHeaderStrings();
 
         // get all the headers that start with "cookie", case-insensitive
         final var cookieHeaders = headers.stream()
@@ -74,7 +75,7 @@ public class AuthUtils implements IAuthUtils {
         // extract session identifiers from the cookies
         final var cookieMatcher = IAuthUtils.sessionIdCookieRegex.matcher(cookieHeaders);
         final var listOfSessionIds = new ArrayList<String>();
-        for(int i = 0; cookieMatcher.find() && i < constants.mostCookiesWellLookThrough; i++) {
+        for(int i = 0; cookieMatcher.find() && i < 5; i++) {
             final var sessionIdValue = cookieMatcher.group("sessionIdValue");
             listOfSessionIds.add(sessionIdValue);
         }
@@ -123,7 +124,7 @@ public class AuthUtils implements IAuthUtils {
 
 
     @Override
-    public Response htmlForbidden() {
+    public IResponse htmlForbidden() {
         return Response.buildResponse(CODE_403_FORBIDDEN, Map.of("content-type","text/html"), getForbiddenPage());
     }
 }

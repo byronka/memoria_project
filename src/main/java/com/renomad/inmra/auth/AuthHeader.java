@@ -3,7 +3,7 @@ package com.renomad.inmra.auth;
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.MemoriaContext;
 import com.renomad.minum.templating.TemplateProcessor;
-import com.renomad.minum.web.Request;
+import com.renomad.minum.web.IRequest;
 
 import java.util.Map;
 
@@ -22,7 +22,7 @@ public class AuthHeader {
         authHeader = TemplateProcessor.buildProcessor(fileUtils.readTemplate("general/auth_header.html"));
     }
 
-    public String getRenderedAuthHeader(Request r) {
+    public String getRenderedAuthHeader(IRequest r) {
         return getRenderedAuthHeader(r, null);
     }
 
@@ -38,7 +38,7 @@ public class AuthHeader {
      *               or null, we'll simply not include the "edit" link.
      *               Otherwise, we'll create an appropriate link.
      */
-    public String getRenderedAuthHeader(Request r, String personId) {
+    public String getRenderedAuthHeader(IRequest r, String personId) {
         AuthResult authResult = this.auth.processAuth(r);
         String authHeaderRendered;
         if (authResult.isAuthenticated()) {

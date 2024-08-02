@@ -56,9 +56,13 @@ public class AuthTests {
      * Make a generic {@link Request} with a particular sessionIdValue
      */
     private Request makeRequestWithCookie(String sessionIdValue) {
+        Headers headers = new Headers(List.of("Cookie: sessionid=" + sessionIdValue));
+        RequestLine requestLine = new RequestLine(RequestLine.Method.GET, new PathDetails("", null, Map.of()), HttpVersion.ONE_DOT_ONE, "GET / HTTP/1.1", context.getLogger());
         return new Request(
-                new Headers(List.of("Cookie: sessionid=" + sessionIdValue)),
-                new RequestLine(RequestLine.Method.GET, new PathDetails("", null, Map.of()),HttpVersion.ONE_DOT_ONE, "GET / HTTP/1.1", context.getLogger(), context.getConstants().maxQueryStringKeysCount),
-                Body.EMPTY, "");
+                headers,
+                requestLine,
+                "",
+                new FakeSocketWrapper(),
+                new FakeBodyProcessor());
     }
 }

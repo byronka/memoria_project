@@ -1,7 +1,6 @@
 package com.renomad.inmra.security;
 
 import com.renomad.minum.logging.TestLogger;
-import com.renomad.minum.utils.MyThread;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

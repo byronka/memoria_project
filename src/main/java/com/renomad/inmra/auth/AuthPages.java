@@ -13,7 +13,8 @@ import com.renomad.minum.security.ITheBrig;
 import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.CryptoUtils;
 import com.renomad.minum.utils.StringUtils;
-import com.renomad.minum.web.Request;
+import com.renomad.minum.web.IRequest;
+import com.renomad.minum.web.IResponse;
 import com.renomad.minum.web.Response;
 
 import java.time.Instant;
@@ -146,8 +147,8 @@ public class AuthPages {
      * elsewhere.  That's ok, we have a tool, {@link LoopingSessionReviewing},
      * that will clear out stale sessions.
      */
-    public Response loginUserPost(Request r) {
-        boolean isBruteForcing = bruteForceChecker.check(r.remoteRequester());
+    public IResponse loginUserPost(IRequest r) {
+        boolean isBruteForcing = bruteForceChecker.check(r.getRemoteRequester());
         if (isBruteForcing) return Response.buildLeanResponse(CODE_429_TOO_MANY_REQUESTS);
 
         // if already authenticated, send them to the index
@@ -155,8 +156,8 @@ public class AuthPages {
             return Response.redirectTo("/");
         }
 
-        final var username = r.body().asString("username");
-        final var password = r.body().asString("password");
+        final var username = r.getBody().asString("username");
+        final var password = r.getBody().asString("password");
         final LoginResult loginResult = findUser(username, password);
 
         return switch (loginResult.status()) {
@@ -185,7 +186,7 @@ public class AuthPages {
      *     the root.
      * </p>
      */
-    public Response loginGet(Request request) {
+    public IResponse loginGet(IRequest request) {
         AuthResult authResult = authUtils.processAuth(request);
         if (authResult.isAuthenticated()) {
             return Response.redirectTo("/");
@@ -194,13 +195,13 @@ public class AuthPages {
     }
 
 
-    public Response registerUserPost(Request r) {
+    public IResponse registerUserPost(IRequest r) {
         final var authResult = authUtils.processAuth(r);
         if (! authResult.isAuthenticated()) {
             return authUtils.htmlForbidden();
         }
-        final var username = r.body().asString("username");
-        final var password = r.body().asString("password");
+        final var username = r.getBody().asString("username");
+        final var password = r.getBody().asString("password");
         logger.logAudit(() -> String.format(
                 "%s, id: %d is registering a new user, %s",
                 authResult.user().getUsername(),
@@ -219,7 +220,7 @@ public class AuthPages {
 
     }
 
-    public Response registerGet(Request request) {
+    public IResponse registerGet(IRequest request) {
         AuthResult authResult = authUtils.processAuth(request);
         if (! authResult.isAuthenticated()) {
             return authUtils.htmlForbidden();
@@ -238,7 +239,7 @@ public class AuthPages {
      *     Both redirects go to the same place.
      * </p>
      */
-    public Response logoutPost(Request request) {
+    public IResponse logoutPost(IRequest request) {
         final var authResult = authUtils.processAuth(request);
         if (authResult.isAuthenticated()) {
             User user = authResult.user();
@@ -248,11 +249,11 @@ public class AuthPages {
         return Response.redirectTo("loggedout");
     }
 
-    public Response loggedoutGet(Request request) {
+    public IResponse loggedoutGet(IRequest request) {
         return Respond.htmlOk(logoutPageTemplate);
     }
 
-    public Response resetUserPasswordGet(Request request) {
+    public IResponse resetUserPasswordGet(IRequest request) {
         final var authResult = authUtils.processAuth(request);
         if (authResult.isAuthenticated()) {
             String newPassword = StringUtils.generateSecureRandomString(20);
@@ -268,13 +269,13 @@ public class AuthPages {
 
     }
 
-    public Response resetUserPasswordPost(Request request) {
+    public IResponse resetUserPasswordPost(IRequest request) {
         final var authResult = authUtils.processAuth(request);
         if (!authResult.isAuthenticated()) {
             return Respond.unauthorizedError();
         }
 
-        String newPassword = request.body().asString("newpassword");
+        String newPassword = request.getBody().asString("newpassword");
         if (newPassword == null || newPassword.isBlank() || newPassword.length() < 12) {
             logger.logDebug(() ->
                     String.format("newpassword did not meet requirements. user: %s userid: %d value: %s",

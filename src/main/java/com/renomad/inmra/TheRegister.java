@@ -59,7 +59,7 @@ public class TheRegister {
 
         // photos stuff
         webFramework.registerPath(GET, "photos", lp::ListPhotosPageGet);
-        webFramework.registerPath(POST, "upload", up::uploadPhotoReceivePhost);
+        webFramework.registerPath(POST, "upload", up::uploadPhotoReceivePost);
         webFramework.registerPath(POST, "copyphoto", up::copyPhotoReceivePost);
         webFramework.registerPath(GET, "photo", lp::grabPhotoGet);
         webFramework.registerPath(DELETE, "photo", up::photoDelete);

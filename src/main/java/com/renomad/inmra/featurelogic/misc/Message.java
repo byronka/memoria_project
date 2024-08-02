@@ -5,7 +5,8 @@ import com.renomad.inmra.utils.MemoriaContext;
 import com.renomad.inmra.utils.Respond;
 import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.StringUtils;
-import com.renomad.minum.web.Request;
+import com.renomad.minum.web.IRequest;
+import com.renomad.minum.web.IResponse;
 import com.renomad.minum.web.Response;
 
 import java.net.URLEncoder;
@@ -32,15 +33,15 @@ public class Message {
      * A helper method to easily redirect the user to a page for displaying a simplistic message,
      * only used when the user has disabled javascript.
      */
-    public static Response redirect(String message, String redirectLocation) {
+    public static IResponse redirect(String message, String redirectLocation) {
         String encodedMessage = URLEncoder.encode(message, UTF_8);
         String encodedRedirect = URLEncoder.encode(redirectLocation, UTF_8);
         return Response.redirectTo(String.format("/message?message=%s&redirect=%s", encodedMessage, encodedRedirect));
     }
 
-    public Response messagePageGet(Request request) {
-        var message = request.requestLine().queryString().get("message");
-        var redirectLocation = request.requestLine().queryString().get("redirect");
+    public IResponse messagePageGet(IRequest request) {
+        var message = request.getRequestLine().queryString().get("message");
+        var redirectLocation = request.getRequestLine().queryString().get("redirect");
         var values = Map.of(
                 "message", StringUtils.safeHtml(message),
                 "redirect_location", StringUtils.safeAttr(redirectLocation)

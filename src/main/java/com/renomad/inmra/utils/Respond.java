@@ -1,5 +1,6 @@
 package com.renomad.inmra.utils;
 
+import com.renomad.minum.web.IResponse;
 import com.renomad.minum.web.Response;
 import com.renomad.minum.web.StatusLine;
 
@@ -19,7 +20,7 @@ public class Respond {
         // disallow construction
     }
 
-    public static Response respond(StatusLine.StatusCode statusCode,
+    public static IResponse respond(StatusLine.StatusCode statusCode,
                             Map<String, String> extraHeaders,
                             byte[] body) {
 
@@ -35,25 +36,25 @@ public class Respond {
     /**
      * A helper to return an HTML message with a 200 ok status
      */
-    public static Response htmlOk(String body) {
+    public static IResponse htmlOk(String body) {
         return respond(StatusLine.StatusCode.CODE_200_OK, Map.of("Content-Type", "text/html; charset=UTF-8"), body.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static Response htmlOkNoContent() {
+    public static IResponse htmlOkNoContent() {
         return respond(CODE_204_NO_CONTENT, Map.of(), new byte[0]);
     }
 
     /**
      * Returns a 400 user bad request with no further information
      */
-    public static Response userInputError() {
+    public static IResponse userInputError() {
         return respond(StatusLine.StatusCode.CODE_400_BAD_REQUEST, Map.of(), new byte[0]);
     }
 
     /**
      * Returns a 401 unauthorized request with no further information
      */
-    public static Response unauthorizedError() {
+    public static IResponse unauthorizedError() {
         return respond(StatusLine.StatusCode.CODE_401_UNAUTHORIZED, Map.of(), new byte[0]);
     }
 }

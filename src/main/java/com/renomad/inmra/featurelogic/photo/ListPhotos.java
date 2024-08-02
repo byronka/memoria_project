@@ -13,7 +13,8 @@ import com.renomad.minum.database.Db;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.StacktraceUtils;
-import com.renomad.minum.web.Request;
+import com.renomad.minum.web.IRequest;
+import com.renomad.minum.web.IResponse;
 import com.renomad.minum.web.Response;
 
 import java.io.ByteArrayOutputStream;
@@ -68,12 +69,12 @@ public class ListPhotos {
         this.renderPhotoRowsService = new RenderPhotoRowsService(photoToPersonDb, photographDb, fileUtils);
     }
 
-    public Response ListPhotosPageGet(Request r) {
+    public IResponse ListPhotosPageGet(IRequest r) {
         AuthResult authResult = auth.processAuth(r);
         if (!authResult.isAuthenticated()) {
             return Response.redirectTo("/");
         }
-        String personId = r.requestLine().queryString().get("personid");
+        String personId = r.getRequestLine().queryString().get("personid");
         if (personId == null || personId.isBlank()) {
             return listAllPhotos();
         } else {
@@ -85,7 +86,7 @@ public class ListPhotos {
      * This renders html where we expect to show photographs about
      * just one person.
      */
-    private Response listPhotosForPerson(String personId) {
+    private IResponse listPhotosForPerson(String personId) {
         Person foundPerson = findExactlyOne(personEndpoints.getPersonDb().values().stream(), x -> x.getId().toString().equals(personId));
         mustNotBeNull(foundPerson);
 
@@ -104,7 +105,7 @@ public class ListPhotos {
      * This is a specialty page to show ALL the photos in the system
      * categorized by their associated person
      */
-    private Response listAllPhotos() {
+    private IResponse listAllPhotos() {
         // loop through each person, creating one long list of photos,
         // with the associated person at the top of each section.
         var listAllPhotosCoreString = new StringBuilder();
@@ -174,12 +175,12 @@ public class ListPhotos {
      * </p>
      *
      */
-    public Response grabPhotoGet(Request r) {
+    public IResponse grabPhotoGet(IRequest r) {
 
         // get the filename from the query string
-        String filename = r.requestLine().queryString().get("name");
+        String filename = r.getRequestLine().queryString().get("name");
 
-        logger.logDebug(() -> r.remoteRequester() + " is looking for a photo named " + filename);
+        logger.logDebug(() -> r.getRemoteRequester() + " is looking for a photo named " + filename);
 
         // if the name query is null or blank, return 404
         if (filename == null || filename.isBlank()) {
@@ -188,7 +189,7 @@ public class ListPhotos {
 
         // See docs/image_processing/README.md for more about this design
         Path photoPath;
-        var sizeQuery = r.requestLine().queryString().get("size");
+        var sizeQuery = r.getRequestLine().queryString().get("size");
 
         if (sizeQuery == null) {
             sizeQuery = "";
