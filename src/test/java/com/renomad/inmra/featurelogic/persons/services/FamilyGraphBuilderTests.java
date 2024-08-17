@@ -24,7 +24,7 @@ public class FamilyGraphBuilderTests {
         Context context = buildTestingContext("FamilyGraphBuilderTests");
         TestLogger logger = (TestLogger) context.getLogger();
         FileUtils fileUtils = new FileUtils(logger, context.getConstants());
-        fileUtils.deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().dbDirectory).resolve("family_graph_builder_tests_person"), logger);
+        fileUtils.deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().dbDirectory).resolve("family_graph_builder_tests_person"));
         var personDb = context.getDb("family_graph_builder_tests_person", Person.EMPTY);
 
         var personFiles = addPersonFilesTestData();

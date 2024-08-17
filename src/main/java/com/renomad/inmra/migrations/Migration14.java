@@ -49,9 +49,9 @@ public class Migration14 {
         if (!Files.exists(photoArchiveDirectory)) return;
 
         // delete the existing photo directories - thumbnail, medium, and original
-        fileUtils.deleteDirectoryRecursivelyIfExists(photoThumbnailDirectory, logger);
-        fileUtils.deleteDirectoryRecursivelyIfExists(photoMediumDirectory, logger);
-        fileUtils.deleteDirectoryRecursivelyIfExists(photoOriginalDirectory, logger);
+        fileUtils.deleteDirectoryRecursivelyIfExists(photoThumbnailDirectory);
+        fileUtils.deleteDirectoryRecursivelyIfExists(photoMediumDirectory);
+        fileUtils.deleteDirectoryRecursivelyIfExists(photoOriginalDirectory);
 
         // build new directories
         fileUtils.makeDirectory(photoThumbnailDirectory);

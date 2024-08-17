@@ -116,8 +116,7 @@ public class PersonCreateEndpointsTests {
             Person resultPerson = personDb.values().stream().toList().get(0);
             assertEquals(resultPerson.getBirthday(), Date.EMPTY);
             minumFileUtils.deleteDirectoryRecursivelyIfExists(
-                    Path.of("out").resolve("personcreateendpointstests_deleting_user_birthdate"),
-                    logger);
+                    Path.of("out").resolve("personcreateendpointstests_deleting_user_birthdate"));
         } finally {
             personDb.delete(person);
         }

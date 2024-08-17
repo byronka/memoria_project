@@ -35,9 +35,9 @@ public class PhotoServiceTests {
         mediumPhotos = Path.of("target/simple_db_for_photo_service_tests/photo_files_medium");
         originalPhotos = Path.of("target/simple_db_for_photo_service_tests/photo_files_original");
 
-        fileUtils.deleteDirectoryRecursivelyIfExists(thumbnailPhotos, logger);
-        fileUtils.deleteDirectoryRecursivelyIfExists(mediumPhotos, logger);
-        fileUtils.deleteDirectoryRecursivelyIfExists(originalPhotos, logger);
+        fileUtils.deleteDirectoryRecursivelyIfExists(thumbnailPhotos);
+        fileUtils.deleteDirectoryRecursivelyIfExists(mediumPhotos);
+        fileUtils.deleteDirectoryRecursivelyIfExists(originalPhotos);
 
         fileUtils.makeDirectory(thumbnailPhotos);
         fileUtils.makeDirectory(mediumPhotos);

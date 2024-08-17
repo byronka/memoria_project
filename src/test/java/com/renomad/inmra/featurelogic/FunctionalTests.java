@@ -44,7 +44,7 @@ public class FunctionalTests {
         properties.setProperty("DB_DIRECTORY", "target/simple_db_for_tests");
         context = buildTestingContext("_integration_test", properties);
         com.renomad.minum.utils.FileUtils fileUtils1 = new com.renomad.minum.utils.FileUtils(context.getLogger(), context.getConstants());
-        fileUtils1.deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().dbDirectory), context.getLogger());
+        fileUtils1.deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().dbDirectory));
 
         // override the COUNT_OF_PHOTO_CHECKS since our functional tests don't rely
         // on photo conversion and there's no sense in waiting a while for nothing.

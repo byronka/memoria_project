@@ -51,12 +51,12 @@ public class DatabaseMigrationTests {
 
     @AfterClass
     public static void cleanup() {
-        minumFileUtils.deleteDirectoryRecursivelyIfExists(rootDbDirectory, logger);
+        minumFileUtils.deleteDirectoryRecursivelyIfExists(rootDbDirectory);
     }
 
     @Before
     public void beforeEach() throws IOException {
-        minumFileUtils.deleteDirectoryRecursivelyIfExists(rootDbDirectory, context.getLogger());
+        minumFileUtils.deleteDirectoryRecursivelyIfExists(rootDbDirectory);
         fileUtils.makeDirectory(rootDbDirectory.resolve("persons"));
         fileUtils.makeDirectory(rootDbDirectory.resolve("person_files"));
         fileUtils.makeDirectory(rootDbDirectory.resolve("sessions"));
@@ -208,7 +208,7 @@ public class DatabaseMigrationTests {
 
     @Test
     public void testMigration14_photo_conversion() throws IOException {
-        minumFileUtils.deleteDirectoryRecursivelyIfExists(rootDbDirectory.resolve("photo_archive"), logger);
+        minumFileUtils.deleteDirectoryRecursivelyIfExists(rootDbDirectory.resolve("photo_archive"));
         fileUtils.makeDirectory(rootDbDirectory.resolve("photo_archive"));
         Files.copy(
                 Path.of("sample_db/simple_db/photo_archive/86b6eb55-8498-3e45-81b4-d29fbcb05271.jpg"),
