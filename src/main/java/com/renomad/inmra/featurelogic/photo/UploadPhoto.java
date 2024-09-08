@@ -110,7 +110,14 @@ public class UploadPhoto {
             return Response.buildResponse(CODE_400_BAD_REQUEST, Map.of("content-type", "text/plain"), ex.getMessage());
         }
         // it's ok if they didn't enter a long description
-        var description = request.getBody().asString("long_description");
+        String description;
+        // this try-catch is only necessary because we use url-encoding in some tests, and the
+        // browser uses multipart encoding.
+        try {
+            description = request.getBody().asString("long_description");
+        } catch (Exception ex) {
+            description = request.getBody().getPartitionByName("long_description").getFirst().getContentAsString();
+        }
 
         // create a new photograph (this is a copy - so not writing a new file, just a new record,
         // which we will attach to a new person)

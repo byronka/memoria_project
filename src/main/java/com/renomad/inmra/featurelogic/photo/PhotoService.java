@@ -264,7 +264,7 @@ public class PhotoService {
         byte[] photoBytes;
         try {
             photoBytes = body.getPartitionByName("image_uploads").getFirst().getContent();
-        } catch (NoSuchElementException ex) {
+        } catch (Exception ex) {
             photoBytes = body.asBytes("image_uploads");
             // do nothing - this exception will be thrown when we do testing and send a url-encoded body
         }
@@ -281,7 +281,7 @@ public class PhotoService {
         String shortDescription;
         try {
             shortDescription = body.getPartitionByName("short_description").getFirst().getContentAsString();
-        } catch (NoSuchElementException ex) {
+        } catch (Exception ex) {
             shortDescription = body.asString("short_description");
         }
         if (shortDescription == null || shortDescription.isBlank()) {
@@ -297,7 +297,7 @@ public class PhotoService {
         String photoId;
         try {
             photoId = body.getPartitionByName("photo_id").getFirst().getContentAsString();
-        } catch (NoSuchElementException ex) {
+        } catch (Exception ex) {
             photoId = body.asString("photo_id");
         }
         if (photoId == null || photoId.isBlank()) {
@@ -313,7 +313,7 @@ public class PhotoService {
         String personIdString;
         try {
             personIdString = body.getPartitionByName("person_id").getFirst().getContentAsString();
-        } catch (NoSuchElementException ex) {
+        } catch (Exception ex) {
             personIdString = body.asString("person_id");
         }
         if (personIdString == null || personIdString.isBlank()) {
@@ -421,7 +421,7 @@ public class PhotoService {
         Headers partitionHeaders = null;
         try {
             partitionHeaders = body.getPartitionByName("image_uploads").getFirst().getHeaders();
-        } catch (NoSuchElementException ex) {
+        } catch (Exception ex) {
             // do nothing - this exception will be thrown when we do testing and send a url-encoded body
         }
         List<String> contentTypeList = partitionHeaders != null ? partitionHeaders.valueByKey("content-type") : List.of();
