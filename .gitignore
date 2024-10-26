@@ -38,3 +38,4 @@ docs/inmra
 *.prefs
 .classpath
 .project
+bin
