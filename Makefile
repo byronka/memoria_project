@@ -50,6 +50,10 @@ run::
 runjar::
 	 java $(JMX_PROPERTIES) -jar target/inmra/inmra.jar
 
+#: run the system off the custom runtime
+runjlink::
+	 ./target/jrt/bin/java $(JMX_PROPERTIES) -m memoria.project/com.renomad.inmra.Main
+
 #: run the system in debug mode
 rundebug::
 	 MAVEN_OPTS="$(DEBUG_PROPERTIES) $(JMX_PROPERTIES)" ./mvnw compile exec:java
@@ -57,6 +61,10 @@ rundebug::
 #: run the system off the jar in debug mode
 runjardebug::
 	 java $(DEBUG_PROPERTIES) $(JMX_PROPERTIES) -jar target/inmra/inmra.jar
+
+#: run the system off the custom runtime
+runjlinkdebug::
+	 ./target/jrt/bin/java $(DEBUG_PROPERTIES) $(JMX_PROPERTIES) -m memoria.project/com.renomad.inmra.Main
 
 #: restore the backed-up database into the "target" directory
 restore_sampledb::
@@ -96,6 +104,17 @@ jar::
 	 cp -a cloud_operations/scripts/* target/$(PROJ_NAME)
 	 @echo "copy webapp resources into the target/$(PROJ_NAME) directory"
 	 rsync --recursive --update --perms src/main/webapp/static src/main/webapp/templates target/$(PROJ_NAME)
+
+#: create a custom java runtime
+jlink::
+	 @echo "build and copy jars and dependencies to target/modules"
+	 mvn clean package -Dmaven.test.skip -Pjlink
+	 @echo "create a custom java runtime"
+	 jlink --add-modules memoria.project --module-path target/modules --strip-debug --output ./target/jrt
+	 @echo "Current JDK size"
+	 du -sh ${JAVA_HOME}
+	 @echo "Custom Runtime size"
+	 du -sh ./target/jrt
 
 #: bundle up all the files to target/inmra.tar.gz
 bundle:: jar

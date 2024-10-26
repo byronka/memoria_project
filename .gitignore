@@ -33,3 +33,8 @@ pid_inmra
 # If the user unpacks inmra.tar.gz in the docs directory, we 
 # don't want to accidentally include that in our repo.
 docs/inmra
+
+# Ignore eclipse files
+*.prefs
+.classpath
+.project
