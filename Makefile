@@ -51,7 +51,7 @@ runjar::
 	 java $(JMX_PROPERTIES) -jar target/inmra/inmra.jar
 
 #: run the system off the custom runtime
-runjlink::
+runjlink:: jlink
 	 ./target/jrt/bin/java $(JMX_PROPERTIES) -m memoria.project/com.renomad.inmra.Main
 
 #: run the system in debug mode
@@ -63,7 +63,7 @@ runjardebug::
 	 java $(DEBUG_PROPERTIES) $(JMX_PROPERTIES) -jar target/inmra/inmra.jar
 
 #: run the system off the custom runtime
-runjlinkdebug::
+runjlinkdebug:: jlink
 	 ./target/jrt/bin/java $(DEBUG_PROPERTIES) $(JMX_PROPERTIES) -m memoria.project/com.renomad.inmra.Main
 
 #: restore the backed-up database into the "target" directory
@@ -107,6 +107,7 @@ jar::
 
 #: create a custom java runtime
 jlink::
+ifeq (,$(wildcard ./target/jrt/bin/java))
 	 @echo "build and copy jars and dependencies to target/modules"
 	 mvn clean package -Dmaven.test.skip -Pjlink
 	 @echo "create a custom java runtime"
@@ -115,6 +116,8 @@ jlink::
 	 du -sh ${JAVA_HOME}
 	 @echo "Custom Runtime size"
 	 du -sh ./target/jrt
+endif
+
 
 #: bundle up all the files to target/inmra.tar.gz
 bundle:: jar
