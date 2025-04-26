@@ -21,7 +21,7 @@
     </td>
     <td>
         <button type="button" onclick="copyTextToClipboard(document.getElementById('photo_img_{{photo_url}}').text)">Copy &lt;img&gt;</button>
-        <script id="photo_img_{{photo_url}}" type="text/html"><img src="photo?name={{photo_url}}" alt="{{short_description_attr}}"></script>
+        <script id="photo_img_{{photo_url}}" type="text/html"><img loading="lazy" src="photo?name={{photo_url}}" alt="{{short_description_attr}}"></script>
     </td>
     <td>
         <button type="button" onclick="copyTextToClipboard('photo?name={{photo_url}}')">Copy URL</button>
@@ -30,7 +30,7 @@
         <button type="button" onclick="copyTextToClipboard(document.getElementById('photo_figure_{{photo_url}}').text)">Copy &lt;figure&gt;</button>
         <script id="photo_figure_{{photo_url}}" type="text/html" >
             <figure>
-                <img src="photo?name={{photo_url_html}}" alt="">
+                <img loading="lazy" src="photo?name={{photo_url_html}}" alt="">
                 <figcaption>
                     {{description_for_figcaption}}
                 </figcaption>
