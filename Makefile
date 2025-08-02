@@ -111,7 +111,7 @@ ifeq (,$(wildcard ./target/jrt/bin/java))
 	 @echo "build and copy jars and dependencies to target/modules"
 	 mvn clean package -Dmaven.test.skip -Pjlink
 	 @echo "create a custom java runtime"
-	 jlink --add-modules memoria.project --module-path target/modules --strip-debug --output ./target/jrt
+	 jlink --add-modules memoria.project --module-path target/modules --strip-debug --no-header-files --no-man-pages --compress zip-9 --output ./target/jrt
 	 @echo "Current JDK size"
 	 du -sh ${JAVA_HOME}
 	 @echo "Custom Runtime size"
