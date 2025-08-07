@@ -60,7 +60,7 @@ stored and available for your use in the Context class.
 Documentation
 -------------
 
-THe only way we can keep the complexity tamped down is by keeping vigilant about quality.
+The only way we can keep the complexity tamped down is by keeping vigilant about quality.
 This takes many forms, and one of these is keeping good documentation.  Consider whether
 a helpful explanation would get someone running sooner.  Please keep your words concise.
 Brevity is the soul of wit.

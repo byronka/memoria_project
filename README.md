@@ -52,7 +52,7 @@ Quick Start, downloading binary
 More-detailed Quick Start
 -------------------------
 
-This is a ongoing long-term project to develop software for combined family tree and memorial site. While it
+This is an ongoing long-term project to develop software for a combined family tree and memorial site. While it
 is incomplete, it acts as a realistic example for the [Minum](https://github.com/byronka/minum) web framework.
 
 * This project uses Gnu Make as its build tool, wrapping calls to [Maven](https://maven.apache.org/)

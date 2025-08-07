@@ -87,6 +87,11 @@ public class FakeSocketWrapper implements ISocketWrapper {
     }
 
     @Override
+    public void flush() throws IOException {
+
+    }
+
+    @Override
     public String toString() {
         return "fake socket wrapper";
     }
