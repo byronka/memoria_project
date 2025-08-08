@@ -3,6 +3,8 @@ Memoria, a site for memories
 
 Memoria, a site for memories, production site at https://inmra.com/
 
+a Zip file of the production binary and necessary support files is available at https://renomad.com/memoria.zip
+
 This is a combination memorial and a family tree.  It provides an
 ability to easily add information for family members.  This
 information includes relations to other family members, biographical
