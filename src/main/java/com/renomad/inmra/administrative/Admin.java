@@ -73,7 +73,7 @@ public class Admin {
         adminPageValues.put("live_sessions", StringUtils.safeHtml(sb.toString()));
 
         // get the inmates from the brig - client ip's that are considered to be attackers.
-        String inmates = theBrig
+        String inmates = theBrig == null ? "" : theBrig
                 .getInmates().stream()
                 .sorted(Comparator.comparingLong(Inmate::getReleaseTime).reversed())
                 .map(x -> x.getClientId() + " in jail until " + Instant.ofEpochMilli(x.getReleaseTime()).atZone(ZoneId.systemDefault()).toLocalDateTime())
