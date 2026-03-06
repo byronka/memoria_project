@@ -1,9 +1,9 @@
 package com.renomad.inmra.auth;
 
-import com.renomad.minum.state.Constants;
-import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.logging.LoggingLevel;
+import com.renomad.minum.state.Constants;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.utils.TimeUtils;
 
 import java.time.Instant;
@@ -65,10 +65,10 @@ public class LoopingSessionReviewing {
                      */
 
                     if (constants.logLevels.contains(LoggingLevel.DEBUG)) System.out.printf(TimeUtils.getTimestampIsoInstant() + " LoopingSessionReviewing is stopped.%n");
+                    Thread.currentThread().interrupt();
                     return null;
-                } catch (Exception ex) {
-                    System.out.printf(TimeUtils.getTimestampIsoInstant() + " ERROR: LoopingSessionReviewing has stopped unexpectedly. error: %s%n", ex);
-                    throw ex;
+                } catch (Throwable ex) {
+                    logger.logAsyncError(ex::getMessage);
                 }
             }
         };

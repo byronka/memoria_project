@@ -75,6 +75,7 @@ public class PersonTests {
                 collectedFields,
                 Gender.UNKNOWN,
                 LocalDate.of(2023, 12, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+                "",
                 ""
                 );
 

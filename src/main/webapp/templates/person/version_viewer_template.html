@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Versioning | Inmra</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/general/main.css" >
+    <link rel="stylesheet" href="/person/versioning.css" >
+    <meta name="filename" content="version_viewer_template.html" >
+</head>
+<body>
+
+{{ navigation_header }}
+
+<nav id="versioning_nav">
+    <form action="versioning" method="get">
+        <input type="hidden" name="id" value="{{id}}">
+        <select name="date">
+            {{date_options}}
+        </select>
+        <input type="submit" value="go">
+    </form>
+</nav>
+
+<div id="container">
+<h1>Version viewer for {{person_name}}</h1>
+<h2>
+    Date changed
+</h2>
+<p>{{date_changed}}</p>
+
+<h2>
+    Author of this version
+</h2>
+<p>{{username}}</p>
+
+<h2>
+    Values that were entered for this version
+</h2>
+
+<h3>Born:</h3>
+<p>{{born_value}}</p>
+
+<h3>Died:</h3>
+<p>{{died_value}}</p>
+
+<h3>Gender:</h3>
+<p>{{gender_value}}</p>
+
+<h2>
+    Adjustment necessary to revert fields to this version
+</h2>
+
+<h3>Image url:</h3>
+{{image_url_html_diff}}
+
+<h3>Name:</h3>
+{{name_html_diff}}
+
+<h3>Siblings:</h3>
+{{siblings_html_diff}}
+
+<h3>Spouses</h3>
+{{spouses_html_diff}}
+
+<h3>Parents</h3>
+{{parents_html_diff}}
+
+<h3>Children</h3>
+{{children_html_diff}}
+
+<h3>Biography</h3>
+{{biography_html_diff}}
+
+<h3>Authenticated Biography</h3>
+{{auth_bio_html_diff}}
+
+<h3>Notes</h3>
+{{notes_html_diff}}
+
+<h3>Extra fields</h3>
+{{extra_fields_html_diff}}
+</div>
+</body>
+</html>

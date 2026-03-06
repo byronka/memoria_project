@@ -1,0 +1,19 @@
+
+.showTooltip {
+    position: relative;
+    margin: 0 auto;
+    font-size: x-small;
+    top: -10px;
+    cursor: pointer;
+}
+
+.showTooltip:hover::after {
+    position: absolute;
+    content: attr(data-tooltip);
+    bottom: 20px;
+    background-color: #333;
+    color: white;
+    padding: .25em .5em;
+    font-size: 16px;
+    width: 300px;
+}

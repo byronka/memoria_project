@@ -1,0 +1,64 @@
+body {
+    font-size: 10px;
+}
+
+#details {
+    columns: 1;
+}
+
+#summary {
+    columns: 1;
+}
+
+/* each block of person data on the page */
+.person-data {
+    padding-bottom: 7pt;
+    break-inside: avoid;
+    display: flex;
+    border: 1px solid lightgrey;
+    margin: 10px;
+}
+
+img.person-thumbnail-image {
+    right: 0;
+    height: 100%;
+    object-fit: initial;
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+.text-container {
+    flex: 1 0;
+}
+
+.person-data ul {
+    padding-left: 16px;
+}
+
+.person-data li {
+    list-style: none;
+}
+
+/* the lines after the first line on each block of data */
+p.followup-line {
+    padding-left: 15pt;
+}
+
+/* a person's name */
+span.name {
+    font-weight: 500;
+}
+
+span.label {
+    font-style: italic;
+}
+
+@media print {
+
+    .controls {
+        display: none;
+    }
+
+}

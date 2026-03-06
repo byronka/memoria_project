@@ -20,9 +20,14 @@ class PreviewPerson {
      */
     uncalculatedLinks;
 
+    /**
+     * This is the element that is being currently shown in a preview window
+     */
+    currentlyShownElement;
+
     constructor() {
-        this.calculatedLinks = document.querySelectorAll('.calculated-relatives a');
-        this.uncalculatedLinks = document.querySelectorAll('.manual-links a, .biography a')
+        this.calculatedLinks = document.querySelectorAll('.calculated-relatives a, .relation-to-other a');
+        this.uncalculatedLinks = document.querySelectorAll('.manual-links a, .biography a');
     }
 
     /**
@@ -30,15 +35,19 @@ class PreviewPerson {
      * take action per the user needs.
      */
     addEvents = () => {
-        // these are the calculated relatives
-        Array.from(this.calculatedLinks).map((x) => x.addEventListener('mouseenter', this.hoverHandler))
-        Array.from(this.calculatedLinks).map((x) => x.addEventListener('touchstart', this.touchHandler, {passive: true}))
+        // events for showing a preview window
+        Array.from(this.calculatedLinks).map((x) => x.addEventListener('mouseover', this.hoverHandler));
+        Array.from(this.uncalculatedLinks).map((x) => x.addEventListener('mouseover', this.hoverHandler));
 
-        // these are just ordinary links, but if we can relate them to a calculated link we can
-        // provide a preview window.
-        Array.from(this.uncalculatedLinks).map((x) => x.addEventListener('mouseenter', this.hoverNonCalculatedHandler))
+        // events for removing the events if the user touches anything (presuming on a mobile device)
+        Array.from(this.calculatedLinks).map((x) => x.addEventListener('touchstart', this.touchHandler, {passive: true}))
         Array.from(this.uncalculatedLinks).map((x) => x.addEventListener('touchstart', this.touchHandler, {passive: true}))
+
+        // after moving away from a link, stop showing the preview window
+        Array.from(this.calculatedLinks).map((x) => x.addEventListener('mouseout', this.mouseLeaveHandler));
+        Array.from(this.uncalculatedLinks).map((x) => x.addEventListener('mouseout', this.mouseLeaveHandler));
     }
+
 
     /**
      * The intent of this method is to disable event-driven behavior on this page if a
@@ -50,31 +59,23 @@ class PreviewPerson {
      */
     touchHandler = (e) => {
         e.stopPropagation();
-        Array.from(this.calculatedLinks).map((x) => x.removeEventListener('mouseenter', this.hoverHandler))
-        Array.from(this.calculatedLinks).map((x) => x.removeEventListener('touchstart', this.touchHandler))
+        // kill all the events from the calculated links
+        Array.from(this.calculatedLinks).map((x) => x.removeEventListener('mouseover', this.hoverHandler));
+        Array.from(this.calculatedLinks).map((x) => x.removeEventListener('mouseout', this.hoverHandler));
+        Array.from(this.calculatedLinks).map((x) => x.removeEventListener('touchstart', this.touchHandler));
 
-        Array.from(this.uncalculatedLinks).map((x) => x.removeEventListener('mouseenter', this.hoverNonCalculatedHandler))
-        Array.from(this.uncalculatedLinks).map((x) => x.removeEventListener('touchstart', this.touchHandler))
+        // kill all the events from the uncalculated links
+        Array.from(this.uncalculatedLinks).map((x) => x.removeEventListener('mouseover', this.hoverHandler));
+        Array.from(this.uncalculatedLinks).map((x) => x.removeEventListener('mouseout', this.hoverHandler));
+        Array.from(this.uncalculatedLinks).map((x) => x.removeEventListener('touchstart', this.touchHandler));
     }
-
-    /**
-     * A handler for 'mouseenter' events on anchor elements representing calculated relatives.
-     * intended to show a preview window for relatives
-     */
-    hoverHandler = (e) => {
-        e.stopPropagation();
-        const targetElement = e.target
-
-        this.buildAndAppendPreview(targetElement, targetElement);
-    }
-
     /**
      * A handler for 'mouseenter' events on anchor elements on the page.
      * intended to show a preview window for relatives
      */
-    hoverNonCalculatedHandler = (e) => {
-        e.stopPropagation();
-        const targetElement = e.target
+    hoverHandler = (e) => {
+        const targetElement = e.currentTarget;
+        if (targetElement === this.currentlyShownElement) return;
 
         // see if this is a link to a person.
         // persons have url's like: person?id=942eb9c0-a1ff-4594-adc2-88b13b2d1b20
@@ -83,28 +84,29 @@ class PreviewPerson {
             return;
         }
 
-        const personId = hrefAttribute.replace('person?id=', '');
+        // grab the identifier of this person
+        const personId = /person\?id=(?<identifier>[^&]*)/i.exec(hrefAttribute)[1];
 
-        const matchingCalculatedRelative = Array.from(this.calculatedLinks)
-            .find((l) => l.getAttribute('href') == ('person?id=' + personId));
+        const myRelativeData = relatives_data[personId];
 
-        if (!matchingCalculatedRelative) {
+        if (!myRelativeData) {
             return;
         }
 
-        this.buildAndAppendPreview(targetElement, matchingCalculatedRelative);
+        this.buildAndAppendPreview(targetElement, myRelativeData);
+        this.currentlyShownElement = targetElement;
     }
 
     /**
      * Constructs a preview window, fills it with data, appends
      * it to the dom correctly.
      * @param targetElement - the element to which we will append the preview html
-     * @param calculatedElement - the calculated element with information like relationship, image,
+     * @param myRelativeData - the relative's data with information like relationship, image,
      *                            and so on, to place inside the preview window
      */
-    buildAndAppendPreview(targetElement, calculatedElement) {
+    buildAndAppendPreview(targetElement, myRelativeData) {
         const previewWindow = this.buildPreviewWindow()
-        this.renderPreviewContent(calculatedElement, previewWindow);
+        this.renderPreviewContent(myRelativeData, previewWindow);
         targetElement.style.position = 'relative';
 
         targetElement.appendChild(previewWindow);
@@ -137,10 +139,13 @@ class PreviewPerson {
      * want to close down the previewWindow.
      */
     mouseLeaveHandler = (e) => {
-        const targetElement =  e.target;
-        const previewWindow = targetElement.querySelector('.preview_window');
-        targetElement.style.position = '';
-        previewWindow.remove();
+        if (this.currentlyShownElement != null){
+            const targetElement = e.currentTarget;
+            const previewWindow = targetElement.querySelector('.preview_window');
+            targetElement.style.position = '';
+            previewWindow.remove();
+            this.currentlyShownElement = null;
+        }
     }
 
     /**
@@ -148,9 +153,9 @@ class PreviewPerson {
      * it to the server.  The server will process that and send back an appropriate
      * html result.  This is intended to show previews of persons when hovering over the links.
      */
-    renderPreviewContent = (targetLink, previewWindow) => {
+    renderPreviewContent = (myRelativeData, previewWindow) => {
         // modify the image element
-        const imageSource = targetLink.getAttribute('data-personimagesrc');
+        const imageSource = myRelativeData.personimagesrc;
         let imageElement;
         if (! imageSource) {
             imageElement = '';
@@ -159,13 +164,16 @@ class PreviewPerson {
         }
 
         // finally, put our modified template into its container
-        const bornDate = targetLink.getAttribute('data-borndate');
+        const bornDate = myRelativeData.borndate;
+        const deathDate = myRelativeData.deathdate;
+        const relationship = myRelativeData.relationship;
         previewWindow.innerHTML = `
             <div>
                 ${imageElement}
-                <p class="name">${targetLink.innerText}</p>
+                <p class="name">${myRelativeData.name}</p>
                 ${bornDate ? `<p class="birthdate">${bornDate}</p>` : ""}
-                <p class="relationship">${targetLink.getAttribute('data-relationship')}</p>
+                ${deathDate ? `<p class="deathdate">${deathDate}</p>` : ""}
+                ${relationship ? `<p class="relationship">${relationship}</p>` : ""}
             </div>
         `
     }

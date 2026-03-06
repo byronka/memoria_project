@@ -1,0 +1,27 @@
+
+#container {
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 10px;
+    max-width: 800px;
+}
+
+#delete_button {
+  background-color: red;
+  color: white;
+  box-shadow: 0 5px 0 darkred;
+  padding: 10px;
+  display: inline-block;
+  font-size: 16px;
+}
+
+#delete_button:hover,
+#delete_button:focus {
+  background-color: darkred;
+  cursor: pointer;
+}
+
+#delete_button:active {
+  box-shadow: none;
+  top: 5px;
+}

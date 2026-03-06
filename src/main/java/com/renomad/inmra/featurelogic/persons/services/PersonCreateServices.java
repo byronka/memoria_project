@@ -1,14 +1,18 @@
 package com.renomad.inmra.featurelogic.persons.services;
 
+import com.renomad.inmra.auth.GettingOlderLoop;
 import com.renomad.inmra.auth.IAuthUtils;
+import com.renomad.inmra.auth.User;
 import com.renomad.inmra.featurelogic.persons.Date;
 import com.renomad.inmra.featurelogic.persons.*;
+import com.renomad.inmra.utils.Auditor;
 import com.renomad.inmra.utils.FileWriteStringWrapper;
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.ILogger;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.templating.TemplateProcessor;
+import com.renomad.minum.utils.InvariantException;
 import com.renomad.minum.utils.StacktraceUtils;
 import com.renomad.minum.utils.StringUtils;
 import com.renomad.minum.web.IRequest;
@@ -21,8 +25,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.renomad.minum.utils.SearchUtils.findExactlyOne;
-
 public class PersonCreateServices {
 
 
@@ -30,12 +32,14 @@ public class PersonCreateServices {
     private final ILogger logger;
     private final IPersonLruCache personLruCache;
     private final FamilyGraphBuilder familyGraphBuilder;
+    private final GettingOlderLoop gettingOlderLoop;
     private final Random random;
     private final TemplateProcessor extraFieldTemplateProcessor;
     private final IAuthUtils auth;
     private final Path personAuditDirectory;
     private final Path personFileAuditDirectory;
     private final PersonAuditor personAuditor;
+    private final Auditor auditor;
 
     public PersonCreateServices(
             PersonEndpoints personEndpoints,
@@ -44,13 +48,15 @@ public class PersonCreateServices {
             Context context,
             IAuthUtils auth,
             IPersonLruCache personLruCache,
-            FamilyGraphBuilder familyGraphBuilder
-            ) {
+            FamilyGraphBuilder familyGraphBuilder,
+            GettingOlderLoop gettingOlderLoop) {
         this.personEndpoints = personEndpoints;
         this.logger = logger;
         this.personLruCache = personLruCache;
         this.familyGraphBuilder = familyGraphBuilder;
-        var fileUtils = memoriaContext.fileUtils();
+        this.gettingOlderLoop = gettingOlderLoop;
+        var fileUtils = memoriaContext.getFileUtils();
+        this.auditor = memoriaContext.getAuditor();
         extraFieldTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("person/extra_field_template.html"));
         random = new Random();
         this.auth = auth;
@@ -86,23 +92,23 @@ public class PersonCreateServices {
             Map<String, String> templateMap,
             String id,
             PersonFile deserializedPersonFile,
-            String authHeader
+            String navHeader
     ) {
         addLifespanDate(templateMap, deserializedPersonFile.getBorn(), BornOrDied.BORN);
         addLifespanDate(templateMap, deserializedPersonFile.getDied(), BornOrDied.DIED);
 
-        templateMap.put("header", authHeader);
+        templateMap.put("navigation_header", navHeader);
         templateMap.put("id", id);
         templateMap.put("title", "Edit " + StringUtils.safeHtml(deserializedPersonFile.getName()));
         templateMap.put("image_input_value", StringUtils.safeAttr(deserializedPersonFile.getImageUrl()));
+        templateMap.put("siblings_input_value", StringUtils.safeAttr(deserializedPersonFile.getSiblings()));
+        templateMap.put("spouses_input_value", StringUtils.safeAttr(deserializedPersonFile.getSpouses()));
+        templateMap.put("parents_input_value", StringUtils.safeAttr(deserializedPersonFile.getParents()));
+        templateMap.put("children_input_value", StringUtils.safeAttr(deserializedPersonFile.getChildren()));
         templateMap.put("name_input_value", StringUtils.safeAttr(deserializedPersonFile.getName()));
-        templateMap.put("siblings_input_value", StringUtils.safeHtml(deserializedPersonFile.getSiblings()));
-        templateMap.put("spouses_input_value", StringUtils.safeHtml(deserializedPersonFile.getSpouses()));
-        templateMap.put("parents_input_value", StringUtils.safeHtml(deserializedPersonFile.getParents()));
-        templateMap.put("children_input_value", StringUtils.safeHtml(deserializedPersonFile.getChildren()));
         templateMap.put("biography_input_value", StringUtils.safeAttr(deserializedPersonFile.getBiography()));
+        templateMap.put("auth_bio_input_value", StringUtils.safeAttr(deserializedPersonFile.getAuthBio()));
         templateMap.put("notes_input_value", StringUtils.safeAttr(deserializedPersonFile.getNotes()));
-        templateMap.put("cancel_href", "/person?id=" + id);
         handleGenderTemplateValues(templateMap, deserializedPersonFile);
         handleExtraFieldValues(templateMap, deserializedPersonFile);
     }
@@ -162,40 +168,101 @@ public class PersonCreateServices {
         templateMap.put(myBornOrDied +"_input_value", dateValue);
     }
 
+    /**
+     *
+     * @param user the user doing this - will be used in logging
+     * @param relationName the name of the new relation
+     * @param originalPersonFile Information about the existing person to whom we are connecting a new relation
+     * @param relationType what type of relation - i.e. child, sibling, etc.
+     * @param relationLink an anchor element (a link) pointing back to the original person to whom we are adding a new relation
+     */
     public Person buildNewRelation(
-            String username,
+            User user,
             String relationName,
             String relationLink,
-            PersonFile personFile,
+            PersonFile originalPersonFile,
             RelationType relationType) {
         RelationInputs relationInputs = fillRelationInputs(relationLink, relationType);
         // create the new relation
         Person newRelationPerson = createOrUpdatePersonData(
-                null, username, relationName, "", relationInputs, "", "", Gender.UNKNOWN, com.renomad.inmra.featurelogic.persons.Date.EMPTY, com.renomad.inmra.featurelogic.persons.Date.EMPTY, "");
+                null,
+                user,
+                relationName,
+                "",
+                relationInputs,
+                "",
+                "",
+                "",
+                Gender.UNKNOWN,
+                com.renomad.inmra.featurelogic.persons.Date.EMPTY,
+                com.renomad.inmra.featurelogic.persons.Date.EMPTY,
+                "");
 
         // update the existing person with information about the new relation
-        attachNewPersonToExistingPerson(username, personFile, relationType, newRelationPerson);
+        attachNewPersonToExistingPerson(user, originalPersonFile, relationType, newRelationPerson.getName(), newRelationPerson.getId());
         return newRelationPerson;
+    }
+
+    /**
+     * Connects two existing people, adding links between appropriate relation sections,
+     * such a parent -> child, sibling -> sibling, etc.
+     * @param user the user carrying out this action, used for logging
+     */
+    public void connectRelationshipToExistingPerson(
+            User user,
+            PersonFile originalPersonFile,
+            PersonFile newRelationPersonFile,
+            RelationType relationType) {
+        attachNewPersonToExistingPerson(user, originalPersonFile, relationType, newRelationPersonFile.getName(), newRelationPersonFile.getId());
+        RelationType oppositeType;
+        if (relationType.equals(RelationType.CHILD)) {
+            oppositeType = RelationType.PARENT;
+        } else if (relationType.equals(RelationType.PARENT)) {
+            oppositeType = RelationType.CHILD;
+        } else {
+            oppositeType = relationType;
+        }
+        attachNewPersonToExistingPerson(user, newRelationPersonFile, oppositeType, originalPersonFile.getName(), originalPersonFile.getId());
     }
 
     /**
      * Modify the existing person - add the new relation's data to the
      * appropriate relation slot - e.g. parent, sibling, etc.
-     * @param username the person doing this, so we can log who is doing this.
-     * @param existingPersonFile the existing person to whom we are attaching the new relation
-     * @param newRelationPerson the newly-created person we are attaching.
+     * @param user the person doing this, so we can log who is doing this.
+     * @param personFile the existing person to whom we are attaching the new relation
      */
     private void attachNewPersonToExistingPerson(
-            String username,
-            PersonFile existingPersonFile,
+            User user,
+            PersonFile personFile,
             RelationType relationType,
-            Person newRelationPerson) {
-        String extraRelationLink = String.format(" <a href=\"person?id=%s\">%s</a>", newRelationPerson.getId(), newRelationPerson.getName());
+            String newRelationName,
+            UUID newRelationId) {
+        String newRelationLink = String.format("\n<a href=\"person?id=%s\">%s</a>", newRelationId.toString(), newRelationName);
         switch (relationType) {
-            case PARENT -> updateWithNewRelation(extraRelationLink, "", "", "", existingPersonFile, username);
-            case SIBLING -> updateWithNewRelation("", extraRelationLink, "", "", existingPersonFile, username);
-            case SPOUSE -> updateWithNewRelation("", "", extraRelationLink, "", existingPersonFile, username);
-            case CHILD -> updateWithNewRelation("", "", "", extraRelationLink, existingPersonFile, username);
+            case PARENT -> {
+                if (personFile.getParents().contains(newRelationId.toString())) {
+                    return;
+                }
+                updateWithNewRelation(newRelationLink, "", "", "", personFile, user);
+            }
+            case SIBLING -> {
+                if (personFile.getSiblings().contains(newRelationId.toString())) {
+                    return;
+                }
+                updateWithNewRelation("", newRelationLink, "", "", personFile, user);
+            }
+            case SPOUSE -> {
+                if (personFile.getSpouses().contains(newRelationId.toString())) {
+                    return;
+                }
+                updateWithNewRelation("", "", newRelationLink, "", personFile, user);
+            }
+            case CHILD -> {
+                if (personFile.getChildren().contains(newRelationId.toString())) {
+                    return;
+                }
+                updateWithNewRelation("", "", "", newRelationLink, personFile, user);
+            }
         }
     }
 
@@ -204,9 +271,8 @@ public class PersonCreateServices {
      * out the new inputs differently.  For example, if we are creating a
      * new parent, then we will fill out the new person's child input with
      * data of the existing person.
-     * @param relationLink the existing person's data, which we will add to the new
-     *                     person's information in the appropriate relationship slot.
      * @param relationType The relationship of the new person we are creating.
+     * @param relationLink an anchor element (a link) pointing back to the original person to whom we are adding a new relation
      */
     static RelationInputs fillRelationInputs(String relationLink, RelationType relationType) {
         String parentLink = "";
@@ -222,13 +288,10 @@ public class PersonCreateServices {
         return new RelationInputs(parentLink, siblingLink, spouseLink, childLink);
     }
 
-    record RelationInputs(String parentInput, String siblingInput, String spouseInput, String childInput) {
-    }
-
     /**
      * This method takes extra data for the relations fields, so we can
      * add anchor tags to other relations like siblings, parents, etc.
-     * @param username the username of the user carrying out this action, used for logging
+     * @param user the user carrying out this action, used for logging
      * @param existingPersonFile the existing person, for whom we just created a new relation
      */
     private void updateWithNewRelation(
@@ -237,7 +300,7 @@ public class PersonCreateServices {
             String extraSpouses,
             String extraChildren,
             PersonFile existingPersonFile,
-            String username) {
+            User user) {
         RelationInputs relationInputs = new RelationInputs(
                 existingPersonFile.getParents() + extraParents,
                 existingPersonFile.getSiblings() + extraSiblings,
@@ -247,11 +310,12 @@ public class PersonCreateServices {
         com.renomad.inmra.featurelogic.persons.Date diedDate = existingPersonFile.getDied();
         createOrUpdatePersonData(
                 existingPersonFile.getId().toString(),
-                username,
+                user,
                 existingPersonFile.getName(),
                 existingPersonFile.getImageUrl(),
                 relationInputs,
                 existingPersonFile.getBiography(),
+                existingPersonFile.getAuthBio(),
                 existingPersonFile.getNotes(),
                 existingPersonFile.getGender(),
                 bornDate,
@@ -271,6 +335,7 @@ public class PersonCreateServices {
         for(var field : extraFields) {
             String renderedField = extraFieldTemplateProcessor.renderTemplate(Map.of(
                     "count", "_" + index,
+                    "index",  String.valueOf(index),
                     "key", StringUtils.safeAttr(field.key()),
                     "key_html_cleaned", StringUtils.safeHtml(field.key()),
                     "type", StringUtils.safeAttr(field.type()),
@@ -316,8 +381,8 @@ public class PersonCreateServices {
      * This one is easy.  For setting up the template when creating
      * a totally new Person, it's pretty much always the same.
      */
-    public void addEmptyValuesToTemplate(Map<String, String> templateMap, String authHeader) {
-        templateMap.put("header", authHeader);
+    public void addEmptyValuesToTemplate(Map<String, String> templateMap, String navHeader) {
+        templateMap.put("navigation_header", navHeader);
         templateMap.put("title", "Add New Person");
         templateMap.put("id",                               "");
         templateMap.put("image_input_value",                "");
@@ -337,12 +402,12 @@ public class PersonCreateServices {
         templateMap.put("parents_input_value",               "");
         templateMap.put("children_input_value",              "");
         templateMap.put("biography_input_value",             "");
+        templateMap.put("auth_bio_input_value",             "");
         templateMap.put("notes_input_value",                 "");
         templateMap.put("unset_checked",              "checked");
         templateMap.put("male_checked",                      "");
         templateMap.put("female_checked",                    "");
         templateMap.put("extra_fields",                      "");
-        templateMap.put("cancel_href",      "/editpersons");
         templateMap.put("extra_field_count", String.valueOf(0));
         templateMap.put("extra_field_array", "");
     }
@@ -367,13 +432,14 @@ public class PersonCreateServices {
         final var parentsInput          =   r.getBody().asString("parents_input");
         final var childrenInput         =   r.getBody().asString("children_input");
         final var biographyInput        =   r.getBody().asString("biography_input");
+        final var shortBioInput        =   r.getBody().asString("auth_bio_input");
         final var notesInput            =   r.getBody().asString("notes_input");
         final var genderInput           =   r.getBody().asString("gender_input");
 
 
         return processPersonData(r, nameInput, bornInput, bornDateUnknownInput,
                 diedInput, diedDateUnknownInput, id, imageInput, siblingsInput,
-                spousesInput, parentsInput, childrenInput, biographyInput, notesInput, genderInput);
+                spousesInput, parentsInput, childrenInput, biographyInput, shortBioInput, notesInput, genderInput);
     }
 
     /**
@@ -394,9 +460,9 @@ public class PersonCreateServices {
             String parentsInput,
             String childrenInput,
             String biographyInput,
+            String shortBioInput,
             String notesInput,
             String genderInput) {
-        String username = auth.processAuth(r).user().getUsername();
 
         // handle the extra fields
         String extraFields = obtainExtraFields(r);
@@ -412,24 +478,26 @@ public class PersonCreateServices {
         Gender gender = Gender.deserialize(genderInput);
         var relationInputs = new RelationInputs(parentsInput, siblingsInput, spousesInput, childrenInput);
 
-        return createOrUpdatePersonData(id, username, nameInput, imageInput, relationInputs,
-                biographyInput, notesInput, gender, bornDate, diedDate, extraFields);
+        return createOrUpdatePersonData(id, auth.processAuth(r).user(), nameInput, imageInput, relationInputs,
+                biographyInput, shortBioInput, notesInput, gender, bornDate, diedDate, extraFields);
     }
 
     /**
      * Given the necessary data, create or update a person
      * in the database.
      *
-     * @param id       the UUID value of this person, as a string. If null, we're creating a new person.
-     * @param username the username of the user carrying out this action, for logging
+     * @param id the UUID value of this person, as a string. If null, we're creating a new person.
+     * @param user the user carrying out this action, for logging
+     * @param nameInput the name of this person
      */
-    private Person createOrUpdatePersonData(
+    public Person createOrUpdatePersonData(
             String id,
-            String username,
+            User user,
             String nameInput,
             String imageInput,
             RelationInputs relationInputs,
             String biographyInput,
+            String shortBioInput,
             String notesInput,
             Gender genderInput,
             com.renomad.inmra.featurelogic.persons.Date bornDate,
@@ -438,10 +506,17 @@ public class PersonCreateServices {
             ) {
         Person person;
         if (id != null && !id.isBlank()) {
-            person = updateExistingPersonInDatabase(id, username, bornDate, diedDate, nameInput);
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(id);
+            } catch (IllegalArgumentException ex) {
+                throw new BadUserInputException("The provided id was not a valid UUID: " + id);
+            }
+            FamilyGraph.checkForCycle(nameInput, uuid, relationInputs, familyGraphBuilder.getPersonNodes());
+            person = updateExistingPersonInDatabase(uuid, user, bornDate, diedDate, nameInput);
 
         } else {
-            person = createNewPersonInDatabase(bornDate, diedDate, nameInput, username);
+            person = createNewPersonInDatabase(bornDate, diedDate, nameInput, user);
         }
 
         PersonFile personFile = new PersonFile(
@@ -460,10 +535,12 @@ public class PersonCreateServices {
                 extraFields,
                 genderInput,
                 Instant.now(),
-                username
+                user.getUsername(),
+                shortBioInput
         );
 
-        personAuditor.storePersonToAudit(personFile.getId(), personFile.serialize(), personFileAuditDirectory, personFile.getName());
+        PersonFile olderPersonFile = personLruCache.getCachedPersonFile(person);
+        personAuditor.storePersonFileToAudit(personFile, olderPersonFile, personFileAuditDirectory, user.getUsername(), user.getIndex());
 
         try {
             Files.writeString(personEndpoints.getPersonDirectory().resolve(person.getId().toString()), personFile.serialize());
@@ -475,7 +552,21 @@ public class PersonCreateServices {
         // add this person to the LRU cache
         personLruCache.putToPersonFileLruCache(personFile.getId().toString(), personFile);
 
-        familyGraphBuilder.rebuildFamilyTree(personFile);
+        // if updating an existing person
+        if (id != null && !id.isBlank()) {
+            familyGraphBuilder.updateNode(personFile);
+        } else {
+            // otherwise, create a new person
+            familyGraphBuilder.createNewNode(personFile.getId());
+        }
+
+        // update the interesting people, so that if we have just added a new interesting
+        // person, they (with some randomness involved) may show up on the homepage. If we
+        // don't do this, they will only show up after the GettingOlder loop runs which
+        // recalculates all birthdays and determines whether a person meets "interesting"
+        // criteria.
+        gettingOlderLoop.updatePersonMetricsMap(personFile.getId());
+        gettingOlderLoop.cacheInterestingPeople();
 
         return person;
     }
@@ -484,7 +575,7 @@ public class PersonCreateServices {
             com.renomad.inmra.featurelogic.persons.Date bornDate,
             com.renomad.inmra.featurelogic.persons.Date diedDate,
             String nameInput,
-            String username) {
+            User user) {
         Person person;
         // if we got back no id, this is a new person
         person = new Person(
@@ -493,7 +584,7 @@ public class PersonCreateServices {
                 nameInput,
                 bornDate,
                 diedDate);
-        logger.logAudit(() -> String.format("%s is adding information for a new person, %s id: %s", username, nameInput, person.getId()));
+        auditor.audit(() -> String.format("%s is adding information for a new person, %s id: %s", user.getUsername(), nameInput, person.getId()), user);
         personEndpoints.getPersonDb().write(person);
 
         personAuditor.storePersonToAudit(person.getId(), person.serialize(), personAuditDirectory, person.getName());
@@ -504,14 +595,17 @@ public class PersonCreateServices {
     /**
      *
      * @param id the UUID of this person
-     * @param username the username of the user carrying out this action, for logging
+     * @param user the user carrying out this action, for logging
+     * @param nameInput name of this person
      */
-    private Person updateExistingPersonInDatabase(String id, String username, com.renomad.inmra.featurelogic.persons.Date bornDate, com.renomad.inmra.featurelogic.persons.Date diedDate, String nameInput) {
-        Person person;
+    private Person updateExistingPersonInDatabase(UUID id,
+                                                  User user,
+                                                  com.renomad.inmra.featurelogic.persons.Date bornDate,
+                                                  com.renomad.inmra.featurelogic.persons.Date diedDate,
+                                                  String nameInput) {
+        auditor.audit(() -> String.format("%s is updating information for a person, %s id: %s", user.getUsername(), nameInput, id), user);
         // if we got an id, then we're editing an existing person
-        person = findExactlyOne(
-                this.personEndpoints.getPersonDb().values().stream(),
-                x -> x.getId().toString().equals(id));
+        Person person = this.personEndpoints.getPersonDb().findExactlyOne("id", id.toString());
         // if we don't find anyone with this id, log it and return a 400 complaint.
         if (person == null) {
             int newRand = random.nextInt();
@@ -519,7 +613,6 @@ public class PersonCreateServices {
             throw new BadUserInputException("after looking up a person by id, did not find anyone",
                     String.format("Server error: %d", newRand));
         }
-        logger.logAudit(() -> String.format("%s is modifying person: %s", username, person));
 
         Person updatedPerson = new Person(
                 person.getIndex(),
@@ -533,7 +626,7 @@ public class PersonCreateServices {
 
         personEndpoints.getPersonDb().write(updatedPerson);
         // if we edited a person, remove them from the cache
-        personLruCache.removeFromPersonFileLruCache(id);
+        personLruCache.removeFromPersonFileLruCache(id.toString());
         return person;
     }
 
@@ -549,7 +642,7 @@ public class PersonCreateServices {
      *                         know this person died, we just don't know when.  On the other hand,
      *                         if they haven't died yet, the date is empty (not unknown).
      */
-    private static com.renomad.inmra.featurelogic.persons.Date extractDate(String dateInput, String dateUnknownInput) {
+    private com.renomad.inmra.featurelogic.persons.Date extractDate(String dateInput, String dateUnknownInput) {
         if (dateUnknownInput != null && ! dateUnknownInput.isBlank()) {
             return com.renomad.inmra.featurelogic.persons.Date.EXISTS_BUT_UNKNOWN;
         }
@@ -561,7 +654,16 @@ public class PersonCreateServices {
                 throw new BadUserInputException("User sent weird date value: " + dateInput);
             }
         }
-        return (dateInput != null && ! dateInput.isBlank()) ? com.renomad.inmra.featurelogic.persons.Date.extractDate(dateInput) : Date.EMPTY;
+        if (dateInput != null && !dateInput.isBlank()) {
+            try {
+                return Date.extractDate(dateInput, logger);
+            } catch (InvariantException | NumberFormatException ex) {
+                throw new BadUserInputException("Error parsing date: " + dateInput + ". Exception: " + ex.getMessage());
+            }
+        } else {
+            return Date.EMPTY;
+        }
+
     }
 
     private String obtainExtraFields(IRequest r) {

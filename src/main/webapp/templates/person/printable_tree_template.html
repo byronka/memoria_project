@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>printable tree | Inmra</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/general/main.css" >
+    <link rel="stylesheet" href="/person/printable_tree.css" >
+    <script src="/person/printable_tree_template.js"></script>
+    <meta name="filename" content="printable_tree_template.html" >
+    <meta name="description" content="a text-oriented view of a family tree" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="/favicon.ico" >
+</head>
+<body>
+    <label for="summary_column_count" class="controls">Column count:</label>
+    <select id="summary_column_count" class="controls">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+    </select>
+
+    <div id="summary">
+        <pre>
+{{ summary }}
+        </pre>
+    </div>
+
+
+    <label for="details_column_count" class="controls">Column count:</label>
+    <select id="details_column_count" class="controls">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+    </select>
+
+    <label for="include_pictures_checkbox" style="padding-left: 20px;" class="controls">Include pictures:</label>
+    <input id="include_pictures_checkbox" type="checkbox" class="controls" checked>
+
+    <div id="details">
+        {{ full_length }}
+    </div>
+</body>
+</html>

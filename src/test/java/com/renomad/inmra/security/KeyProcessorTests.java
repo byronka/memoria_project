@@ -1,5 +1,6 @@
 package com.renomad.inmra.security;
 
+
 import com.renomad.minum.state.Context;
 import com.renomad.minum.testing.TestFramework;
 import org.junit.Test;
@@ -32,6 +33,7 @@ public class KeyProcessorTests {
         keyProcessor.processKeysUnderConsideration(keys, investigationLifespan, clientsAndTimes, now);
 
         assertEquals(clientsAndTimes.get("abc").size(), 3);
+        TestFramework.shutdownTestingContext(context);
     }
 
     /**
@@ -56,5 +58,6 @@ public class KeyProcessorTests {
 
 
         assertTrue(clientsAndTimes.get("abc") == null);
+        TestFramework.shutdownTestingContext(context);
     }
 }

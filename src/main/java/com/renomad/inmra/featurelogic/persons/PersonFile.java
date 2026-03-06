@@ -11,7 +11,7 @@ import static com.renomad.minum.utils.SerializationUtils.*;
 public class PersonFile extends DbData<PersonFile> {
 
     public static PersonFile EMPTY = new PersonFile(0L, new UUID(0,0), "","", Date.EMPTY, Date.EMPTY,
-            "", "", "", "", "", "", "", Gender.UNKNOWN, Instant.MIN, "");
+            "", "", "", "", "", "", "", Gender.UNKNOWN, Instant.MIN, "", "");
 
     private Long index;
     private final UUID id;
@@ -29,6 +29,14 @@ public class PersonFile extends DbData<PersonFile> {
     private final String lastModifiedBy;
 
     /**
+     * The authenticated bio is only shown if the user is authenticated.
+     * This might be where certain more-private information is included,
+     * within reason, or for extra photos or videos that are not
+     * intended for as wide a distribution.
+     */
+    private final String authBio;
+
+    /**
      * These values are not publicly shown, good for stuff you're working
      * on, or wouldn't make for the nicest stuff to show the public.
      */
@@ -42,7 +50,8 @@ public class PersonFile extends DbData<PersonFile> {
 
     public PersonFile(Long index, UUID id, String imageUrl, String name, Date born, Date died,
                       String siblings, String spouses, String parents, String children,
-                      String biography, String notes, String extraFields, Gender gender, Instant lastModified, String lastModifiedBy) {
+                      String biography, String notes, String extraFields, Gender gender,
+                      Instant lastModified, String lastModifiedBy, String authBio) {
 
         this.index = index;
         this.id = id;
@@ -60,6 +69,7 @@ public class PersonFile extends DbData<PersonFile> {
         this.gender = gender;
         this.lastModified = lastModified;
         this.lastModifiedBy = lastModifiedBy;
+        this.authBio = authBio;
     }
 
     @Override
@@ -68,7 +78,7 @@ public class PersonFile extends DbData<PersonFile> {
     }
 
     @Override
-    protected void setIndex(long index) {
+    public void setIndex(long index) {
         this.index = index;
     }
 
@@ -90,7 +100,8 @@ public class PersonFile extends DbData<PersonFile> {
                 extraFields,
                 gender,
                 lastModified,
-                lastModifiedBy
+                lastModifiedBy,
+                authBio
                 );
     }
 
@@ -114,7 +125,8 @@ public class PersonFile extends DbData<PersonFile> {
                 tokens.get(12),
                 Gender.deserialize(tokens.get(13)),
                 Instant.parse(tokens.get(14)),
-                tokens.get(15)
+                tokens.get(15),
+                tokens.get(16)
         );
     }
 
@@ -158,6 +170,10 @@ public class PersonFile extends DbData<PersonFile> {
         return biography;
     }
 
+    public String getAuthBio() {
+        return authBio;
+    }
+
     public String getNotes() {
         return notes;
     }
@@ -165,6 +181,7 @@ public class PersonFile extends DbData<PersonFile> {
     public Gender getGender() {
         return gender;
     }
+
     public String getExtraFields() {
         return extraFields;
     }
@@ -212,12 +229,12 @@ public class PersonFile extends DbData<PersonFile> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PersonFile that = (PersonFile) o;
-        return Objects.equals(index, that.index) && Objects.equals(id, that.id) && Objects.equals(imageUrl, that.imageUrl) && Objects.equals(name, that.name) && Objects.equals(born, that.born) && Objects.equals(died, that.died) && Objects.equals(siblings, that.siblings) && Objects.equals(spouses, that.spouses) && Objects.equals(parents, that.parents) && Objects.equals(children, that.children) && Objects.equals(biography, that.biography) && gender == that.gender && Objects.equals(lastModified, that.lastModified) && Objects.equals(lastModifiedBy, that.lastModifiedBy) && Objects.equals(notes, that.notes) && Objects.equals(extraFields, that.extraFields);
+        return Objects.equals(index, that.index) && Objects.equals(id, that.id) && Objects.equals(imageUrl, that.imageUrl) && Objects.equals(name, that.name) && Objects.equals(born, that.born) && Objects.equals(died, that.died) && Objects.equals(siblings, that.siblings) && Objects.equals(spouses, that.spouses) && Objects.equals(parents, that.parents) && Objects.equals(children, that.children) && Objects.equals(biography, that.biography) && gender == that.gender && Objects.equals(lastModified, that.lastModified) && Objects.equals(lastModifiedBy, that.lastModifiedBy) && Objects.equals(authBio, that.authBio) && Objects.equals(notes, that.notes) && Objects.equals(extraFields, that.extraFields);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(index, id, imageUrl, name, born, died, siblings, spouses, parents, children, biography, gender, lastModified, lastModifiedBy, notes, extraFields);
+        return Objects.hash(index, id, imageUrl, name, born, died, siblings, spouses, parents, children, biography, gender, lastModified, lastModifiedBy, authBio, notes, extraFields);
     }
 
     @Override

@@ -1,81 +1,103 @@
+.detail_component.lifespan_dates {
+  display: flex;
+  flex-direction: column;
+}
+
+.lifespan_dates label {
+  display: inline-block;
+}
+
 #container {
-    margin: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 10px;
+    max-width: 800px;
 }
 
 label {
     font-weight: bold;
 }
 
+textarea {
+    field-sizing: content;
+    font-size: 16px;
+}
+
 #essential_info {
     display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
+    flex-direction: row;
+    position: relative;
+    justify-content: space-between;
+}
+
+.detail_component {
+    padding-bottom: 2px;
 }
 
 #essential_info input[type=text] {
-    width: 98%;
-    border-radius: 8px;
-    height: 24px;
-    padding: 4px;
+    width: 300px;
+    font-size: 16px;
 }
 
 #essential_info input[type=number],
 #essential_info input[type=date]
  {
-    width: 200px;
+    width: 152px;
 }
 
-form#editperson-form > fieldset > div > div {
-    background: aliceblue;
-    border: 1px solid cadetblue;
-    padding: 5px;
-    border-radius: 10px;
-    margin: 5px;
-}
-
-fieldset#gender {
-    border-radius: 10px
+#relations_section {
+    display: flex;
+    flex-direction: column;
 }
 
 #relations_section > div > textarea
  {
     width: 98%;
-    height: 150px;
-    border-radius: 8px;
     padding: 4px;
 }
 
-#biographical_information_section > div > textarea {
+#biographical_information_section > div > textarea,
+textarea#auth_bio_input
+ {
     width: 98%;
-    height: 300px;
-    border-radius: 8px;
     padding: 4px;
+    min-height: 6rem;
+    height: 100%;
+}
+
+textarea#notes_input {
+    width: 98%;
+    padding: 4px;
+    height: 100%;
 }
 
 #extra_fields_list {
     display: flex;
     flex-wrap: wrap;
+    padding-inline-start: 0;
 }
 
 .extra_field_item {
     display: flex;
     flex-direction: column;
-    background-color: aliceblue;
     border: 1px solid cadetblue;
     padding-left: 20px;
     padding-right: 20px;
     padding-top: 5px;
     padding-bottom: 15px;
     width: 200px;
-    border-radius: 10px;
     margin: 5px;
 }
 
-.extra_field_item > button.extra_data_item_delete {
-    align-self: end;
-    width: 29px;
+.extra_field_item input[type=text],
+ .extra_field_item input[type=number]
+ {
+    font-size: 16px;
 }
 
+.extra_field_item select {
+    font-size: 16px;
+}
 
 div#search_result_container {
     position: absolute;
@@ -84,7 +106,8 @@ div#search_result_container {
     border: 1px solid grey;
     width: 58%;
     display: none;
-    left: 130px;
+    left: 88px;
+    z-index: 1;
 }
 
 #search_result_container > ul > li:hover,
@@ -99,20 +122,403 @@ ul#search_result_list {
     display: inline-block;
 }
 
+#search_relation,
 .linkages {
-    width: 58%;
+    width: 40%;
+}
+
+#search_relation,
+input[type=search].linkages {
+    font-size: 16px;
 }
 
 .photo-preview {
     position: absolute;
     width: 98%;
-    height: 400px;
+    max-height: 300px;
     overflow-y: auto;
     transition: 0.6s;
+    z-index: 1;
 }
 
 .is-hidden {
   visibility: hidden;
   opacity: 0;
   transform: scale(0);
+}
+
+
+/*
+This is for the section providing a bit of help on the bio section
+*/
+div.help-section {
+    background: lightyellow;
+    border: 1px solid lightblue;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    padding: 2px;
+}
+
+div#persons {
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
+    font-size: larger;
+    line-height: 150%;
+    border: 1px solid lightgrey;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 800px;
+    padding-top: 10px;
+    background: #dcbfad;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+    background-image: url('/general/billie-holiday.png');
+}
+
+figure {
+  break-inside: avoid;
+}
+
+figcaption {
+  font-style: italic;
+  font-size: 0.8rem;
+  width: 70%;
+  margin: 0 auto;
+}
+
+div#persons img
+ {
+    box-shadow: 0px 1px 3px black;
+    border: 16px solid white;
+    max-width: 70%;
+    display: block;
+    margin: 0 auto;
+}
+
+blockquote {
+    display: inline-block;
+    background: darkgrey;
+    margin: 10px;
+    padding: 10px;
+}
+
+
+.person-photo-container {
+    border: 1px solid grey;
+    margin-top: 10px;
+}
+
+table form {
+    display: flex;
+    width: 100%;
+}
+
+.photo-preview table div.long_description_container,
+.photo-preview table div.short_description_container {
+   width: 150px;
+}
+
+.photo-preview table th.thumbnail_header,
+.photo-preview table th.copy_image_header,
+.photo-preview table th.copy_url_header,
+.photo-preview table th.copy_figure_header {
+    width: 0%;
+}
+
+.photo-preview table th {
+    font-size: 13px;
+}
+
+/* a comment explaining that dashed border indicates the photo is published */
+span.publish-mention {
+    font-size: 9px;
+    font-weight: normal;
+    display: block;
+}
+
+#delete_person_link {
+  background-color: red;
+  color: white;
+  box-shadow: 0 5px 0 darkred;
+}
+
+#delete_person_link:disabled {
+    background-color: light-dark(rgba(239, 239, 239, 0.3), rgba(19, 1, 1, 0.3));
+    color: light-dark(rgba(16, 16, 16, 0.3), rgba(255, 255, 255, 0.3));
+    border-color: light-dark(rgba(118, 118, 118, 0.3), rgba(195, 195, 195, 0.3));
+    top: 0px;
+    box-shadow: none;
+}
+
+#delete_person_link:hover,
+#delete_person_link:focus {
+  background-color: darkred;
+  cursor: pointer;
+}
+
+#delete_person_link:active {
+  box-shadow: none;
+  top: 5px;
+}
+
+#form_submit_button.unsaved-changes,
+input[type="submit"],
+#view_read_only_page_link {
+  background-color: #594cea;
+  color: white;
+}
+
+input[type="submit"] {
+  position: relative;
+  text-decoration: none;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  font-size: 16px;
+  padding-block: 3.2px;
+}
+
+div#person_edit_form_buttons {
+    margin-top: 25px;
+    height: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 350px;
+    margin-bottom: 40px;
+    position: relative;
+    justify-content: space-around;
+    align-items: baseline;
+}
+
+#versioning_link {
+  background-color: #594cea;
+  color: white;
+  box-shadow: 0 5px 0 darkblue;
+  cursor: pointer;
+}
+
+#versioning_link:hover {
+  background-color: #3f36ac;
+  cursor: pointer;
+}
+
+#view_read_only_page_link {
+  background-color: #594cea;
+  color: white;
+  box-shadow: 0 5px 0 darkblue;
+}
+
+#view_read_only_page_link:hover {
+  background-color: #3f36ac;
+  cursor: pointer;
+}
+
+#form_submit_button {
+  background-color: #594cea;
+  color: white;
+  box-shadow: 0 5px 0 darkblue;
+}
+
+#form_submit_button:hover {
+  background-color: #3f36ac;
+  cursor: pointer;
+}
+
+#form_submit_button:disabled {
+    background-color: light-dark(rgba(239, 239, 239, 0.3), rgba(19, 1, 1, 0.3));
+    color: light-dark(rgba(16, 16, 16, 0.3), rgba(255, 255, 255, 0.3));
+    border-color: light-dark(rgba(118, 118, 118, 0.3), rgba(195, 195, 195, 0.3));
+    top: 0px;
+    box-shadow: none;
+}
+
+#person_edit_form_buttons > input,
+#person_edit_form_buttons > a
+ {
+    text-decoration: none;
+    padding: 10px;
+    flex: 0 0 70px;
+    text-align: center;
+    display: inline-block;
+    position: static;
+}
+
+#person_edit_form_buttons > button:disabled {
+    background-color: light-dark(rgba(239, 239, 239, 0.3), rgba(19, 1, 1, 0.3));
+    color: light-dark(rgba(16, 16, 16, 0.3), rgba(255, 255, 255, 0.3));
+    border-color: light-dark(rgba(118, 118, 118, 0.3), rgba(195, 195, 195, 0.3));
+    text-decoration: none;
+    padding: 10px;
+    flex: 0 0 70px;
+    text-align: center;
+    position: relative;
+    top: 0px;
+    box-shadow: none;
+}
+
+#person_edit_form_buttons > input
+ {
+    padding-block-start: 10.9px;
+    padding-block-end: 8px;
+}
+
+#person_edit_form_buttons > input:disabled
+ {
+    padding-block-start: 7.8px;
+    padding-block-end: 9px;
+    cursor: default;
+}
+
+#view_read_only_page_link:active,
+input[type="submit"]:active,
+#form_submit_button.unsaved-changes:active,
+#person_edit_form_buttons > a:active {
+  box-shadow: none;
+  top: 5px;
+}
+
+
+table button {
+  background-color: #594cea;
+  box-shadow: 0 5px 0 darkblue;
+  color: white;
+  position: relative;
+  text-decoration: none;
+}
+
+table button:hover,
+table button:focus {
+  background-color: #3f36ac;
+  cursor: pointer;
+}
+
+table button:active {
+  box-shadow: none;
+  top: 5px;
+}
+
+table button {
+    font-size: 16px;
+    padding-block: 3.2px;
+}
+
+table {
+    margin: auto;
+    border: 1px solid;
+    background: white;
+}
+
+table td {
+    width: 350px;
+    text-align: center;
+}
+
+table tr {
+    height: 72px;
+}
+
+table tr:nth-child(even) {background: #CCC}
+
+table tr:nth-child(odd) {background: lightblue}
+
+table textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    height: 65px;
+    font-size: small;
+}
+
+table summary {
+  font-weight: bold;
+}
+
+.thumbnail-image {
+    height: 64px;
+    width: initial;
+}
+
+/* If the image is published in a biography, show with a dashed border */
+img.thumbnail-image.is-indeed-published {
+    border: 2px dashed;
+}
+
+a.other_persons {
+    display: inline-block;
+    width: 50px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: x-small;
+}
+
+/*
+Details summaries for the help and hidden sections, like relationship
+*/
+details > summary {
+    background: grey;
+    color: white;
+    padding: 10px;
+    margin: 3px;
+}
+
+.remove-relation-form {
+    display: inline;
+}
+
+.remove-relation-button {
+    background-color: initial !important;
+    box-shadow: initial !important;
+    color: grey !important;
+    border: none !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-block: 0 !important;
+    border: 1px solid red !important;
+    border-radius: 10px !important;
+    background: darkgrey !important;
+    color: white !important;
+}
+
+.relation-pill {
+    border: 1px solid black;
+    width: fit-content;
+    border-radius: 7px;
+    padding: 4px;
+    background: lightgray;
+    display: inline-block;
+}
+
+@media only screen and (max-width: 600px){
+
+/* these come into play when the user views the preview for the bio */
+
+    div#persons {
+        margin: 10px;
+        font-size: initial;
+        line-height: initial;
+        border: 1px solid lightgrey;
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    div#persons img {
+        box-shadow: none;
+        border: none;
+        max-width: 100%;
+    }
+
+    figure {
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    figcaption {
+        width: 100%;
+    }
+
+    .detail_component {
+        padding-bottom: 0px;
+    }
+
 }

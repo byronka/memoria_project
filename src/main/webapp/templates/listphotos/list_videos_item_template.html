@@ -1,0 +1,44 @@
+<td>
+    <a class="caption" href="video?name={{video_url}}">
+        <img class="thumbnail-image {{is_published}}" width="40" height="64" alt="" src="{{video_poster}}">
+    </a>
+</td>
+<td>
+    {{ copied_to_persons }}
+</td>
+<td>
+    <div class="description_container" data-videoid="{{video_id}}">
+        <form action="videodescriptionupdate" class="enabled_through_javascript" method="POST" data-videoid="{{video_id}}">
+            <input type="hidden" name="videoid" value="{{video_id}}">
+            <textarea placeholder="alt text..."  class="short_description" name="caption" data-videoid="{{video_id}}">{{short_description}}</textarea>
+            <textarea placeholder="description..." class="long_description" name="long_description" data-videoid="{{video_id}}">{{description}}</textarea>
+            <button type="submit" class="description_save_button video" data-videoid="{{video_id}}">Save</button>
+        </form>
+    </div>
+</td>
+<td>
+    <button title="copy html text to the clipboard" type="button" onclick="copyTextToClipboard(this, document.getElementById('video_img_{{video_url}}').text)">Copy &lt;video&gt;</button>
+    <script id="video_img_{{video_url}}" type="text/html"><figure class="video-container"><video poster="{{video_poster}}" preload="none" style="width: 100%;" controls><source src="video?name={{video_url}}" type="video/mp4" /><p>Your browser doesn't support HTML video. Here is a <a href="video?name={{video_url}}" download="video?name={{video_url}}">link to the video</a> instead.</p></video><figcaption>{{description_for_figcaption}}</figcaption></figure></script>
+</td>
+<td colspan="2">
+    <form class="set_poster_form enabled_through_javascript" method="post" action="videoposterupdate">
+        <input type="hidden" name="videoid" value="{{video_id}}" >
+        <input type="text" name="postervalue" data-videoid="{{video_id}}" value="{{video_poster}}">
+        <button class="poster_button" data-videoid="{{video_id}}" title="Sets the url for the poster image of the video" type="submit">Set poster</button>
+    </form>
+</td>
+<td class="delete_section">
+    <details data-videoid="{{video_id}}">
+        <summary>Delete</summary>
+        <form action="deletevideo" method="post" class="delete-form">
+            <input type="hidden" name="videoid" value="{{video_id}}" />
+            <button type="submit" class="delete_button video" data-videoid="{{video_id}}">Delete</button>
+        </form>
+    </details>
+</td>
+<td class="copy_video_section" data-videoid="{{video_id}}">
+    <form action="copyvideo" method="GET">
+        <input type="hidden" name="videoid" value="{{video_id}}" />
+        <button title="copy this media to another person" type="submit" class="copy_to_other_person_button">Copy to person</button>
+    </form>
+</td>

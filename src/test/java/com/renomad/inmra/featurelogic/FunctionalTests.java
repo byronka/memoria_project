@@ -1,13 +1,12 @@
 package com.renomad.inmra.featurelogic;
 
 import com.renomad.inmra.TheRegister;
-import com.renomad.inmra.utils.FileUtils;
-import com.renomad.inmra.utils.IFileUtils;
-import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.minum.state.Context;
+import com.renomad.inmra.utils.*;
+
 import com.renomad.minum.htmlparsing.HtmlParseNode;
 import com.renomad.minum.htmlparsing.TagName;
 import com.renomad.minum.logging.TestLogger;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.testing.RegexUtils;
 import com.renomad.minum.utils.MyThread;
 import com.renomad.minum.web.*;
@@ -23,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static com.renomad.inmra.SearchHelpers.*;
+import static com.renomad.inmra.auth.PrivacyCheck.PRIVACY_KEY;
 import static com.renomad.minum.testing.TestFramework.*;
 import static com.renomad.minum.web.StatusLine.StatusCode.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -37,13 +38,18 @@ public class FunctionalTests {
     private static Context context;
     private static FunctionalTesting ft;
     private static IFileUtils fileUtils;
+    private static String privacy_cookie;
 
     @BeforeClass
     public static void init() throws IOException {
         Properties properties = com.renomad.minum.state.Constants.getConfiguredProperties();
-        properties.setProperty("DB_DIRECTORY", "target/simple_db_for_tests");
+        String dbDirectory = "target/simple_db_for_tests";
+        properties.setProperty("DB_DIRECTORY", dbDirectory);
         context = buildTestingContext("_integration_test", properties);
-        com.renomad.minum.utils.FileUtils fileUtils1 = new com.renomad.minum.utils.FileUtils(context.getLogger(), context.getConstants());
+        logger = (TestLogger) context.getLogger();
+        var fileUtils1 = new com.renomad.minum.utils.FileUtils(logger, context.getConstants());
+
+        // make sure we have an empty database at the start of these tests
         fileUtils1.deleteDirectoryRecursivelyIfExists(Path.of(context.getConstants().dbDirectory));
 
         // override the COUNT_OF_PHOTO_CHECKS since our functional tests don't rely
@@ -51,13 +57,20 @@ public class FunctionalTests {
         Properties memoriaProperties = com.renomad.inmra.utils.Constants.getConfiguredProperties();
         memoriaProperties.setProperty("COUNT_OF_PHOTO_CHECKS", "0");
         com.renomad.inmra.utils.Constants constants = new com.renomad.inmra.utils.Constants(memoriaProperties);
-
         fileUtils = new FileUtils(fileUtils1, constants);
-        var memoriaContext = new MemoriaContext(constants, fileUtils);
+        var auditor = new Auditor(context);
+        CachedData cachedData = new CachedData();
+
+        var memoriaContext = new MemoriaContext(constants, fileUtils, auditor, cachedData);
         new FullSystem(context).start();
         new TheRegister(context, memoriaContext).registerDomains();
-        logger = (TestLogger) context.getLogger();
-        ft = new FunctionalTesting(context, "localhost", 8080);
+
+        privacy_cookie = PRIVACY_KEY + "=" + memoriaContext.getHashedPrivacyPassword();
+
+        ft = new FunctionalTesting(
+                context,
+                context.getConstants().hostName,
+                context.getConstants().serverPort);
     }
 
     @AfterClass
@@ -81,8 +94,8 @@ public class FunctionalTests {
 
         logger.test("GET the home page, confirm we see a search field and a logo image"); {
             var response = ft.get("");
-            assertFalse(response.searchOne(TagName.LABEL, Map.of("for", "search_by_name")) == HtmlParseNode.EMPTY);
-            assertFalse(response.searchOne(TagName.A, Map.of("id", "logo")) == HtmlParseNode.EMPTY);
+            assertFalse(searchOne(response.body(), TagName.LABEL, Map.of("for", "search_by_name")) == HtmlParseNode.EMPTY);
+            assertFalse(searchOne(response.body(), TagName.A, Map.of("id", "logo")) == HtmlParseNode.EMPTY);
         }
 
         logger.test("GET editpersons unauth, expect failure page"); {
@@ -92,16 +105,16 @@ public class FunctionalTests {
 
         logger.test("GET login page, confirm the username and password fields are there"); {
             var response = ft.get("login");
-            assertFalse(response.searchOne(TagName.LABEL, Map.of("for", "username")) == HtmlParseNode.EMPTY);
-            assertFalse(response.searchOne(TagName.LABEL, Map.of("for", "password")) == HtmlParseNode.EMPTY);
+            assertFalse(searchOne(response.body(), TagName.LABEL, Map.of("for", "username")) == HtmlParseNode.EMPTY);
+            assertFalse(searchOne(response.body(), TagName.LABEL, Map.of("for", "password")) == HtmlParseNode.EMPTY);
         }
 
         String cookieHeader = loginAndGetCookie();
 
         logger.test("GET editperson, auth'd, expect fields like name and the submit button in the form"); {
             var response = ft.get("editperson", List.of(cookieHeader));
-            assertFalse(response.searchOne(TagName.LABEL, Map.of("for", "name_input")) == HtmlParseNode.EMPTY);
-            assertFalse(response.searchOne(TagName.LABEL, Map.of("for", "parents_input")) == HtmlParseNode.EMPTY);
+            assertFalse(searchOne(response.body(), TagName.LABEL, Map.of("for", "name_input")) == HtmlParseNode.EMPTY);
+            assertFalse(searchOne(response.body(), TagName.BUTTON, Map.of("id", "form_submit_button")) == HtmlParseNode.EMPTY);
         }
 
         String aliceUrl;
@@ -109,15 +122,15 @@ public class FunctionalTests {
             String payload = "id=&image_input=&name_input=Alice+Katz&born_input=1921-11-21&died_input=2020-03-12&siblings_input=Florence&spouses_input=&parents_input=Robert+and+Ethel&children_input=ron&biography_input=%3Cp%3EEllis+was+born+21+November%2C+1921+in+Atlanta%2C+GA.+As+his+Dad+was+a%3C%2Fp%3E";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
             assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
-            aliceUrl = response.headers().valueByKey("location").get(0);
+            aliceUrl = response.headers().valueByKey("location").getFirst();
         }
         String aliceId = RegexUtils.find("id=(?<aliceid>.*)", aliceUrl, "aliceid");
 
         logger.test("GET the detail view of a person");
         {
             var response = ft.get("person?id=" + aliceId);
-            assertEquals(response.searchOne(TagName.H2, Map.of("class","lifespan-name")).innerText().trim(), "Alice Katz");
-            assertEquals(response.searchOne(TagName.SPAN, Map.of("class","lifespan-era")).innerText().trim(), "November 21, 1921 to March 12, 2020 (98 years)");
+            assertTrue(innerText(searchOne(response.body(), TagName.H2, Map.of("class","lifespan-name"))).trim().contains("Alice Katz"));
+            assertEquals(innerText(searchOne(response.body(), TagName.SPAN, Map.of("class","lifespan-era"))).trim(), "November 21, 1921 to March 12, 2020 (98 years)");
         }
 
         logger.test("GET the detail view of a person, negative case - bad id");
@@ -137,15 +150,15 @@ public class FunctionalTests {
         logger.test("GET editpersons auth'd, expect to find Alice."); {
             var response = ft.get("editpersons", List.of(cookieHeader));
             assertEquals(response.statusLine().status(), CODE_200_OK);
-            var aliceResult = response.search(TagName.SPAN, Map.of("class", "name")).get(0);
-            assertEquals(aliceResult.getInnerContent().get(0).getTextContent().trim(), "Alice Katz");
+            var aliceResult = search(response.body(), TagName.SPAN, Map.of("class", "name")).getFirst();
+            assertEquals(aliceResult.getInnerContent().getFirst().getTextContent().trim(), "Alice Katz");
         }
 
         logger.test("GET editpersons auth'd again, should use cache, expect to find Alice."); {
             var response = ft.get("editpersons", List.of(cookieHeader));
             assertEquals(response.statusLine().status(), CODE_200_OK);
-            var aliceResult = response.search(TagName.SPAN, Map.of("class", "name")).get(0);
-            assertEquals(aliceResult.getInnerContent().get(0).getTextContent().trim(), "Alice Katz");
+            var aliceResult = search(response.body(), TagName.SPAN, Map.of("class", "name")).getFirst();
+            assertEquals(aliceResult.getInnerContent().getFirst().getTextContent().trim(), "Alice Katz");
         }
 
         logger.test("POST some new persons, to assist in the sorting test"); {
@@ -161,78 +174,78 @@ public class FunctionalTests {
 
         logger.test("GET editpersons sorted by birthday, ascending"); {
             var response = ft.get("editpersons?sort=bda", List.of(cookieHeader));
-            assertEquals(response.searchOne(TagName.P, Map.of("id", "current_sort")).innerText(), "Current sort: Birthday, ascending");
-            List<HtmlParseNode> names = response.search(TagName.SPAN, Map.of("class", "name"));
-            assertEquals(names.get(0).innerText().trim(), "Alice Katz");
-            assertEquals(names.get(1).innerText().trim(), "Alfonso");
-            assertEquals(names.get(2).innerText().trim(), "Berenice");
+            assertEquals(innerText(searchOne(response.body(), TagName.P, Map.of("id", "current_sort"))), "[Current sort: ][Birthday, ascending]");
+            List<HtmlParseNode> names = search(response.body(), TagName.SPAN, Map.of("class", "name"));
+            assertEquals(innerText(names.get(0)).trim(), "Alice Katz");
+            assertEquals(innerText(names.get(1)).trim(), "Alfonso");
+            assertEquals(innerText(names.get(2)).trim(), "Berenice");
         }
 
         logger.test("GET editpersons sorted by birthday, descending"); {
             var response = ft.get("editpersons?sort=bdd", List.of(cookieHeader));
-            assertEquals(response.searchOne(TagName.P, Map.of("id", "current_sort")).innerText(), "Current sort: Birthday, descending");
-            List<HtmlParseNode> names = response.search(TagName.SPAN, Map.of("class", "name"));
-            assertEquals(names.get(0).innerText().trim(), "Montse");
-            assertEquals(names.get(1).innerText().trim(), "Berenice");
-            assertEquals(names.get(2).innerText().trim(), "Alfonso");
+            assertEquals(innerText(searchOne(response.body(), TagName.P, Map.of("id", "current_sort"))), "[Current sort: ][Birthday, descending]");
+            List<HtmlParseNode> names = search(response.body(), TagName.SPAN, Map.of("class", "name"));
+            assertEquals(innerText(names.get(0)).trim(), "Montse");
+            assertEquals(innerText(names.get(1)).trim(), "Berenice");
+            assertEquals(innerText(names.get(2)).trim(), "Alfonso");
         }
 
         logger.test("GET editpersons sorted by deathday, ascending"); {
             var response = ft.get("editpersons?sort=dda", List.of(cookieHeader));
-            assertEquals(response.searchOne(TagName.P, Map.of("id", "current_sort")).innerText(), "Current sort: Deathday, ascending");
-            List<HtmlParseNode> names = response.search(TagName.SPAN, Map.of("class", "name"));
-            assertEquals(names.get(0).innerText().trim(), "Montse");
-            assertEquals(names.get(1).innerText().trim(), "Berenice");
-            assertEquals(names.get(2).innerText().trim(), "Alfonso");
-            assertEquals(names.get(3).innerText().trim(), "Alice Katz");
+            assertEquals(innerText(searchOne(response.body(), TagName.P, Map.of("id", "current_sort"))), "[Current sort: ][Deathday, ascending]");
+            List<HtmlParseNode> names = search(response.body(), TagName.SPAN, Map.of("class", "name"));
+            assertEquals(innerText(names.get(0)).trim(), "Montse");
+            assertEquals(innerText(names.get(1)).trim(), "Berenice");
+            assertEquals(innerText(names.get(2)).trim(), "Alfonso");
+            assertEquals(innerText(names.get(3)).trim(), "Alice Katz");
         }
 
         logger.test("GET editpersons sorted by deathday, descending"); {
             var response = ft.get("editpersons?sort=ddd", List.of(cookieHeader));
-            assertEquals(response.searchOne(TagName.P, Map.of("id", "current_sort")).innerText(), "Current sort: Deathday, descending");
-            List<HtmlParseNode> names = response.search(TagName.SPAN, Map.of("class", "name"));
-            assertEquals(names.get(0).innerText().trim(), "Alice Katz");
-            assertEquals(names.get(1).innerText().trim(), "Alfonso");
-            assertEquals(names.get(2).innerText().trim(), "Berenice");
-            assertEquals(names.get(3).innerText().trim(), "Montse");
+            assertEquals(innerText(searchOne(response.body(), TagName.P, Map.of("id", "current_sort"))), "[Current sort: ][Deathday, descending]");
+            List<HtmlParseNode> names = search(response.body(), TagName.SPAN, Map.of("class", "name"));
+            assertEquals(innerText(names.get(0)).trim(), "Alice Katz");
+            assertEquals(innerText(names.get(1)).trim(), "Alfonso");
+            assertEquals(innerText(names.get(2)).trim(), "Berenice");
+            assertEquals(innerText(names.get(3)).trim(), "Montse");
         }
 
         logger.test("GET editpersons sorted by name, ascending"); {
             var response = ft.get("editpersons?sort=na", List.of(cookieHeader));
-            assertEquals(response.searchOne(TagName.P, Map.of("id", "current_sort")).innerText(), "Current sort: Name, ascending");
-            List<HtmlParseNode> names = response.search(TagName.SPAN, Map.of("class", "name"));
-            assertEquals(names.get(0).innerText().trim(), "Alfonso");
-            assertEquals(names.get(1).innerText().trim(), "Alice Katz");
-            assertEquals(names.get(2).innerText().trim(), "Berenice");
-            assertEquals(names.get(3).innerText().trim(), "Montse");
+            assertEquals(innerText(searchOne(response.body(), TagName.P, Map.of("id", "current_sort"))), "[Current sort: ][Name, ascending]");
+            List<HtmlParseNode> names = search(response.body(), TagName.SPAN, Map.of("class", "name"));
+            assertEquals(innerText(names.get(0)).trim(), "Alfonso");
+            assertEquals(innerText(names.get(1)).trim(), "Alice Katz");
+            assertEquals(innerText(names.get(2)).trim(), "Berenice");
+            assertEquals(innerText(names.get(3)).trim(), "Montse");
         }
 
         logger.test("GET editpersons sorted by name, descending"); {
             var response = ft.get("editpersons?sort=nd", List.of(cookieHeader));
-            assertEquals(response.searchOne(TagName.P, Map.of("id", "current_sort")).innerText(), "Current sort: Name, descending");
-            List<HtmlParseNode> names = response.search(TagName.SPAN, Map.of("class", "name"));
-            assertEquals(names.get(0).innerText().trim(), "Montse");
-            assertEquals(names.get(1).innerText().trim(), "Berenice");
-            assertEquals(names.get(2).innerText().trim(), "Alice Katz");
-            assertEquals(names.get(3).innerText().trim(), "Alfonso");
+            assertEquals(innerText(searchOne(response.body(), TagName.P, Map.of("id", "current_sort"))), "[Current sort: ][Name, descending]");
+            List<HtmlParseNode> names = search(response.body(), TagName.SPAN, Map.of("class", "name"));
+            assertEquals(innerText(names.get(0)).trim(), "Montse");
+            assertEquals(innerText(names.get(1)).trim(), "Berenice");
+            assertEquals(innerText(names.get(2)).trim(), "Alice Katz");
+            assertEquals(innerText(names.get(3)).trim(), "Alfonso");
         }
 
         // don't currently have much way to add photos per person in this test, so we'll take a cheap shortcut.
 
         logger.test("GET editpersons sorted by photo count, ascending"); {
             var response = ft.get("editpersons?sort=pca", List.of(cookieHeader));
-            assertEquals(response.searchOne(TagName.P, Map.of("id", "current_sort")).innerText(), "Current sort: Photos count, ascending");
+            assertEquals(innerText(searchOne(response.body(), TagName.P, Map.of("id", "current_sort"))), "[Current sort: ][Photos count, ascending]");
         }
 
         logger.test("GET editpersons sorted by photo count, descending"); {
             var response = ft.get("editpersons?sort=pcd", List.of(cookieHeader));
-            assertEquals(response.searchOne(TagName.P, Map.of("id", "current_sort")).innerText(), "Current sort: Photos count, descending");
+            assertEquals(innerText(searchOne(response.body(), TagName.P, Map.of("id", "current_sort"))), "[Current sort: ][Photos count, descending]");
         }
 
 
         logger.test("When we edit a person, it shows their current details in every field"); {
             var response = ft.get("editperson?id=" + aliceId, List.of(cookieHeader));
-            assertEquals(response.searchOne(TagName.INPUT, Map.of("id", "name_input")).getTagInfo().getAttribute("value"), "Alice Katz");
+            assertEquals(searchOne(response.body(), TagName.INPUT, Map.of("id", "name_input")).getTagInfo().getAttribute("value"), "Alice Katz");
         }
 
         // rename Alice to Foo
@@ -284,6 +297,7 @@ public class FunctionalTests {
 
     }
 
+
     /**
      * Some very basic examination of the admin page
      */
@@ -293,10 +307,11 @@ public class FunctionalTests {
 
         logger.test("GET the admin page, auth'd, expect to see a list of inmates in the brig and authenticated users"); {
             var response = ft.get("admin", List.of(cookieHeader));
-            assertFalse(response.searchOne(TagName.LABEL, Map.of("for", "users")) == HtmlParseNode.EMPTY);
-            assertFalse(response.searchOne(TagName.LABEL, Map.of("for", "sessions")) == HtmlParseNode.EMPTY);
-            assertFalse(response.searchOne(TagName.LABEL, Map.of("for", "inmates")) == HtmlParseNode.EMPTY);
+            assertFalse(searchOne(response.body(), Map.of("id", "users")) == HtmlParseNode.EMPTY);
+            assertFalse(searchOne(response.body(),Map.of("id", "sessions")) == HtmlParseNode.EMPTY);
+            assertFalse(searchOne(response.body(),Map.of("id", "inmates")) == HtmlParseNode.EMPTY);
         }
+
 
         logger.test("POST logout auth'd"); {
             ft.post("logout", "", List.of(cookieHeader));
@@ -317,7 +332,7 @@ public class FunctionalTests {
      * file existing at a certain directory, so we may as well test the failure case.
      */
     @Test
-    public void testLetsEncrypt() throws IOException {
+    public void testLetsEncrypt() {
         // fail to include the challenge value
         var firstResponse = ft.get(".well-known/acme-challenge");
         assertEquals(firstResponse.statusLine().status(), CODE_400_BAD_REQUEST);
@@ -332,26 +347,9 @@ public class FunctionalTests {
     }
 
     @Test
-    public void testListingPersons() throws IOException {
+    public void testListingPersons() {
         var response = ft.get("index?search=foo");
         assertTrue(response.body().asString().contains("No persons found"));
-    }
-
-    /**
-     * A basic test to check the "list all photos" page
-     */
-    @Test
-    public void testListAllPhotos() throws IOException {
-        // cannot see this page unauth'd
-        var response = ft.get("photos");
-        assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
-
-
-        String cookieHeader = loginAndGetCookie();
-
-        var authResponse = ft.get("photos", List.of(cookieHeader));
-        HtmlParseNode titleElement = authResponse.searchOne(TagName.TITLE, Map.of());
-        assertEquals(titleElement.innerText(), "List Photos | Inmra");
     }
 
     /**
@@ -423,75 +421,6 @@ public class FunctionalTests {
     }
 
     /**
-     * Examine some of the behavior of the upload photo endpoint
-     */
-    @Test
-    public void testUploadPhoto() throws IOException {
-        // first, we cannot get this page or post to this page without being auth'd
-        // cannot see this page unauth'd
-        var postResponse = ft.post("upload", "");
-        assertEquals(postResponse.statusLine().status(), CODE_403_FORBIDDEN);
-
-        // login
-        String cookieHeader = loginAndGetCookie();
-
-        // fail to send the photograph
-        var noPhotoSentResponse = ft.post("upload", "", List.of(cookieHeader));
-        assertEquals(noPhotoSentResponse.statusLine().status(), CODE_400_BAD_REQUEST);
-
-        // fail to send the short description
-        var noShortDescSentResponse = ft.post("upload", "image_uploads=123", List.of(cookieHeader));
-        assertEquals(noShortDescSentResponse.statusLine().status(), CODE_400_BAD_REQUEST);
-
-        // short description sent, but missing a person id
-        var missingPersonResponse = ft.post("upload", "image_uploads=123&short_description=cool", List.of(cookieHeader));
-        assertEquals(missingPersonResponse.statusLine().status(), CODE_400_BAD_REQUEST);
-
-        // all required fields - but not a multipart, and the id is an invalid UUID
-        var invalidUuidResponse = ft.post(
-                "upload",
-                "image_uploads=123&short_description=cool&person_id=123",
-                List.of(cookieHeader));
-        assertEquals(invalidUuidResponse.statusLine().status(), CODE_400_BAD_REQUEST);
-
-        // all required fields - but not a multipart, and the id is an invalid id
-        var invalidIdResponse = ft.post(
-                "upload",
-                "image_uploads=123&short_description=cool&person_id=991a0ad8-463a-43c6-a253-88f4746cff76",
-                List.of(cookieHeader));
-        assertEquals(invalidIdResponse.statusLine().status(), CODE_400_BAD_REQUEST);
-
-        // add a person to add a photograph
-        String photoPersonUrl;
-        logger.test("POST a new person, photoPerson, auth'd"); {
-            String payload = "id=&image_input=&name_input=photoPerson+Katz&born_input=1921-11-21&died_input=&siblings_input=&spouses_input=&parents_input=&children_input=&biography_input=";
-            var response = ft.post("editperson", payload, List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
-            photoPersonUrl = response.headers().valueByKey("location").get(0);
-        }
-
-
-        // all required fields - but not a multipart, and the id is an invalid id
-        var validResponse = ft.post(
-                "upload",
-                "image_uploads=123&short_description=cool&person_id=" + photoPersonUrl.replace("person?id=", ""),
-                List.of(cookieHeader));
-        assertEquals(validResponse.statusLine().status(), CODE_303_SEE_OTHER);
-
-        // delete the new user
-        ft.send(RequestLine.Method.DELETE, photoPersonUrl);
-    }
-
-    /**
-     * Just to get a handle on the help page
-     */
-    @Test
-    public void testGetHelp() throws IOException {
-        var response = ft.get("general/help.html");
-        assertTrue(response.body().asString().contains("This is a family tree and memorial site."));
-    }
-
-    /**
      * To get a handle on the behavior of registering a user
      */
     @Test
@@ -506,11 +435,29 @@ public class FunctionalTests {
         ft.post("registeruser", "username=foo&password=bar", List.of(cookieHeader));
         // give some time for the database to handle the registration
         var adminPageResponse = ft.get("admin", List.of(cookieHeader));
-        assertTrue(adminPageResponse.body().asString().contains("name: foo"));
+        assertTrue(adminPageResponse.body().asString().contains("<b>name:</b> foo"));
 
         // if we try registering that user again, we'll get a complaint
         var complaintResponse = ft.post("registeruser", "username=foo&password=bar", List.of(cookieHeader));
         assertEquals(complaintResponse.statusLine().status(), CODE_401_UNAUTHORIZED);
+
+        // if we try registering while unauthenticated, we'll get a forbidden code
+        var unauthRegisterResponse = ft.post("registeruser", "username=foo&password=bar");
+        assertEquals(unauthRegisterResponse.statusLine().status(), CODE_403_FORBIDDEN);
+
+        // if we try getting the registration page while unauthenticated, we'll get a forbidden code
+        var unauthRegisterGet = ft.get("register");
+        assertEquals(unauthRegisterGet.statusLine().status(), CODE_403_FORBIDDEN);
+    }
+
+    /**
+     * If we try to get the page for resetting a password without being auth'd,
+     * return a forbidden page message
+     */
+    @Test
+    public void testResetPassword() {
+        var response = ft.get("resetpassword");
+        assertEquals(response.statusLine().status(), CODE_403_FORBIDDEN);
     }
 
     @Test
@@ -522,25 +469,25 @@ public class FunctionalTests {
             String payload = "id=&image_input=&name_input=john+Katz&born_input=1921-11-21&died_input=2020-03-12&siblings_input=Florence&spouses_input=&parents_input=Robert+and+Ethel&children_input=ron&biography_input=%3Cp%3Ejohn+was+born+to+die%3C%2Fp%3E";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
             assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
-            johnUrl = response.headers().valueByKey("location").get(0);
+            johnUrl = response.headers().valueByKey("location").getFirst();
         }
         String johnId = RegexUtils.find("id=(?<johnid>.*)", johnUrl, "johnid");
 
         // try deleting, but with some edge cases:
 
         logger.test("delete, but forget to include an id"); {
-            var response = ft.send(RequestLine.Method.DELETE, "person", new byte[0], List.of(cookieHeader));
+            var response = ft.send(RequestLine.Method.POST, "persondelete", new byte[0], List.of(cookieHeader));
             assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
 
         logger.test("delete, but the id is invalid"); {
-            var response = ft.send(RequestLine.Method.DELETE, "person?id=bad_id_here", new byte[0], List.of(cookieHeader));
+            var response = ft.post("persondelete", "id=bad_id_here", List.of(cookieHeader));
             assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
 
         logger.test("delete, happy path"); {
-            var response = ft.send(RequestLine.Method.DELETE, "person?id=" + johnId, new byte[0], List.of(cookieHeader));
-            assertEquals(response.statusLine().status(), CODE_204_NO_CONTENT);
+            var response = ft.post("persondelete", "id=" + johnId, List.of(cookieHeader));
+            assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
         }
 
         String georgeUrl;
@@ -548,13 +495,13 @@ public class FunctionalTests {
             String payload = "id=&image_input=&name_input=george+Katz&born_input=1921-11-21&died_input=2020-03-12&siblings_input=Florence&spouses_input=&parents_input=Robert+and+Ethel&children_input=ron&biography_input=%3Cp%3Ejohn+was+born+to+die%3C%2Fp%3E";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
             assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
-            georgeUrl = response.headers().valueByKey("location").get(0);
+            georgeUrl = response.headers().valueByKey("location").getFirst();
         }
         String georgeId = RegexUtils.find("id=(?<georgeid>.*)", georgeUrl, "georgeid");
 
         logger.test("delete, sent by POST"); {
             var response = ft.post("persondelete", "id=" + georgeId, List.of(cookieHeader));
-            assertEquals(response.headers().valueByKey("location").get(0), "/message?message=A+person+named+george+Katz+has+been+deleted&redirect=%2Feditpersons");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/message?message=A+person+named+george+Katz+has+been+deleted&redirect=%2Feditpersons");
         }
     }
 
@@ -572,7 +519,7 @@ public class FunctionalTests {
                     "&biography_input=%3Cp%3Ehenry+was+born+to+die%3C%2Fp%3E";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
             assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
-            henryUrl = response.headers().valueByKey("location").get(0);
+            henryUrl = response.headers().valueByKey("location").getFirst();
         }
         String henryId = RegexUtils.find("id=(?<henryid>.*)", henryUrl, "henryid");
 
@@ -644,71 +591,9 @@ public class FunctionalTests {
             String payload = "id=&image_input=&name_input=george+Katz&born_input=1921-11-21&died_input=2020-03-12&siblings_input=Florence&spouses_input=&parents_input=Robert+and+Ethel&children_input=ron&biography_input=%3Cp%3Egeorge+was+born+to+have+siblings%3C%2Fp%3E";
             var response = ft.post("editperson", payload, List.of(cookieHeader));
             assertEquals(response.statusLine().status(), CODE_303_SEE_OTHER);
-            georgeUrl = response.headers().valueByKey("location").get(0);
+            georgeUrl = response.headers().valueByKey("location").getFirst();
         }
         String georgeId = RegexUtils.find("id=(?<georgeid>.*)", georgeUrl, "georgeid");
-
-        logger.test("POST a new parent for George"); {
-            String payload = String.format("person_id=%s&relation_name_input=%s&relation=parent", georgeId, "mango");
-            var addParentResponse = ft.post("addrelation", payload, List.of(cookieHeader));
-            String newParentLocation = addParentResponse.headers().valueByKey("Location").get(0);
-            String cleanedLocation = newParentLocation.replace("/editperson", "person");
-            var newRelationResponse = ft.get(cleanedLocation);
-            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "children")).getInnerContent().get(0).innerText();
-            assertEquals(mangoChild, "george Katz");
-
-            var response = ft.get("person?id=" + georgeId);
-            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "parents")).getInnerContent().get(1).innerText();
-            assertEquals(georgeParent, "mango");
-        }
-
-        logger.test("POST a new child for George"); {
-            String payload = String.format("person_id=%s&relation_name_input=%s&relation=child", georgeId, "banana");
-            var addChildResponse = ft.post("addrelation", payload, List.of(cookieHeader));
-            String newChildLocation = addChildResponse.headers().valueByKey("Location").get(0);
-            String cleanedLocation = newChildLocation.replace("/editperson", "person");
-            var newRelationResponse = ft.get(cleanedLocation);
-            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "parents")).getInnerContent().get(0).innerText();
-            assertEquals(mangoChild, "george Katz");
-
-            var response = ft.get("person?id=" + georgeId);
-            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "children")).getInnerContent().get(1).innerText();
-            assertEquals(georgeParent, "banana");
-        }
-
-        logger.test("POST a new sibling for George"); {
-            String payload = String.format("person_id=%s&relation_name_input=%s&relation=sibling", georgeId, "carrot");
-            var addSiblingResponse = ft.post("addrelation", payload, List.of(cookieHeader));
-            String newSiblingLocation = addSiblingResponse.headers().valueByKey("Location").get(0);
-            String cleanedLocation = newSiblingLocation.replace("/editperson", "person");
-            var newRelationResponse = ft.get(cleanedLocation);
-            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "siblings")).getInnerContent().get(0).innerText();
-            assertEquals(mangoChild, "george Katz");
-
-            var response = ft.get("person?id=" + georgeId);
-            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "siblings")).getInnerContent().get(1).innerText();
-            assertEquals(georgeParent, "carrot");
-        }
-
-        logger.test("POST a new spouse for George"); {
-            String payload = String.format("person_id=%s&relation_name_input=%s&relation=spouse", georgeId, "artichoke");
-            var addSpouseResponse = ft.post("addrelation", payload, List.of(cookieHeader));
-            String newSpouseLocation = addSpouseResponse.headers().valueByKey("Location").get(0);
-            String cleanedLocation = newSpouseLocation.replace("/editperson", "person");
-            var newRelationResponse = ft.get(cleanedLocation);
-            String mangoChild = newRelationResponse.searchOne(TagName.SPAN, Map.of("class", "spouses")).getInnerContent().get(0).innerText();
-            assertEquals(mangoChild, "george Katz");
-
-            var response = ft.get("person?id=" + georgeId);
-            String georgeParent = response.searchOne(TagName.SPAN, Map.of("class", "spouses")).getInnerContent().get(0).innerText();
-            assertEquals(georgeParent, "artichoke");
-        }
-
-        logger.test("POST a relation that does not exist (instead of spouse, use house)"); {
-            String payload = String.format("person_id=%s&relation_name_input=%s&relation=house", georgeId, "artichoke");
-            var addHouseResponse = ft.post("addrelation", payload, List.of(cookieHeader));
-            assertEquals(addHouseResponse.statusLine().status(), CODE_400_BAD_REQUEST);
-        }
 
         logger.test("POST a relation unauthenticated"); {
             String payload = String.format("person_id=%s&relation_name_input=%s&relation=spouse", georgeId, "artichoke");
@@ -743,7 +628,7 @@ public class FunctionalTests {
      * causes a POST request to be sent to the server.
      */
     @Test
-    public void testMessage() throws IOException {
+    public void testMessage() {
 
         logger.test("Happy path for the message page");
         {
@@ -778,7 +663,7 @@ public class FunctionalTests {
         logger.test("unauthenticated - should redirect us to the index");
         {
             var response = ft.post("deletephoto", "");
-            assertEquals(response.headers().valueByKey("location").get(0), "/");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/");
         }
         
         logger.test("authenticated - but did not provide an id of photo to delete - should get 400 user error");
@@ -801,12 +686,12 @@ public class FunctionalTests {
     public void testPhotoLongDescriptionUpdate() throws IOException {
         String cookie = loginAndGetCookie();
         logger.test("if unauthenticated, redirect to /");{
-            var response = ft.post("photolongdescupdate", "");
-            assertEquals(response.headers().valueByKey("location").get(0), "/");
+            var response = ft.post("photodescriptionupdate", "");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/");
         }
 
         logger.test("edge case - photo now found by id - should return 400");{
-            var response = ft.post("photolongdescupdate", "long_description=foo&photoid=bar", List.of(cookie));
+            var response = ft.post("photodescriptionupdate", "long_description=foo&photoid=bar", List.of(cookie));
             assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
     }
@@ -818,23 +703,26 @@ public class FunctionalTests {
     public void testPhotoShortDescriptionUpdate() throws IOException {
         String cookie = loginAndGetCookie();
         logger.test("if unauthenticated, redirect to /");{
-            var response = ft.post("photocaptionupdate", "");
-            assertEquals(response.headers().valueByKey("location").get(0), "/");
+            var response = ft.post("photodescriptionupdate", "");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/");
         }
 
         logger.test("edge case - photo now found by id - should return 400");{
-            var response = ft.post("photocaptionupdate", "caption=foo&photoid=bar", List.of(cookie));
+            var response = ft.post("photodescriptionupdate", "caption=foo&photoid=bar", List.of(cookie));
             assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
         }
     }
 
+    /**
+     * Log in with proper admin password, return a full correct cookie header
+     */
     private static String loginAndGetCookie() throws IOException {
         String cookieHeader;
-        String password = Files.readString(Path.of(context.getConstants().dbDirectory).resolve(Path.of("admin_password")));
+        String password = Files.readString(Path.of("admin_password"));
         logger.test("POST login with admin and proper password, get cookie and store for later");
         {
             var response = ft.post("loginuser", "username=admin&password=" + password);
-            cookieHeader = "cookie: " + response.headers().valueByKey("set-cookie").get(0);
+            cookieHeader = "cookie: " + response.headers().valueByKey("set-cookie").getFirst();
         }
         return cookieHeader;
     }
@@ -843,25 +731,30 @@ public class FunctionalTests {
     public void testLogin() throws IOException {
         String cookie = loginAndGetCookie();
 
-        logger.test("if already authenticated, redirect to /");{
+        logger.test("if already authenticated, redirect to / for POST");{
             var response = ft.post("loginuser", "", List.of(cookie));
-            assertEquals(response.headers().valueByKey("location").get(0), "/");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/");
+        }
+
+        logger.test("if already authenticated, redirect to / for GET");{
+            var response = ft.get("login", List.of(cookie));
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/");
         }
 
         logger.test("if login fails (unrecognized user), reply with a 403 forbidden");{
             var response = ft.post("loginuser", "username=foo&password=");
-            assertEquals(response.statusLine().status(), CODE_403_FORBIDDEN);
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/login?error=true");
             MyThread.sleep(150);
             String msg = logger.findFirstMessageThatContains("login attempted, but no user named", 20);
-            assertTrue(msg.length() > 0);
+            assertTrue(!msg.isEmpty());
         }
 
         logger.test("if login fails (bad credentials for existing user), reply with a 403"); {
             var response = ft.post("loginuser", "username=admin&password=");
-            assertEquals(response.statusLine().status(), CODE_403_FORBIDDEN);
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/login?error=true");
             MyThread.sleep(150);
             String msg = logger.findFirstMessageThatContains("Failed login for user named: ", 20);
-            assertTrue(msg.length() > 0);
+            assertTrue(!msg.isEmpty());
         }
     }
 
@@ -892,5 +785,111 @@ public class FunctionalTests {
         }
     }
 
+
+    @Test
+    public void testPrivacyLogin() {
+        logger.test("if not privacy authenticated, header should show login link");{
+            var response = ft.get("");
+            HtmlParseNode logoutLink = response.searchOne(TagName.A, Map.of("id", "privacy-logout"));
+            assertTrue(logoutLink == HtmlParseNode.EMPTY);
+            HtmlParseNode loginLink = response.searchOne(TagName.A, Map.of("id", "privacy-login"));
+            assertTrue(loginLink != HtmlParseNode.EMPTY);
+        }
+
+        logger.test("if privacy authenticated, header should show different values");{
+            var response = ft.get("", List.of("Cookie: " + privacy_cookie));
+            HtmlParseNode logoutLink = response.searchOne(TagName.A, Map.of("id", "privacy-logout"));
+            assertTrue(logoutLink != HtmlParseNode.EMPTY);
+            HtmlParseNode loginLink = response.searchOne(TagName.A, Map.of("id", "privacy-login"));
+            assertTrue(loginLink == HtmlParseNode.EMPTY);
+        }
+
+        logger.test("If we fail to enter the correct privacy password, reload the page with an error message"); {
+            var response = ft.post("privacylogin", "password=NOT_THE_RIGHT_PASSWORD");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/privacylogin?backref=&error=true");
+        }
+    }
+
+    @Test
+    public void testHeaderSearch() {
+        logger.test("Searching for a valid name");
+        {
+            var response = ft.get("headersearch?personname=foo");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/persons?search=foo");
+        }
+
+        logger.test("Searching for a name containing attack characters");
+        {
+            var response = ft.get("headersearch?personname=<script>alert('doing%20bad%20stuff')</script>");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/persons?search=%3Cscript%3Ealert%28%27doing+bad+stuff%27%29%3C%2Fscript%3E");
+        }
+
+        logger.test("Searching with a valid id");
+        {
+            var response = ft.get("headersearch?id=79cdb440-caff-4ac9-91cb-ba91fcbbef67");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/person?id=79cdb440-caff-4ac9-91cb-ba91fcbbef67");
+        }
+
+        logger.test("Searching with an invalid id");
+        {
+            var response = ft.get("headersearch?id=foo");
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
+        }
+
+        logger.test("Searching with a valid id with valid oid");
+        {
+            var response = ft.get("headersearch?id=79cdb440-caff-4ac9-91cb-ba91fcbbef67&oid=b0ba2fea-21b3-44b3-a347-619e75b70aac");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/person?id=79cdb440-caff-4ac9-91cb-ba91fcbbef67&oid=b0ba2fea-21b3-44b3-a347-619e75b70aac");
+        }
+
+        logger.test("Searching with a valid id with invalid oid");
+        {
+            var response = ft.get("headersearch?id=79cdb440-caff-4ac9-91cb-ba91fcbbef67&oid=foo");
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
+        }
+
+        logger.test("Searching with an invalid id with valid oid");
+        {
+            var response = ft.get("headersearch?id=foo&oid=79cdb440-caff-4ac9-91cb-ba91fcbbef67");
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
+        }
+
+        logger.test("Searching with an empty id with valid oid");
+        {
+            var response = ft.get("headersearch?id=&oid=79cdb440-caff-4ac9-91cb-ba91fcbbef67");
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
+        }
+
+        logger.test("Searching with an empty id with empty oid");
+        {
+            var response = ft.get("headersearch?id=&oid=");
+            assertEquals(response.statusLine().status(), CODE_400_BAD_REQUEST);
+        }
+
+        logger.test("Searching with an empty name and empty id with empty oid");
+        {
+            var response = ft.get("headersearch?personname=&id=&oid=");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/persons?search=");
+        }
+
+        logger.test("Searching with a name and empty id with empty oid");
+        {
+            var response = ft.get("headersearch?personname=foo&id=&oid=");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/persons?search=foo");
+        }
+
+        logger.test("Searching with a name and empty id with valid oid");
+        {
+            var response = ft.get("headersearch?personname=foo&id=&oid=79cdb440-caff-4ac9-91cb-ba91fcbbef67");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/persons?search=foo&oid=79cdb440-caff-4ac9-91cb-ba91fcbbef67");
+        }
+
+        logger.test("Searching with a name and valid id with empty oid");
+        {
+            var response = ft.get("headersearch?personname=foo&id=79cdb440-caff-4ac9-91cb-ba91fcbbef67&oid=");
+            assertEquals(response.headers().valueByKey("location").getFirst(), "/person?id=79cdb440-caff-4ac9-91cb-ba91fcbbef67");
+        }
+
+    }
 
 }

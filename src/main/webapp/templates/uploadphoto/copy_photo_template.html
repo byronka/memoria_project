@@ -2,24 +2,20 @@
 <html lang="en">
     <head>
         <title>Copy Photo | Inmra</title>
-        <meta charset="utf-8"/>
-        <link rel="stylesheet" href="general/main.css" />
-        <link rel="stylesheet" href="uploadphoto/copy_photo.css" />
-        <meta name="filename" content="copy_photo_template.html" />
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="general/main.css" >
+        <link rel="stylesheet" href="uploadphoto/copy_photo.css" >
+        <meta name="filename" content="copy_photo_template.html" >
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="uploadphoto/copy_photo.js"></script>
     </head>
     <body>
-        <nav>
-            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
-            <a id="help" href="/general/adminhelp.html">ⓘ</a>
-            {{header}}
-        </nav>
+        {{ navigation_header }}
         <div id="photo_upload_section">
             <form action="copyphoto" method="POST" enctype="multipart/form-data">
                 <fieldset id="preview">
                     <legend>Image preview</legend>
-                    <img height="400" width="400" src="/photo?name={{photo_url}}">
+                    <img src="/photo?name={{photo_url}}">
                 </fieldset>
                 <fieldset>
                     <legend>Person selection</legend>
@@ -39,12 +35,12 @@
 
                     <div id="short_description_section">
                         <label for="short_description">Caption:</label>
-                        <input minlength="3" maxlength="100" required type="text" id="short_description" name="short_description"  />
+                        <input minlength="3" maxlength="100" required type="text" id="short_description" name="short_description" value="{{ short_description }}" />
                     </div>
 
                     <div id="long_description_section">
                         <label for="long_description">Description:</label>
-                        <textarea id="long_description" name="long_description"></textarea>
+                        <textarea id="long_description" name="long_description">{{ long_description }}</textarea>
                     </div>
                 </fieldset>
                 <div>

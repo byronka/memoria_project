@@ -1,20 +1,26 @@
 package com.renomad.inmra.featurelogic.persons;
 
+import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.utils.LRUCache;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static com.renomad.inmra.utils.FileUtils.badFilePathPatterns;
 
 public class PersonLruCache implements IPersonLruCache {
     private final Map<String, PersonFile> personFileLruCache;
     private final ReentrantLock personFileLruCacheLock;
     private final Path personDirectory;
+    private final ILogger logger;
 
-    public PersonLruCache(Path personDirectory) {
+    public PersonLruCache(Path personDirectory, ILogger logger) {
         this.personDirectory = personDirectory;
+        this.logger = logger;
         this.personFileLruCache = LRUCache.getLruCache(1_000_000);
         this.personFileLruCacheLock = new ReentrantLock();
     }
@@ -65,6 +71,16 @@ public class PersonLruCache implements IPersonLruCache {
      */
     @Override
     public PersonFile getCachedPersonFile(String uuidForPerson) {
+        try {
+            UUID.fromString(uuidForPerson);
+        } catch (IllegalArgumentException ex) {
+            logger.logDebug(() -> "Input to getCachedPersonFile was not a valid uuid.  Returning an empty person file.  Value was: " + uuidForPerson);
+            return PersonFile.EMPTY;
+        }
+        if (badFilePathPatterns.matcher(uuidForPerson).find()) {
+            logger.logDebug(() -> String.format("Bad path requested for getCachedPersonFile: %s", uuidForPerson));
+            return PersonFile.EMPTY;
+        }
         String personFileRaw;
         if (! personFileLruCache.containsKey(uuidForPerson)) {
             try {
@@ -72,6 +88,7 @@ public class PersonLruCache implements IPersonLruCache {
                 if (personFileExists) {
                     personFileRaw = Files.readString(personDirectory.resolve(uuidForPerson));
                 } else {
+                    logger.logDebug(() -> "requested personfile of " + uuidForPerson + " did not exist.  Returning an empty person file");
                     return PersonFile.EMPTY;
                 }
             } catch (IOException e) {

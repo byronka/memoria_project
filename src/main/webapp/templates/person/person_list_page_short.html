@@ -2,22 +2,17 @@
 <html lang="en">
     <head>
         <title>List Persons | Inmra</title>
-        <meta charset="utf-8"/>
-        <link rel="stylesheet" href="person/person_list_page_short.css" />
-        <link rel="stylesheet" href="/general/homepage_search.css" />
-        <link rel="stylesheet" href="general/main.css" />
-        <meta name="filename" content="person_list_page_short.html" />
-        <meta name="author" content="Byron Katz" />
-        <meta name="description" content="A family tree, memorial, and geneaology site" />
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="/person/person_list_page_short.css" >
+        <link rel="stylesheet" href="/general/homepage_search.css" >
+        <link rel="stylesheet" href="/general/main.css" >
+        <meta name="filename" content="person_list_page_short.html" >
+        <meta name="description" content="A family tree, memorial, and geneaology site" >
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="/person/homepage_person_search.js"></script>
     </head>
     <body>
-        <nav>
-            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
-            {{help_link}}
-            {{header}}
-        </nav>
+        {{ navigation_header }}
         <div id="outer_container">
             <div id="search_container">
                 <form action="persons" method="get">
@@ -26,7 +21,7 @@
                         <div id="controls">
                             <div id="input_section">
                                 <label for="search_by_name">Search by name</label>
-                                <input autofocus type="search" id="search_by_name" name="search" autocomplete="off">
+                                <input type="search" id="search_by_name" name="search" autocomplete="off">
                             </div>
                             <input type="submit" id="search_button" value="Search">
                             <script>
@@ -45,12 +40,17 @@
             </div>
             <div id="random_persons_container" class="persons_container">
                 <ul style="opacity: 0;" class="persons_list">
-                {{list_items}}
+                    {{list_items}}
                 </ul>
             </div>
+
             <div id="birth_and_death_days">
                 {{birthAndDeathDays}}
             </div>
+
+            <p style="float: right; font-size: small; color: black">
+                Built with <a href="https://github.com/byronka/minum">Minum</a>
+            </p>
         </div>
 
     </body>

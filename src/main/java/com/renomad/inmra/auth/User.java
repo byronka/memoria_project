@@ -39,7 +39,7 @@ public class User extends DbData<User> {
     }
 
     @Override
-    protected void setIndex(long index) {
+    public void setIndex(long index) {
         this.id = index;
     }
 
@@ -71,4 +71,11 @@ public class User extends DbData<User> {
         return salt;
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                '}';
+    }
 }

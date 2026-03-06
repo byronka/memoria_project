@@ -3,8 +3,8 @@ package com.renomad.inmra.migrations;
 import com.renomad.inmra.featurelogic.persons.PersonFile;
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.ILogger;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.testing.TestFramework;
 import com.renomad.minum.utils.FileUtils;
 import com.renomad.minum.utils.MyThread;
@@ -43,19 +43,20 @@ public class DatabaseMigrationTests {
     public static void init() {
         context = TestFramework.buildTestingContext("_unit_tests");
         MemoriaContext memoriaContext = MemoriaContext.buildMemoriaContext(context);
-        fileUtils = memoriaContext.fileUtils();
-        minumFileUtils = new FileUtils(context.getLogger(), context.getConstants());
+        fileUtils = memoriaContext.getFileUtils();
         logger = context.getLogger();
+        minumFileUtils = new FileUtils(logger, context.getConstants());
         rootDbDirectory = Path.of(context.getConstants().dbDirectory + "migration_tests");
     }
 
     @AfterClass
-    public static void cleanup() {
+    public static void cleanup() throws IOException {
         minumFileUtils.deleteDirectoryRecursivelyIfExists(rootDbDirectory);
     }
 
     @Before
     public void beforeEach() throws IOException {
+        MyThread.sleep(100);
         minumFileUtils.deleteDirectoryRecursivelyIfExists(rootDbDirectory);
         fileUtils.makeDirectory(rootDbDirectory.resolve("persons"));
         fileUtils.makeDirectory(rootDbDirectory.resolve("person_files"));
@@ -135,17 +136,26 @@ public class DatabaseMigrationTests {
         migration8.run();
         var migration9 = new Migration9(rootDbDirectory, context.getLogger());
         migration9.run();
+        // migration 11 should add a new field for the last modifier of this person, defaulting to "admin"
         var migration11 = new Migration11(rootDbDirectory, context.getLogger());
         migration11.run();
-        // migration 11 should add a new field for the last modifier of this person, defaulting to "admin"
-        assertEquals(PersonFile.EMPTY.deserialize((Files.readString(ellisPersonFile))).getBorn().toHtmlString(), "1921-11-21");
-        assertTrue(PersonFile.EMPTY.deserialize((Files.readString(ellisPersonFile))).getLastModified().toString().length() > 5);
-        assertEquals(PersonFile.EMPTY.deserialize((Files.readString(ellisPersonFile))).getLastModifiedBy(), "admin");
-        assertEquals(deserializeHelper(Files.readString(ellisPersonFile)).size(), 16);
+
         var migration12 = new Migration12(rootDbDirectory, context.getLogger());
         migration12.run();
         // migration 12 should replace all references to .png with .jpg
         assertFalse(Files.readString(ellisPersonFile).contains(".png"));
+
+        // migration 17 adds a bio that only shows to authenticated users
+        var migration17 = new Migration17(rootDbDirectory, context.getLogger());
+        migration17.run();
+
+
+        assertEquals(PersonFile.EMPTY.deserialize((Files.readString(ellisPersonFile))).getBorn().toHtmlString(), "1921-11-21");
+        assertTrue(PersonFile.EMPTY.deserialize((Files.readString(ellisPersonFile))).getLastModified().toString().length() > 5);
+        assertEquals(PersonFile.EMPTY.deserialize((Files.readString(ellisPersonFile))).getLastModifiedBy(), "admin");
+        assertEquals(deserializeHelper(Files.readString(ellisPersonFile)).size(), 17);
+
+        migration17.runReverse();
         migration11.runReverse();
         assertEquals(deserializeHelper(Files.readString(ellisPersonFile)).size(), 15);
         migration9.runReverse();
@@ -172,19 +182,6 @@ public class DatabaseMigrationTests {
         assertEquals(deserializeHelper(Files.readString(sessionFile)).toString(), "[1, D0CpybIyKFkQBV9acfPU, 2023-08-12T18:20:20.468114064Z[UTC], 2023-08-12T18:20:20.468114064Z[UTC], 1]");
         migration6.runReverse();
         assertEquals(deserializeHelper(Files.readString(sessionFile)).size(), 4);
-    }
-
-    @Test
-    public void testMigration7() throws IOException {
-        fileUtils.makeDirectory(rootDbDirectory.resolve("photo_to_person"));
-        Files.writeString(rootDbDirectory.resolve("photo_to_person").resolve("1.ddps"), "1|99|1");
-        Migration7 migration7 = new Migration7(rootDbDirectory, context.getLogger(), context);
-
-        migration7.run();
-
-        // wait for the actionQueue to process and for the disk to handle the write
-        MyThread.sleep(10);
-        assertFalse(Files.exists(rootDbDirectory.resolve("photo_to_person").resolve("1.ddps")));
     }
 
     /**
@@ -221,4 +218,129 @@ public class DatabaseMigrationTests {
         MyThread.sleep(300);
     }
 
+    @Test
+    public void testMigration16_personMetrics() throws IOException {
+        // arrange
+        Path metricsDirectory = rootDbDirectory.resolve("person_metrics");
+        minumFileUtils.deleteDirectoryRecursivelyIfExists(metricsDirectory);
+        fileUtils.makeDirectory(metricsDirectory);
+        String minnieMouseMetrics = "1|Minnie+Mouse|8a5469fc-fa59-49f2-bfe8-29ec0b64a69c|0|0|3|0|1|0|1|69|0|3|0|0|4|0|0|1886.NONE.0|1955.NOVEMBER.5||";
+        Files.writeString(metricsDirectory.resolve("1.ddps"), minnieMouseMetrics);
+        Files.writeString(metricsDirectory.resolve("index.ddps"), "2");
+        Migration16 migration16 = new Migration16(rootDbDirectory, context.getLogger());
+
+        // run forward
+        migration16.run();
+        String migratedData = Files.readString(metricsDirectory.resolve("1.ddps"));
+        assertEquals(migratedData, minnieMouseMetrics + "|false|0|0");
+
+        // run reverse
+        migration16.runReverse();
+        migratedData = Files.readString(metricsDirectory.resolve("1.ddps"));
+        assertEquals(migratedData, minnieMouseMetrics);
+
+        MyThread.sleep(10);
+    }
+
+    /**
+     * clear out the personfiles directory, add a new personfile that is at version 16,
+     * and migrate it to 17 and back.
+     */
+    @Test
+    public void testMigration17_addShortBioToPersonFile() throws IOException {
+        // arrange
+        Path personFilesDir = rootDbDirectory.resolve("person_files");
+        minumFileUtils.deleteDirectoryRecursivelyIfExists(personFilesDir);
+        fileUtils.makeDirectory(personFilesDir);
+        String susannePersonFileAtMigration16 = "13|4385751a-2ee7-4a14-b5ad-9e2520e1898a||Susanne|0.JANUARY.0|0.JANUARY.0|Andrea%2C+Lauren%2C+and+Keith|%3Ca+href%3D%22person%3Fid%3Dc2b45e41-a46f-4cbf-965d-4f4fcf01d610%22%3EByron%3C%2Fa%3E|Stanley+and+Patricia|Cameron%2C+David%2C+and+Corey|||||2024-01-20T19%3A44%3A30.277375500Z|admin";
+        Files.writeString(personFilesDir.resolve("4385751a-2ee7-4a14-b5ad-9e2520e1898a"), susannePersonFileAtMigration16);
+        Migration17 migration17 = new Migration17(rootDbDirectory, context.getLogger());
+
+        // run forward
+        migration17.run();
+        String migratedData = Files.readString(personFilesDir.resolve("4385751a-2ee7-4a14-b5ad-9e2520e1898a"));
+        assertEquals(migratedData, susannePersonFileAtMigration16 + "|");
+
+        // run reverse
+        migration17.runReverse();
+        migratedData = Files.readString(personFilesDir.resolve("4385751a-2ee7-4a14-b5ad-9e2520e1898a"));
+        assertEquals(migratedData, susannePersonFileAtMigration16);
+
+        MyThread.sleep(10);
+    }
+
+    @Test
+    public void testMigration18_AddSummaryCount() throws IOException {
+        // arrange
+        Path metricsDirectory = rootDbDirectory.resolve("person_metrics");
+        minumFileUtils.deleteDirectoryRecursivelyIfExists(metricsDirectory);
+        fileUtils.makeDirectory(metricsDirectory);
+        String minnieMouseMetrics = "1|Minnie+Mouse|8a5469fc-fa59-49f2-bfe8-29ec0b64a69c|0|0|3|0|1|0|1|69|0|3|0|0|4|0|0|1886.NONE.0|1955.NOVEMBER.5|||false|0|0";
+        Files.writeString(metricsDirectory.resolve("1.ddps"), minnieMouseMetrics);
+        Files.writeString(metricsDirectory.resolve("index.ddps"), "2");
+        Migration18 migration18 = new Migration18(rootDbDirectory, context.getLogger());
+
+        // run forward
+        migration18.run();
+        String migratedData = Files.readString(metricsDirectory.resolve("1.ddps"));
+        assertEquals(migratedData, minnieMouseMetrics + "|0");
+
+        // run reverse
+        migration18.runReverse();
+        migratedData = Files.readString(metricsDirectory.resolve("1.ddps"));
+        assertEquals(migratedData, minnieMouseMetrics);
+
+        MyThread.sleep(10);
+    }
+
+    @Test
+    public void testMigration19_AddPosterToVideo() throws IOException {
+        // arrange
+        Path videoDirectory = rootDbDirectory.resolve("videos");
+        minumFileUtils.deleteDirectoryRecursivelyIfExists(videoDirectory);
+        fileUtils.makeDirectory(videoDirectory);
+        String originalVideo = "1|videoUrl|shortDescription|description";
+        Files.writeString(videoDirectory.resolve("1.ddps"), originalVideo);
+        Files.writeString(videoDirectory.resolve("index.ddps"), "2");
+        Migration19 migration19 = new Migration19(rootDbDirectory, context.getLogger());
+
+        // run forward
+        migration19.run();
+        String migratedData = Files.readString(videoDirectory.resolve("1.ddps"));
+        assertEquals(migratedData, originalVideo + "|");
+
+        // run reverse
+        migration19.runReverse();
+        migratedData = Files.readString(videoDirectory.resolve("1.ddps"));
+        assertEquals(migratedData, originalVideo);
+
+        MyThread.sleep(10);
+    }
+
+    /**
+     * add a count of cousins to the metrics
+     */
+    @Test
+    public void testMigration20_AddCountCousins() throws IOException {
+        // arrange
+        Path metricsDirectory = rootDbDirectory.resolve("person_metrics");
+        minumFileUtils.deleteDirectoryRecursivelyIfExists(metricsDirectory);
+        fileUtils.makeDirectory(metricsDirectory);
+        String originalPersonMetrics = "3|Bessie+Rose+%28Rochel%29+Margolin+Evensky|c4404639-9b5b-429e-898e-820d2e6c105b|5|0|10|0|1|5|4|74|478|31|0|4|16|10|0|1899.OCTOBER.22|1974.JANUARY.4|She+loved+bananas.++When+they+came+from+Russia%2C+traveling+to+America+%28Ellis+Island%29+on+the+boat%2C+the|Birthplace%7CLubcz%252C%2BRussia%7Cstring%7CDeathplace%7CAcapulco%2Bde%2BJu%25C3%25A1rez%252C%2BGuerrero%252C%2BMexico%7Cstring|true|297|161|0";
+        Files.writeString(metricsDirectory.resolve("1.ddps"), originalPersonMetrics);
+        Files.writeString(metricsDirectory.resolve("index.ddps"), "2");
+        Migration20 migration20 = new Migration20(rootDbDirectory, context.getLogger());
+
+        // run forward
+        migration20.run();
+        String migratedData = Files.readString(metricsDirectory.resolve("1.ddps"));
+        assertEquals(migratedData, originalPersonMetrics + "|0");
+
+        // run reverse
+        migration20.runReverse();
+        migratedData = Files.readString(metricsDirectory.resolve("1.ddps"));
+        assertEquals(migratedData, originalPersonMetrics);
+
+        MyThread.sleep(10);
+    }
 }

@@ -5,7 +5,6 @@ import com.renomad.minum.logging.ILogger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -33,9 +32,6 @@ public class Migration11 {
 
     }
 
-    /**
-     * Convert the new form of SessionId back to its previous form
-     */
     public void runReverse() throws IOException {
         run(true);
     }
@@ -46,10 +42,6 @@ public class Migration11 {
 
         logger.logDebug(() -> "get all the paths (that is, all the files) in the person_files directory");
         List<Path> listPersonFiles = getPaths(personFilesDirectory);
-
-        // get the current date and time
-        Instant now = Instant.now();
-
 
         logger.logDebug(() -> "for each one, adjust and then overwrite the file with the new adjusted content");
         for (var personFilePath : listPersonFiles) {

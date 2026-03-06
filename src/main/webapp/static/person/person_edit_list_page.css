@@ -1,22 +1,60 @@
 #container {
-    margin: 10px;
+    margin: 10px 10px 10px 10px;
 }
 
 #search_pane {
-    margin-top: 20px;
-    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
-#sort_pane {
-    margin-top: 20px;
-    margin-bottom: 20px;
+#search_pane > form {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-left: 5px;
+}
+
+
+#search_pane > form > button {
+    display: flex;
+    align-items: center;
+    margin-left: 5px;
+}
+
+#search_pane > form > input[type=text] {
+    margin-left: 5px;
+    height: 25px;
+    font-size: 16px;
+    min-width: 100px;
+}
+
+#sort_pane,
+#filter_pane {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+#sort_pane > form,
+#filter_pane form {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-left: 5px;
+}
+
+#sort_pane select,
+#filter_pane select {
+    height: 33px;
+    width: 130px;
 }
 
 .person-container {
     border-bottom: 1px inset black;
     margin-top: 1px;
     margin-bottom: 11px;
-    padding-bottom: 11px;
     display: flex;
 }
 
@@ -31,11 +69,13 @@
     background: grey;
     color: white;
     border-top-left-radius: 5px;
+    padding: 2px;
 }
 
 .person-container > .other_components
  {
     margin-top: 23px;
+    flex: 0 0 150px;
 }
 
 .other_components > .modified_datestamp {
@@ -63,23 +103,40 @@
 }
 
 .person-container > .thumbnail {
-    flex-grow: 1;
+    flex: 1 0 0px;
+    border: 1px solid darkgrey;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: grey;
 }
 
 .person-container > .thumbnail > img {
-    height: 110px;
-    width: initial;
+    width: 90%;
     margin-top: 3px;
     margin-right: 3px;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
-    float: right;
+    object-fit: cover;
+    height: 140px;
 }
 
 div#list_person_pane {
-    margin-left: auto;
-    margin-right: auto;
     max-width: 800px;
+    margin-left: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.stats {
+    padding-top: 20px;
+    column-count: 2;
+    flex: 0 0 440px;
+    font-size: 11px;
+}
+
+.stats li {
+    width: 200px;
 }
 
 /*
@@ -88,4 +145,112 @@ shown if we fail to delete a person
 .failed-border {
   border: 3px solid red;
   transition: border 2s;
+}
+
+
+#container button {
+  background-color: #594cea;
+  box-shadow: 0 5px 0 darkblue;
+  color: white;
+  position: relative;
+  text-decoration: none;
+}
+
+#container button:hover,
+#container button:focus {
+  background-color: #3f36ac;
+  cursor: pointer;
+}
+
+#container button:active {
+  box-shadow: none;
+  top: 5px;
+}
+
+.disabled_paging_button_span.first-page,
+.disabled_paging_button_span.last-page {
+    width: 44px;
+}
+
+.disabled_paging_button_span.forward,
+.disabled_paging_button_span.back {
+    width: 31px;
+}
+
+.disabled_paging_button_span {
+    position: relative;
+    display: inline-block;
+}
+
+.disabled_paging_button {
+    background: darkgrey;
+    padding-block: 2px;
+    padding-left: 5px;
+    padding-right: 5px;
+    border: 1px solid black;
+    box-shadow: 0 5px 0 lightgrey;
+    position: absolute;
+    top: -17px;
+}
+
+.page-count {
+    display: inline-block;
+    width: 270px;
+    text-align: center;
+}
+
+@media only screen and (max-width: 600px){
+
+    div#list_results_section {
+        font-size: 11px;
+    }
+
+    .person-container {
+        flex-direction: row;
+        border: 2px solid black;
+    }
+
+    div#list_person_pane {
+        height: 400px;
+        overflow: auto;
+    }
+
+    .person-container > .other_components {
+         margin-top: initial;
+         flex: 0 0 75px;
+         padding-left: 10px;
+    }
+
+    .stats {
+        display: none;
+    }
+
+    .person-container > .name-and-lifespan {
+        position: initial;
+        flex: 0 0 64px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #container button {
+        font-size: 10px;
+    }
+
+    .disabled_paging_button {
+        top: -15px;
+    }
+
+    .page-count {
+        width: 180px;
+    }
+
+    .disabled_paging_button_span.first-page,
+    .disabled_paging_button_span.last-page {
+        width: 33px;
+    }
+
+    .disabled_paging_button_span.forward,
+    .disabled_paging_button_span.back {
+        width: 22px;
+    }
 }

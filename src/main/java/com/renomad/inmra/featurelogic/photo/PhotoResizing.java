@@ -1,9 +1,10 @@
 package com.renomad.inmra.featurelogic.photo;
 
-import com.renomad.minum.state.Context;
 import com.renomad.minum.logging.ILogger;
-import com.renomad.minum.testing.StopwatchUtils;
+import com.renomad.minum.queue.AbstractActionQueue;
 import com.renomad.minum.queue.ActionQueue;
+import com.renomad.minum.state.Context;
+import com.renomad.minum.testing.StopwatchUtils;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -25,7 +26,7 @@ import java.io.InputStream;
  */
 public class PhotoResizing {
 
-    private final ActionQueue photoResizingQueue;
+    private final AbstractActionQueue photoResizingQueue;
     private final ILogger logger;
 
     public PhotoResizing(Context context) {
@@ -37,6 +38,7 @@ public class PhotoResizing {
      * The typical way this class is used is by adding an inputStream of
      * an image here.  It will be processed later, once its turn comes up
      * in the {@link ActionQueue}
+     * @param size the maximum size of the image, in pixels, in either dimension
      */
     public void addConversionToQueue(InputStream inputStream, int size, File file) {
         this.photoResizingQueue.enqueue(
@@ -63,6 +65,9 @@ public class PhotoResizing {
                 });
     }
 
+    /**
+     * @param size the maximum size of the image, in pixels, in either dimension
+     */
     public static void writeImageFile(
             InputStream inputStream,
             int size,

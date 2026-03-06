@@ -45,14 +45,16 @@ class AddExtra {
     extraFieldIdSet;
 
     constructor() {
-        this.addExtraButton = document.getElementById('add_extra_field_button')
-        this.extraFieldsList = document.getElementById('extra_fields_list')
-        this.extraFieldCountInput = document.getElementById('extra_field_count')
+        this.addExtraButton = document.getElementById('add_extra_field_button');
+        this.extraFieldsList = document.getElementById('extra_fields_list');
+        this.extraFieldCountInput = document.getElementById('extra_field_count');
         this.extraFieldIndex = Number(this.extraFieldCountInput.value);
 
         // get the existing field id's when we start.
-        this.extraFieldArrayInput = document.getElementById('extra_field_array')
-        this.extraFieldIdSet = new Set(this.extraFieldArrayInput.value.split(',').map(Number))
+        this.extraFieldArrayInput = document.getElementById('extra_field_array');
+
+        // necessary to include a filter here.  See footnote 1
+        this.extraFieldIdSet = new Set(this.extraFieldArrayInput.value.split(',').filter(r => r !== '').map(Number));
     }
 
     /**
@@ -74,8 +76,63 @@ class AddExtra {
 
         // add to our list of id's
         this.extraFieldIdSet.add(this.extraFieldIndex)
+
         // put the comma-separated value into the input element
         this.extraFieldArrayInput.value = [...this.extraFieldIdSet].join(',')
+
+        const newExtraField = this.buildDialog(this.extraFieldIndex);
+
+        // finally, put our modified template into its container
+        this.extraFieldsList.appendChild(newExtraField.content)
+
+        // put the current count of extra fields into an input so we can
+        // determine how many to read during processing on the server.
+        this.extraFieldCountInput.value = this.extraFieldIndex
+    }
+
+    /**
+     * This is called by a button click on the extra field when a user wants
+     * to edit a value.  We have to build a new component for editing, using
+     * data from the read-only component.
+     */
+    editButtonHandler = (e) => {
+
+        e.preventDefault(true);
+
+        // pull data we'll use for building the new editable dialog
+        const readOnlyContainingElement = e.target.parentElement;
+        const readOnlyDataKey = readOnlyContainingElement.querySelector('input.extra_data_key').getAttribute('value');
+        const readOnlyDataType = readOnlyContainingElement.querySelector('input.extra_data_type').getAttribute('value');
+        const readOnlyDataValue = readOnlyContainingElement.querySelector('input.extra_data_value').getAttribute('value');
+        const fieldIndex = e.target.dataset.index;
+
+        const newExtraField = this.buildDialog(fieldIndex);
+
+        // copy values from the read-only to the editable
+        newExtraField.content.querySelector('select.extra_data_key').value = readOnlyDataKey;
+        newExtraField.content.querySelector('select.extra_data_type').value = readOnlyDataType;
+        newExtraField.content.querySelector('input.extra_data_value').value = readOnlyDataValue;
+        if (readOnlyDataType === 'string') {
+            newExtraField.content.querySelector('input.extra_data_value').type = 'text';
+        } else {
+            newExtraField.content.querySelector('input.extra_data_value').type = readOnlyDataType;
+        }
+
+        if (readOnlyDataType === 'date') {
+            newExtraField.content.querySelector('div.input_section.year_only_for_extra_value').style.display = 'block'
+        } else if (readOnlyDataType === 'number') {
+            newExtraField.content.querySelector('div.input_section.year_only_for_extra_value').style.display = 'block'
+            newExtraField.content.querySelector('div.input_section.year_only_for_extra_value > input[type=checkbox]').checked = 'true'
+        }
+
+        // replace the read-only content with the editable
+        readOnlyContainingElement.replaceWith(newExtraField.content)
+    };
+
+    /**
+     * This builds the html that will be shown for editing an extra field
+     */
+    buildDialog = (fieldIndex) => {
 
         // make a copy of the template which will be adjusted for uniqueness
         const extraFieldTemplate = document.getElementById('extra_field_template');
@@ -93,19 +150,19 @@ class AddExtra {
 
         // modify the label elements
         for (let index = 0; index < labels.length; index++) {
-            labels[index].setAttribute('for', labels[index].getAttribute('for') + '_' + this.extraFieldIndex)
+            labels[index].setAttribute('for', labels[index].getAttribute('for') + '_' + fieldIndex)
         }
 
         // modify the input elements - append a unique value
         for (let index = 0; index < inputs.length; index++) {
-            inputs[index].setAttribute('id',   inputs[index].getAttribute('id')   + '_' + this.extraFieldIndex)
-            inputs[index].setAttribute('name', inputs[index].getAttribute('name') + '_' + this.extraFieldIndex)
+            inputs[index].setAttribute('id',   inputs[index].getAttribute('id')   + '_' + fieldIndex)
+            inputs[index].setAttribute('name', inputs[index].getAttribute('name') + '_' + fieldIndex)
         }
 
         // modify the select elements - append a unique value
         for (let index = 0; index < selects.length; index++) {
-            selects[index].setAttribute('id',   selects[index].getAttribute('id')   + '_' + this.extraFieldIndex)
-            selects[index].setAttribute('name', selects[index].getAttribute('name') + '_' + this.extraFieldIndex)
+            selects[index].setAttribute('id',   selects[index].getAttribute('id')   + '_' + fieldIndex)
+            selects[index].setAttribute('name', selects[index].getAttribute('name') + '_' + fieldIndex)
         }
 
         // set up some events for changes
@@ -113,18 +170,13 @@ class AddExtra {
         yearOnlyInput.addEventListener("change", this.yearOnlyCheckboxHandler);
 
         // modify the listItem element (the container of each extra field)
-        listItem.setAttribute('id',   listItem.getAttribute('id')  + '_' + this.extraFieldIndex)
+        listItem.setAttribute('id',   listItem.getAttribute('id')  + '_' + fieldIndex)
 
         // add an event listener to the delete button per extra field
         // (the x in the top right)
         deleteButton.addEventListener('click', this.deleteButtonClickHandler)
 
-        // finally, put our modified template into its container
-        this.extraFieldsList.appendChild(newExtraField.content)
-
-        // put the current count of extra fields into an input so we can
-        // determine how many to read during processing on the server.
-        this.extraFieldCountInput.value = this.extraFieldIndex
+        return newExtraField;
     }
 
     /**
@@ -133,6 +185,13 @@ class AddExtra {
      */
     deleteButtonClickHandler = (e) => {
         e.preventDefault();
+
+        // decrement our count of extra fields
+        this.extraFieldIndex -= 1;
+
+        // put the current count of extra fields into an input so we can
+        // determine how many to read during processing on the server.
+        this.extraFieldCountInput.value = this.extraFieldIndex;
 
         // find the containing element for this delete button
         const containingListItem = e.target.closest('li.extra_field_item')
@@ -220,7 +279,11 @@ class AddExtra {
         // find the elements we need to work with
         const inputForValue = document.querySelector(`li#${parentListItemId} > .extra_data_value > input`)
 
-        inputForValue.setAttribute('type', selectForType.value)
+        if (selectForType.value === 'string') {
+            inputForValue.setAttribute('type', 'text');
+        } else {
+            inputForValue.setAttribute('type', selectForType.value)
+        }
     }
 
 }
@@ -230,9 +293,24 @@ addEventListener("load", (event) => {
     const addExtra = new AddExtra();
     addExtra.addExtraFieldCreateListener();
 
-    // add the delete handler
+    // add the delete and edit handlers
     const externalDeleteButtons = document.querySelectorAll('button.extra_data_item_delete')
+    const externalEditButtons = document.querySelectorAll('button.extra_data_item_edit')
     for(let i = 0; i < externalDeleteButtons.length; i++) {
        externalDeleteButtons[i].addEventListener("click", addExtra.deleteButtonClickHandler);
     }
+    for(let i = 0; i < externalEditButtons.length; i++) {
+       externalEditButtons[i].addEventListener("click", addExtra.editButtonHandler);
+    }
 });
+
+
+/*
+
+FOOTNOTES
+
+footnote 1: when running the split() function on an empty string, it is possible to receive an
+array with a single element - an empty string.  When running .map(Number) on that, it converts
+to an array containing a single element - the number 0.  This is not wanted.  To fix, we run
+the .filter() command to kill off all elements that are empty strings.
+*/

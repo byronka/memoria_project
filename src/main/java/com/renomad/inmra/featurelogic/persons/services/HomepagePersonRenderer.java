@@ -6,7 +6,9 @@ import com.renomad.inmra.featurelogic.persons.PersonFile;
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.minum.templating.TemplateProcessor;
 
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.renomad.minum.utils.StringUtils.safeAttr;
 import static com.renomad.minum.utils.StringUtils.safeHtml;
@@ -28,8 +30,19 @@ public class HomepagePersonRenderer {
      * Given the detail in a {@link Person} object,
      * obtain all the information that is needed to
      * fill in a preview of a person in HTML.
+     * @param otherPersonId the id of a person we want to know connection to.  Including this
+     *                      will cause the whole connection string to be shown on a person's page
      */
-    public String renderPersonTemplate(Person p) {
+    public String renderPersonTemplate(Person p, UUID otherPersonId) {
+        Map<String, String> myMap = calculateTemplateDataForPersons(p, otherPersonId);
+        return personListItemShortTemplateProcessor.renderTemplate(myMap);
+    }
+
+    public String renderPersonTemplate(List<Map<String, String>> data) {
+        return personListItemShortTemplateProcessor.renderTemplate(data);
+    }
+
+    public Map<String, String> calculateTemplateDataForPersons(Person p, UUID otherPersonId) {
         PersonFile personFile;
         personFile = personLruCache.getCachedPersonFile(p);
         String fullImageUrl = determineFullImageUrl(personFile);
@@ -37,13 +50,13 @@ public class HomepagePersonRenderer {
         if (! p.getBirthday().equals(com.renomad.inmra.featurelogic.persons.Date.EMPTY) && ! p.getBirthday().equals(com.renomad.inmra.featurelogic.persons.Date.EXISTS_BUT_UNKNOWN)) {
             birthdayString = "born " + p.getBirthday().getPrettyString();
         }
-        Map<String, String> myMap = Map.of(
+        return Map.of(
                 "id", safeAttr(personFile.getId().toString()),
+                "oid", otherPersonId != null ? "&oid=" + otherPersonId : "",
                 "person_image", fullImageUrl,
                 "name", safeHtml(personFile.getName()),
                 "born_date", birthdayString
         );
-        return personListItemShortTemplateProcessor.renderTemplate(myMap);
     }
 
 
@@ -73,9 +86,9 @@ public class HomepagePersonRenderer {
      */
     private static String setDefaultImageByGender(PersonFile deserializedPersonFile) {
         return switch (deserializedPersonFile.getGender()) {
-            case MALE -> "general/man.svg";
-            case FEMALE -> "general/woman.svg";
-            default -> "general/hot-air-balloon.svg";
+            case MALE -> "general/man.png";
+            case FEMALE -> "general/woman.png";
+            default -> "general/hot-air-balloon.png";
         };
     }
 

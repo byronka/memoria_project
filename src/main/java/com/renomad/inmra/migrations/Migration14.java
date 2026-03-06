@@ -1,8 +1,9 @@
 package com.renomad.inmra.migrations;
 
 import com.renomad.inmra.featurelogic.photo.PhotoResizing;
-import com.renomad.minum.state.Context;
+
 import com.renomad.minum.logging.ILogger;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.utils.FileUtils;
 
 import java.io.FileInputStream;
@@ -43,18 +44,21 @@ public class Migration14 {
     public void run() throws IOException {
         Path photoArchiveDirectory = dbDirectory.resolve("photo_archive");
         Path photoThumbnailDirectory = dbDirectory.resolve("photo_files_thumbnail");
+        Path photoIconDirectory = dbDirectory.resolve("photo_files_icon");
         Path photoMediumDirectory = dbDirectory.resolve("photo_files_medium");
         Path photoOriginalDirectory = dbDirectory.resolve("photo_files_original");
 
         if (!Files.exists(photoArchiveDirectory)) return;
 
-        // delete the existing photo directories - thumbnail, medium, and original
+        // delete the existing photo directories - thumbnail, icon, medium, and original
         fileUtils.deleteDirectoryRecursivelyIfExists(photoThumbnailDirectory);
+        fileUtils.deleteDirectoryRecursivelyIfExists(photoIconDirectory);
         fileUtils.deleteDirectoryRecursivelyIfExists(photoMediumDirectory);
         fileUtils.deleteDirectoryRecursivelyIfExists(photoOriginalDirectory);
 
         // build new directories
         fileUtils.makeDirectory(photoThumbnailDirectory);
+        fileUtils.makeDirectory(photoIconDirectory);
         fileUtils.makeDirectory(photoMediumDirectory);
         fileUtils.makeDirectory(photoOriginalDirectory);
 
@@ -71,6 +75,7 @@ public class Migration14 {
             String convertedName = convertFilenameToJpeg(fileName);
 
             photoResizing.addConversionToQueue(new FileInputStream(photoPath.toFile()), 150, photoThumbnailDirectory.resolve(convertedName).toFile());
+            photoResizing.addConversionToQueue(new FileInputStream(photoPath.toFile()), 20, photoIconDirectory.resolve(convertedName).toFile());
             photoResizing.addConversionToQueue(new FileInputStream(photoPath.toFile()), 1200, photoMediumDirectory.resolve(convertedName).toFile());
             photoResizing.addConversionToQueue(new FileInputStream(photoPath.toFile()), 3000, photoOriginalDirectory.resolve(convertedName).toFile());
         }

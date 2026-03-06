@@ -4,6 +4,7 @@ import com.renomad.inmra.migrations.DatabaseMigration;
 import com.renomad.inmra.utils.MemoriaContext;
 import com.renomad.minum.state.Constants;
 import com.renomad.minum.state.Context;
+import com.renomad.minum.testing.StopwatchUtils;
 import com.renomad.minum.web.FullSystem;
 
 import static com.renomad.inmra.utils.MemoriaContext.buildMemoriaContext;
@@ -11,6 +12,8 @@ import static com.renomad.inmra.utils.MemoriaContext.buildMemoriaContext;
 public class Main {
 
     public static void main(String[] args) throws Exception {
+        StopwatchUtils stopWatch = new StopwatchUtils();
+        stopWatch.startTimer();
 
         Context context = FullSystem.buildContext();
         var fullSystem = new FullSystem(context);
@@ -32,7 +35,9 @@ public class Main {
         // show an indicator that the system is ready to use
         Constants constants = context.getConstants();
         System.out.printf(
-                "\n\nSystem is ready.  Access at http://%s:%d or https://%s:%d\n\n",
+                "\n\nSystem is ready after %d milliseconds.  " +
+                        "Access at http://%s:%d or https://%s:%d\n\n",
+                stopWatch.stopTimer(),
                 constants.hostName,
                 constants.serverPort,
                 constants.hostName,
@@ -42,5 +47,3 @@ public class Main {
     }
 
 }
-
-

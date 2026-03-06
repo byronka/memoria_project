@@ -3,12 +3,11 @@ package com.renomad.inmra.utils;
 import com.renomad.minum.web.IResponse;
 import com.renomad.minum.web.Response;
 import com.renomad.minum.web.StatusLine;
+import com.renomad.minum.web.WebServerException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.renomad.minum.web.StatusLine.StatusCode.CODE_204_NO_CONTENT;
 
 /**
  * These are helper methods so our system has some sane values
@@ -40,21 +39,30 @@ public class Respond {
         return respond(StatusLine.StatusCode.CODE_200_OK, Map.of("Content-Type", "text/html; charset=UTF-8"), body.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static IResponse htmlOkNoContent() {
-        return respond(CODE_204_NO_CONTENT, Map.of(), new byte[0]);
-    }
-
     /**
      * Returns a 400 user bad request with no further information
      */
     public static IResponse userInputError() {
-        return respond(StatusLine.StatusCode.CODE_400_BAD_REQUEST, Map.of(), new byte[0]);
+        return Response.buildLeanResponse(StatusLine.StatusCode.CODE_400_BAD_REQUEST);
     }
 
     /**
      * Returns a 401 unauthorized request with no further information
      */
     public static IResponse unauthorizedError() {
-        return respond(StatusLine.StatusCode.CODE_401_UNAUTHORIZED, Map.of(), new byte[0]);
+        return Response.buildLeanResponse(StatusLine.StatusCode.CODE_401_UNAUTHORIZED);
+    }
+
+    /**
+     * This wraps {@link Response#redirectTo(String)} and handles exceptions.
+     * If the user sends malformed data, Minum's code will throw an IllegalArgumentException.
+     * We'll wrap that and convert it to a 400 bad input error
+     */
+    public static IResponse redirectTo(String locationUrl) {
+        try {
+            return Response.redirectTo(locationUrl);
+        } catch (WebServerException ex) {
+            return Respond.userInputError();
+        }
     }
 }

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="/auth/auth.css" >
+        <title>Login | Inmra</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="file" content="privacy_login_page_template.html" >
+        <style>
+            .error {
+                color: red
+            }
+        </style>
+    </head>
+    <body>
+        <a href="/" id="logo"><img width=40 height=32 src="/general/tree_small.webp" alt="memoria homepage"></a>
+        <form method="post" action="privacylogin">
+            <input type="hidden" name="backref" value="{{ backref }}" />
+            <table>
+                <tbody>
+                <tr>
+                    <td>
+                        <p class="error">{{error}}</p>
+                        <label for="password">Password</label>
+                        <input autofocus type="password" name="password" id="password" maxlength="20" required />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button id="login_button" class="submit">Login</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </form>
+    </body>
+</html>

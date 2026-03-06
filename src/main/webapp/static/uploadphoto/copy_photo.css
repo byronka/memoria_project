@@ -6,7 +6,6 @@ div#search_result_container {
     border: 1px solid grey;
     width: 58%;
     display: none;
-    left: 59px;
 }
 
 #search_result_container > ul > li:hover,
@@ -25,13 +24,33 @@ ul#search_result_list {
     width: 58%;
 }
 
-#preview {
-    margin: 0 auto;
-    margin-top: 10px;
-    width: 400px;
+label {
+    display: block;
+}
+
+fieldset > div {
+    margin-top: 5px;
+}
+
+fieldset#preview {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
 }
 
 #preview > img {
-    height: auto;
     max-height: 400px;
+}
+
+#person_id_input {
+    width: 200px;
+}
+
+#short_description {
+    width: 500px;
+}
+
+#long_description {
+    width: 500px;
+    height: 80px;
 }

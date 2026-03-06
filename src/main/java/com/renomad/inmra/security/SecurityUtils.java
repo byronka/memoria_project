@@ -4,6 +4,7 @@ import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.utils.MyThread;
 import com.renomad.minum.utils.TimeUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +68,7 @@ public class SecurityUtils implements ISecurityUtils {
      * under consideration.
      */
     public SecurityUtils(ExecutorService es, ILogger logger) {
-        this(10 * 1_000, 10 * 1_000, es, logger);
+        this(100 * 1_000, 10 * 1_000, es, logger);
     }
 
     // Regarding the BusyWait - indeed, we expect that the while loop
@@ -94,10 +95,10 @@ public class SecurityUtils implements ISecurityUtils {
                      */
 
                     System.out.printf(TimeUtils.getTimestampIsoInstant() + " SecurityUtils is stopped.%n");
+                    Thread.currentThread().interrupt();
                     return null;
-                } catch (Exception ex) {
-                    System.out.printf(TimeUtils.getTimestampIsoInstant() + " ERROR: SecurityUtils has stopped unexpectedly. error: %s%n", ex);
-                    throw ex;
+                } catch (Throwable ex) {
+                    logger.logAsyncError(ex::getMessage);
                 }
             }
         };
@@ -150,14 +151,21 @@ public class SecurityUtils implements ISecurityUtils {
         if (sortedLogins.size() <= 1) return false;
         boolean result = false;
         for (int i = 1; i < sortedLogins.size(); i++) {
+            // if the time between logins is less than 1 second, then they are scripting this.
             if (sortedLogins.get(i) - sortedLogins.get(i - 1) < 1_000) {
                 result = true;
+                clientsAndTimes.put(clientAddress, new ArrayList<>());
                 break;
             }
         }
         boolean finalResult = result;
         logger.logTrace(() -> "SecurityUtils: " + clientAddress + " authenticating too frequently? " + finalResult);
         return result;
+    }
+
+    @Override
+    public boolean hasExceededAllowedFailuresInTimeWindow(String remoteRequester) {
+        return clientsAndTimes.get(remoteRequester).size() > 4;
     }
 
 }

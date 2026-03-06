@@ -78,14 +78,16 @@ public class Migration1 {
      */
     public void runReverse() throws IOException {
         // get all the paths (that is, all the files) in the persons directory
-        List<Path> listPersonFiles = Files.walk(dbDirectory.resolve("persons"))
-                .filter(Files::isRegularFile)
-                .filter(x -> ! x.getFileName().toString().equalsIgnoreCase("index.ddps"))
-                .toList();
-        // for each one, downgrade and then overwrite the file with the new downgraded content
-        for (var p : listPersonFiles) {
-            final var tokens = deserializeHelper(Files.readString(p));
-            Files.writeString(p, serializeHelper(Long.parseLong(tokens.get(0)), UUID.fromString(tokens.get(1))));
+        try (Stream<Path> persons = Files.walk(dbDirectory.resolve("persons"))) {
+            List<Path> listPersonFiles = persons
+                    .filter(Files::isRegularFile)
+                    .filter(x -> !x.getFileName().toString().equalsIgnoreCase("index.ddps"))
+                    .toList();
+            // for each one, downgrade and then overwrite the file with the new downgraded content
+            for (var p : listPersonFiles) {
+                final var tokens = deserializeHelper(Files.readString(p));
+                Files.writeString(p, serializeHelper(Long.parseLong(tokens.get(0)), UUID.fromString(tokens.get(1))));
+            }
         }
     }
 

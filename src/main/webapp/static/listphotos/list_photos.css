@@ -1,5 +1,8 @@
 #container {
-    margin: 10px;
+    margin-top: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
 }
 
 .person-photo-container {
@@ -7,123 +10,133 @@
     margin-top: 10px;
 }
 
-table form {
+#table_container table form {
     display: flex;
-    width: 100%;
+    align-items: center;
 }
 
-form[action=deletephoto] {
+form.delete-form {
     justify-content: center;
 }
 
-table div.long_description_container,
-table div.short_description_container {
+#table_container table div.long_description_container,
+#table_container table div.short_description_container {
    display: flex;
    align-items: center;
 }
 
-table th.thumbnail_header,
-table th.copy_image_header,
-table th.copy_url_header,
-table th.copy_figure_header {
+#table_container table th.thumbnail_header,
+#table_container table th.copy_image_header,
+#table_container table th.copy_url_header,
+#table_container table th.copy_figure_header {
     width: 0%;
+
 }
 
-table th.delete_header {
+#table_container table th {
+    font-size: 13px;
+}
+
+/* a comment explaining that dashed border indicates the photo is published */
+span.publish-mention {
+    font-size: 9px;
+    font-weight: normal;
+    display: block;
+}
+
+#table_container table th.delete_header {
     width: 10%;
 }
 
-table th.copy_to_other_person {
+#table_container table th.copy_to_other_person {
     width: 6%;
 }
 
-table button {
+#table_container table button[type=button],
+#table_container table button.unsaved-changes,
+#table_container table button.copy_to_other_person_button,
+#table_container table button.delete_button
+ {
   background-color: #594cea;
   box-shadow: 0 5px 0 darkblue;
   color: white;
-  position: relative;
-  text-decoration: none;
 }
 
-table button:hover,
-table button:focus {
+#table_container table button[type=button]:hover,
+#table_container table button[type=button]:focus,
+#table_container table button.unsaved-changes:hover,
+#table_container table button.unsaved-changes:focus,
+#table_container table button.copy_to_other_person_button:focus,
+#table_container table button.copy_to_other_person_button:hover
+  {
   background-color: #3f36ac;
   cursor: pointer;
 }
 
-table button:active {
+#table_container table button[type=button]:active,
+#table_container table button.copy_to_other_person_button:active,
+#table_container table button.unsaved-changes:active,
+#table_container table button.delete_button:active
+ {
   box-shadow: none;
   top: 5px;
 }
 
-table button {
-    font-size: 16px;
-    padding-block: 3.2px;
+#table_container table button.copy_to_other_person_button,
+#table_container table button[type=button],
+#table_container table button.description_save_button
+ {
+    font-size: 15px;
+    height: 66px;
 }
 
-table button.short_description_save_button {
-    padding-block: 13px;
-}
-
-table button.long_description_save_button {
-    padding-block: 13px;
-}
-
-table button.delete_button {
+#table_container table button.delete_button {
     background-color: red;
     box-shadow: 0 5px 0 darkred;
 }
 
-table button.delete_button:hover,
-table button.delete_button:focus {
+#table_container table button.delete_button:hover,
+#table_container table button.delete_button:focus {
   background-color: #950505;
 }
 
-table {
+#table_container table {
     margin: auto;
     border: 1px solid;
 }
 
-table td {
+#table_container table td {
     width: 350px;
     text-align: center;
 }
 
-table tr {
+#table_container table tr {
     height: 72px;
 }
 
-table tr:nth-child(even) {background: #CCC}
+#table_container table tr:nth-child(even) {background: #CCC}
 
-table tr:nth-child(odd) {background: lightblue}
+#table_container table tr:nth-child(odd) {background: lightblue}
 
-table textarea {
+#table_container table textarea {
     width: 100%;
     box-sizing: border-box;
     border: none;
     height: 65px;
     border: 3px solid white;
     transition: border 1s;
+    min-width: 200px;
 }
 
-table summary {
+#table_container table summary {
   font-weight: bold;
-}
-
-/* This shows an indication that an action took place successfully
-   by putting a green border on an element temporarily using the magic
-   of CSS animations
-*/
-table .all-good-border {
-  border: 3px solid green;
-  transition: border 2s;
 }
 
 /* This shows an indication that an action failed,
    by putting a red border on an element temporarily using the magic
    of CSS animations
 */
-table .failed-border {
+#table_container table .failed-border {
   border: 3px solid red;
   transition: border 2s;
 }
@@ -131,4 +144,49 @@ table .failed-border {
 .thumbnail-image {
     height: 64px;
     width: initial;
+}
+
+/* If the image is published in a biography, show with a dashed border */
+img.thumbnail-image.is-indeed-published {
+    border: 2px dashed;
+}
+
+a.other_persons {
+    display: inline-block;
+    width: 50px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: x-small;
+}
+
+#upload_section div.preview {
+    width: 400px;
+}
+
+#upload_section div.preview img {
+    width: 100%;
+}
+
+#upload_section {
+    width: 600px;
+    margin: 20px;
+    padding: 20px;
+    border: 3px dashed grey;
+    border-radius: 15px;
+}
+
+#upload_section.highlight {
+    border-color: blue;
+}
+
+.set_poster_form {
+    display: flex;
+    flex-direction: column;
+}
+
+.set_poster_form input {
+    height: 20px;
+    font-size: 16px;
+    margin-bottom: 4px;
 }

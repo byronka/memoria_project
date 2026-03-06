@@ -2,46 +2,50 @@
     <html lang="en">
     <head>
         <title>The admin page | Inmra</title>
-        <meta charset="utf-8"/>
-        <link rel="stylesheet" href="admin/admin_page.css" />
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="general/main.css" >
+        <link rel="stylesheet" href="admin/admin_page.css" >
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="filename" content="admin_page_template.html" />
-        <link rel="stylesheet" href="general/main.css" />
+        <meta name="filename" content="admin_page_template.html" >
     </head>
     <body>
-        <nav>
-            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
-            <a id="help" href="/general/adminhelp.html">ⓘ</a>
-            {{auth_header}}
-        </nav>
+        {{ navigation_header }}
 
         <div id="admin-container">
             <h1>Administration</h1>
 
-            <div>
-                <label for="users">Registered Users</label>
-                <textarea id="users">{{users}}</textarea>
-            </div>
+            <h2>Registered Users</h2>
+            <div id="users">{{users}}</div>
 
-            <div>
-                <label for="sessions">Users with live sessions</label>
-                <textarea id="sessions">{{live_sessions}}</textarea>
-            </div>
+            <h2>Users with live sessions</h2>
+            <div id="sessions">{{live_sessions}}</div>
 
-            <div>
-                <label for="inmates">Inmates (newest first)</label>
-                <textarea id="inmates">{{inmates}}</textarea>
-            </div>
+            <h2>Inmates (newest first)</h2>
+            <div id="inmates">{{inmates}}</div>
 
-            <div>
-                <h2>Log settings</h2>
-                <p>{{log_settings}}</p>
-            </div>
+            <h2>Log settings</h2>
+            <p>{{log_settings}}</p>
 
-            <div>
-                <h2>Running version information</h2>
-                <p>{{version_info}}</p>
-            </div>
+            <h2>Running version information</h2>
+            <p>{{version_info}}</p>
+
+            <h2>Number of photos</h2>
+            <p>{{photo_count}}</p>
+
+            <h2>Number of videos</h2>
+            <p>{{video_count}}</p>
+
+            <h2>Number of persons</h2>
+            <p>{{person_count}}</p>
+
+            <h2>Number of living</h2>
+            <p>{{living_person_count}}</p>
+
+            <h2>Number of deceased</h2>
+            <p>{{deceased_person_count}}</p>
+
+            <h2>Biography size total, in bytes</h2>
+            <p>{{total_bio_bytes}}</p>
         </div>
 
     </body>

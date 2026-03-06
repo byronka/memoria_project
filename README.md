@@ -1,75 +1,32 @@
 Memoria, a site for memories
 ============================
 
-Memoria, a site for memories, production site at https://inmra.com/
-
-This is a combination memorial and a family tree.  It provides an
-ability to easily add information for family members.  This
-information includes relations to other family members, biographical
-info, and photographs.
-
-Interesting technical aspects of the project:
-
-- Size of the application, including all necessary dependencies: 600 Kb.
-- Database/Web server: included, provided by [Minum](https://github.com/byronka/minum)
-- Startup time: 500 milliseconds
-- Average memory usage: 64 Mb
-- Peak memory usage: 300 Mb with 176 persons and 387 photos under heavy continuous loading
-- Average time per request: 5 milliseconds
-
-Quick Start, after cloning
---------------------------
-
-_Build and run:_
-
-```shell
-make restore_sampledb
-make run
-```
-then visit http://localhost:8080
-
-_Run pre-built system:_
-
-```shell
-cd docs
-tar zxf inmra.tar.gz
-cd inmra
-./start.sh
-```
-then visit http://localhost:8080
-
-Quick Start, downloading binary
--------------------------------
-
-- Download it [here](https://github.com/byronka/memoria_project/raw/master/docs/inmra.tar.gz)
-- decompress it: `tar zxf inmra.tar.gz`
-- change to its directory: `cd inmra`
-- start the program: `java -jar inmra.jar` or `docker compose up -d`
-- visit http://localhost:8080
-- To shut down - if run using `java -jar`, press ctrl-c.  If docker, run `docker compose down`
-  - Note: the README in the inmra directory has critical information to login as admin
-
-More-detailed Quick Start
--------------------------
-
-This is an ongoing long-term project to develop software for a combined family tree and memorial site. While it
-is incomplete, it acts as a realistic example for the [Minum](https://github.com/byronka/minum) web framework.
-
-* This project uses Gnu Make as its build tool, wrapping calls to [Maven](https://maven.apache.org/)
-* To load a sample database: `make restore_sampledb`, then run with `make run`.  Wait until the
+* To run with a sample database: `make local_dev`, wait until the
   message "System is ready" and then hit http://localhost:8080
-  * To operate as an administrator, login at http://localhost:8080/login with a username of admin and 
-    the password in the file "admin_password" in the root of the database directory. 
+  * To operate as an administrator, login at http://localhost:8080/login
+    * username: admin
+    * password: (see generated file "admin_password")
 * To run tests: `make test`
 * For help: `make`
-* Production version running at https://inmra.com
 
 See the [development handbook](docs/development_handbook.md)
 
 System requirements: 
 --------------------
+Developed on a MacBook Pro with OS 12.0.1, with OpenJDK 21, GNU Make 3.81 and Rsync 2.6.9
+and on a Windows 10 64-bit professional, on Cygwin, OpenJDK 21, Gnu Make 4.4 and Rsync 3.2.7
 
-Developed on a Windows 10 64-bit professional, on Cygwin, OpenJDK 21, with Gnu Make 4.4
+Tech stack:
+-----------
+
+ - Architecture: Full stack Java monolith
+ - Backend: Java, using Minum routing and utilities
+ - Frontend: Java, using Minum templates
+ - Database: Minum
+ - CI/CD: Bash / Make
+ - IAC: runbook with tests
+ - Deployment: Single VPS
+ - CDN: None
 
 Directories:
 ------------
@@ -93,15 +50,3 @@ Root-level files:
 - pom.xml: Maven's configuration file, for building and obtaining dependencies
 - README.md: this file
 - SYSTEM_RUNNING: if this exists, it means the application is running
-
-<img src='docs/pics/command_line_run_output.jpg' alt='Result of running from the command line' width=100%>
-<hr>
-<img src='docs/pics/homepage.jpg' alt='A view of the homepage, showing sample persons and the search' width=100%>
-<hr>
-<img src='docs/pics/detail_view.jpg' alt='A detail view of a person' width=100%>
-<hr>
-<img src='docs/pics/login.jpg' alt='Login as admin' width=100%>
-<hr>
-<img src='docs/pics/editing_person.jpg' alt='Editing the details of a person' width=100%>
-<hr>
-<img src='docs/pics/photo_editing_form.jpg' alt='Editing the photos associated with a person' width=100%>

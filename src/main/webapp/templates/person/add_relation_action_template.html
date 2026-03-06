@@ -1,0 +1,21 @@
+<form class="add-relation-action {{ relation_type_value }}" method="get" action="/addrelation">
+    <input type="hidden" name="person_id" value="{{id}}">
+    <input type="hidden" name="relation" value="{{ relation_type_value }}" >
+    <!-- This input is set if the user selects an existing person -->
+    <input type="hidden" name="other_person_id" >
+    <div class="input-section">
+        <label for="linkage_{{relation_type_value}}_{{id}}">Add {{ relation_type_value }}</label>
+        <input id="linkage_{{relation_type_value}}_{{id}}"
+               class="linkages"
+               required
+               type="search"
+               name="relation_name_input"
+               value=""
+               autocomplete="off" >
+        <button disabled type="button" class="add-relation-reset-button">Reset</button>
+        <input
+                class="add-relation-submit-button"
+                type="submit"
+                value="Connect new person">
+    </div>
+</form>

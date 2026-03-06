@@ -13,13 +13,13 @@ public class PersonNodeTests {
     public void testPersonEquals() {
         PersonNode alice = new PersonNode(
                 UUID.fromString("b0d61180-8eb8-41ca-9276-0501701c4df3"),
-                "alice", Gender.FEMALE);
+                "alice", Gender.FEMALE, true);
         PersonNode alice2 = new PersonNode(
                 UUID.fromString("b0d61180-8eb8-41ca-9276-0501701c4df3"),
-                "alice", Gender.FEMALE);
+                "alice", Gender.FEMALE, true);
         PersonNode bob = new PersonNode(
                 UUID.fromString("d03aed60-1ee1-412c-84b2-dee7010f03fa"),
-                "bob", Gender.MALE);
+                "bob", Gender.MALE, true);
 
         assertEquals(alice, alice2);
         assertFalse(alice.equals(bob));

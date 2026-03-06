@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import static com.renomad.inmra.utils.FileUtils.badFilePathPatterns;
+
 /**
  * This class handles part of the work of dealing with the
  * LetsEncrypt certification renewal process.  It's a bit tricky,
@@ -31,8 +33,6 @@ import java.util.regex.Pattern;
  * </p>
  */
 public class LetsEncrypt {
-
-    private static final Pattern badFilePathPatterns = Pattern.compile("//|\\.\\.|:");
 
     private static final Pattern requestRegex = Pattern.compile(".well-known/acme-challenge/(?<challengeValue>.*$)");
     private final ILogger logger;

@@ -36,7 +36,7 @@ public class Person extends DbData<Person> {
     }
 
     @Override
-    protected void setIndex(long index) {
+    public void setIndex(long index) {
         this.index = index;
     }
 

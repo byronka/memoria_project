@@ -4,8 +4,11 @@ import com.renomad.inmra.featurelogic.persons.Date;
 import com.renomad.inmra.featurelogic.persons.Month;
 import com.renomad.inmra.featurelogic.persons.RelationType;
 import com.renomad.inmra.utils.IFileUtils;
-import com.renomad.minum.state.Context;
+
 import com.renomad.minum.logging.TestLogger;
+import com.renomad.minum.state.Context;
+import com.renomad.minum.testing.TestFramework;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,11 +21,17 @@ import static com.renomad.minum.testing.TestFramework.*;
 public class PersonCreateServicesTests {
 
     private TestLogger logger;
+    private Context context;
 
     @Before
     public void init() {
-        Context context = buildTestingContext("PersonCreateServicesTests");
+        context = buildTestingContext("PersonCreateServicesTests");
         logger = (TestLogger)context.getLogger();
+    }
+
+    @After
+    public void cleanup() {
+        TestFramework.shutdownTestingContext(context);
     }
 
     @Test
@@ -35,7 +44,7 @@ public class PersonCreateServicesTests {
                 Path.of(""),
                 Path.of(""));
 
-        assertTrue(logger.doesMessageExist("Hi, the directory creation failed"));
+        assertTrue(logger.findFirstMessageThatContains("Hi, the directory creation failed").length() > 0);
     }
 
     /**
@@ -105,22 +114,22 @@ public class PersonCreateServicesTests {
 
     @Test
     public void testBuildingRelation_Sibling() {
-        PersonCreateServices.RelationInputs relationInputs = PersonCreateServices.fillRelationInputs("element goes here", RelationType.SIBLING);
+        RelationInputs relationInputs = PersonCreateServices.fillRelationInputs("element goes here", RelationType.SIBLING);
         assertEquals(relationInputs.siblingInput(), "element goes here");
     }
     @Test
     public void testBuildingRelation_Parent() {
-        PersonCreateServices.RelationInputs relationInputs = PersonCreateServices.fillRelationInputs("element goes here", RelationType.PARENT);
+        RelationInputs relationInputs = PersonCreateServices.fillRelationInputs("element goes here", RelationType.PARENT);
         assertEquals(relationInputs.childInput(), "element goes here");
     }
     @Test
     public void testBuildingRelation_Child() {
-        PersonCreateServices.RelationInputs relationInputs = PersonCreateServices.fillRelationInputs("element goes here", RelationType.CHILD);
+        RelationInputs relationInputs = PersonCreateServices.fillRelationInputs("element goes here", RelationType.CHILD);
         assertEquals(relationInputs.parentInput(), "element goes here");
     }
     @Test
     public void testBuildingRelation_Spouse() {
-        PersonCreateServices.RelationInputs relationInputs = PersonCreateServices.fillRelationInputs("element goes here", RelationType.SPOUSE);
+        RelationInputs relationInputs = PersonCreateServices.fillRelationInputs("element goes here", RelationType.SPOUSE);
         assertEquals(relationInputs.spouseInput(), "element goes here");
     }
 }

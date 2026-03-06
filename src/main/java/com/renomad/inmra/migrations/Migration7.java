@@ -1,17 +1,23 @@
 package com.renomad.inmra.migrations;
 
 import com.renomad.inmra.featurelogic.persons.Person;
-import com.renomad.inmra.featurelogic.photo.PhotoToPerson;
 import com.renomad.inmra.featurelogic.photo.Photograph;
-import com.renomad.minum.state.Context;
-import com.renomad.minum.database.Db;
-import com.renomad.minum.logging.ILogger;
 
-import java.io.IOException;
+import com.renomad.minum.database.Db;
+import com.renomad.minum.database.DbData;
+import com.renomad.minum.logging.ILogger;
+import com.renomad.minum.state.Context;
+
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 
+import static com.renomad.minum.utils.SerializationUtils.deserializeHelper;
+import static com.renomad.minum.utils.SerializationUtils.serializeHelper;
+
+/**
+ * Fix photo-to-person entries that don't point properly
+ */
 public class Migration7 {
 
     private final ILogger logger;
@@ -28,25 +34,12 @@ public class Migration7 {
         this.context = context;
     }
 
-
-    public void run() throws IOException {
-        run(false);
-
-    }
-
-    /**
-     * Convert the new form of Person back to its previous form
-     */
-    public void runReverse() throws IOException {
-        run(true);
-    }
-
     /**
      * There's no way to run this in reverse.  It deletes invalid
      * entries in the database.  The reverse would mean putting invalid
      * entries back into the database.
      */
-    private void run(boolean runReverse) {
+    public void run() {
         var photoDb = new Db<>(dbDirectory.resolve("photos"), context, Photograph.EMPTY);
         var personsDb = new Db<>(dbDirectory.resolve("persons"), context, Person.EMPTY);
         var photoToPersonDb = new Db<>(dbDirectory.resolve("photo_to_person"), context, PhotoToPerson.EMPTY);
@@ -67,6 +60,57 @@ public class Migration7 {
                         photosNoneMatch));
                 photoToPersonDb.delete(ptp);
             }
+        }
+    }
+
+    /**
+     * Represents a relationship between a photograph and
+     * a person.
+     */
+    static class PhotoToPerson extends DbData<Migration7.PhotoToPerson> {
+
+        public static final Migration7.PhotoToPerson EMPTY = new Migration7.PhotoToPerson(0, 0, 0);
+        private long index;
+        private final long photoIndex;
+        private final long personIndex;
+
+        public PhotoToPerson(long index, long photoIndex, long personIndex) {
+            this.index = index;
+            this.photoIndex = photoIndex;
+            this.personIndex = personIndex;
+        }
+
+        @Override
+        public String serialize() {
+            return serializeHelper(index, photoIndex, personIndex);
+        }
+
+        @Override
+        public Migration7.PhotoToPerson deserialize(String serializedText) {
+            final var tokens = deserializeHelper(serializedText);
+
+            return new Migration7.PhotoToPerson(
+                    Long.parseLong(tokens.get(0)),
+                    Long.parseLong(tokens.get(1)),
+                    Long.parseLong(tokens.get(2)));
+        }
+
+        @Override
+        public long getIndex() {
+            return index;
+        }
+
+        @Override
+        public void setIndex(long index) {
+            this.index = index;
+        }
+
+        public long getPhotoIndex() {
+            return photoIndex;
+        }
+
+        public long getPersonIndex() {
+            return personIndex;
         }
     }
 

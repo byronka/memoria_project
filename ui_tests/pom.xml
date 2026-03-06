@@ -25,7 +25,7 @@
     <dependency>
       <groupId>com.renomad</groupId>
       <artifactId>minum</artifactId>
-      <version>2.3.0</version>
+      <version>8.2.1</version>
       <scope>compile</scope>
     </dependency>
 
@@ -41,26 +41,13 @@
     </dependency>
 
     <!--
-      This is a tool that keeps us updated with the version of web driver needed when
-      running Selenium.  It works for chrome, gecko, edge, opera, and ie.
-      See https://bonigarcia.dev/webdrivermanager/
-      see https://central.sonatype.com/artifact/io.github.bonigarcia/webdrivermanager/4.4.3/overview
-    -->
-    <dependency>
-      <groupId>io.github.bonigarcia</groupId>
-      <artifactId>webdrivermanager</artifactId>
-      <version>6.0.1</version>
-      <scope>test</scope>
-    </dependency>
-
-    <!--
       Selenium is our UI testing tool.  It simply controls the browser like a human
       would, typing, clicking on buttons, etc.
     -->
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
-      <version>4.31.0</version>
+      <version>4.27.0</version>
       <scope>test</scope>
     </dependency>
 

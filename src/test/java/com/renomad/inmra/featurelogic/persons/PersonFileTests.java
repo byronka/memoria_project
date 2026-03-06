@@ -14,12 +14,12 @@ public class PersonFileTests {
             1L,
             UUID.fromString("8a4f05ec-1184-41ac-9de4-ffdc98a08081"),
             "a", "alice",Date.EMPTY,Date.EMPTY,"e","f",
-            "g","h", "j","k","m",Gender.FEMALE, null, "");
+            "g","h", "j","k","m",Gender.FEMALE, null, "", "");
     PersonFile bob = new PersonFile(
             2L,
             UUID.fromString("d41dfedd-8c0f-4cbe-80c5-2e65f11483b3"),
             "a", "bob",Date.EMPTY,Date.EMPTY,"e","f",
-            "g","h", "j","k","m",Gender.MALE, null, "");
+            "g","h", "j","k","m",Gender.MALE, null, "", "");
 
     /**
      * When we add a PersonFile as a key, it will hash the

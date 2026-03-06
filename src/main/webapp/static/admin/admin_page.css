@@ -1,22 +1,6 @@
 #admin-container {
-    margin: 10px;
-}
-
-textarea {
-  width: 600px;
-  max-width: 90%;
-}
-
-#sessions {
-  height: 50px;
-}
-
-#users {
-  height: 70px;
-}
-
-#inmates {
-  height: 50px;
+    margin-top: 10px;
+    margin-left: 10px;
 }
 
 div#admin-container {
@@ -29,3 +13,7 @@ div#admin-container > div {
     flex-direction: column;
 }
 
+h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
+  /* Override what is set in main.css */
+  text-shadow: initial;
+}

@@ -2,20 +2,23 @@ package com.renomad.inmra.featurelogic.photo;
 
 import com.renomad.inmra.auth.AuthResult;
 import com.renomad.inmra.auth.IAuthUtils;
+import com.renomad.inmra.auth.PrivacyCheckStatus;
 import com.renomad.inmra.featurelogic.persons.Person;
 import com.renomad.inmra.featurelogic.persons.PersonEndpoints;
+import com.renomad.inmra.featurelogic.persons.PersonLruCache;
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.MemoriaContext;
+import com.renomad.inmra.utils.NavigationHeader;
 import com.renomad.inmra.utils.Respond;
+import com.renomad.minum.database.AbstractDb;
+import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.state.Constants;
 import com.renomad.minum.state.Context;
-import com.renomad.minum.database.Db;
-import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.templating.TemplateProcessor;
+import com.renomad.minum.utils.FileUtils;
+import com.renomad.minum.utils.InvariantException;
 import com.renomad.minum.utils.StacktraceUtils;
-import com.renomad.minum.web.IRequest;
-import com.renomad.minum.web.IResponse;
-import com.renomad.minum.web.Response;
+import com.renomad.minum.web.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,10 +26,15 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
-import static com.renomad.minum.utils.Invariants.mustNotBeNull;
+import static com.renomad.inmra.utils.FileUtils.badFilePathPatterns;
 import static com.renomad.minum.utils.SearchUtils.findExactlyOne;
 import static com.renomad.minum.utils.StringUtils.safeHtml;
 import static com.renomad.minum.web.StatusLine.StatusCode.*;
@@ -34,14 +42,13 @@ import static com.renomad.minum.web.StatusLine.StatusCode.*;
 public class ListPhotos {
 
     private final TemplateProcessor listPhotosTemplateProcessor;
-    private final TemplateProcessor listAllPhotosTemplateProcessor;
-    private final TemplateProcessor listAllPhotosCoreTemplateProcessor;
+    private final TemplateProcessor photoTableTemplateProcessor;
     private final ILogger logger;
+    private final NavigationHeader navigationHeader;
     private final Path dbDir;
 
     private final IAuthUtils auth;
     private final Map<String, byte[]> lruCache;
-    private final TemplateProcessor authHeader;
     private final PersonEndpoints personEndpoints;
     private final Constants constants;
     private final RenderPhotoRowsService renderPhotoRowsService;
@@ -52,33 +59,39 @@ public class ListPhotos {
             IAuthUtils auth,
             PersonEndpoints personEndpoints,
             Map<String, byte[]> lruCache,
-            Db<PhotoToPerson> photoToPersonDb,
-            Db<Photograph> photographDb
-            ) {
+            AbstractDb<PhotoToPerson> photoToPersonDb,
+            AbstractDb<Photograph> photographDb,
+            AbstractDb<VideoToPerson> videoToPersonDb,
+            AbstractDb<Video> videoDb,
+            AbstractDb<Person> personDb,
+            NavigationHeader navigationHeader,
+            PersonLruCache personLruCache) {
         this.logger = context.getLogger();
-        IFileUtils fileUtils = memoriaContext.fileUtils();
+        this.navigationHeader = navigationHeader;
+        IFileUtils fileUtils = memoriaContext.getFileUtils();
         this.constants = context.getConstants();
         this.dbDir = Path.of(constants.dbDirectory);
         listPhotosTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("listphotos/list_photos_template.html"));
-        listAllPhotosTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("listphotos/list_all_photos_template.html"));
-        listAllPhotosCoreTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("listphotos/list_all_photos_core_template.html"));
+        photoTableTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("listphotos/photo_table_template.html"));
         this.auth = auth;
         this.lruCache = lruCache;
-        authHeader = TemplateProcessor.buildProcessor(fileUtils.readTemplate("general/auth_header.html"));
         this.personEndpoints = personEndpoints;
-        this.renderPhotoRowsService = new RenderPhotoRowsService(photoToPersonDb, photographDb, fileUtils);
+        this.renderPhotoRowsService = new RenderPhotoRowsService(photoToPersonDb, photographDb, videoToPersonDb, videoDb, personDb, fileUtils, personLruCache);
     }
 
-    public IResponse ListPhotosPageGet(IRequest r) {
+    /**
+     * Render the photo list page
+     */
+    public IResponse listPhotosPageGet(IRequest r) {
         AuthResult authResult = auth.processAuth(r);
         if (!authResult.isAuthenticated()) {
-            return Response.redirectTo("/");
+            return Respond.redirectTo("/");
         }
         String personId = r.getRequestLine().queryString().get("personid");
         if (personId == null || personId.isBlank()) {
-            return listAllPhotos();
+            return Response.buildLeanResponse(CODE_400_BAD_REQUEST);
         } else {
-            return listPhotosForPerson(personId);
+            return listPhotosForPerson(r, personId);
         }
     }
 
@@ -86,46 +99,30 @@ public class ListPhotos {
      * This renders html where we expect to show photographs about
      * just one person.
      */
-    private IResponse listPhotosForPerson(String personId) {
-        Person foundPerson = findExactlyOne(personEndpoints.getPersonDb().values().stream(), x -> x.getId().toString().equals(personId));
-        mustNotBeNull(foundPerson);
-
-        String photoHtml = renderPhotoRowsService.renderPhotoRows(foundPerson);
-
-        String listPhotosHtml = listPhotosTemplateProcessor.renderTemplate(Map.of(
-                "header", authHeader.renderTemplate(Map.of("edit_this_person", "")),
-                "person_id", personId,
-                "person_name", safeHtml(foundPerson.getName()),
-                "photo_html", photoHtml
-        ));
-        return Respond.htmlOk(listPhotosHtml);
-    }
-
-    /**
-     * This is a specialty page to show ALL the photos in the system
-     * categorized by their associated person
-     */
-    private IResponse listAllPhotos() {
-        // loop through each person, creating one long list of photos,
-        // with the associated person at the top of each section.
-        var listAllPhotosCoreString = new StringBuilder();
-        for (Person person : personEndpoints.getPersonDb().values()) {
-
-            String photoHtml = renderPhotoRowsService.renderPhotoRows(person);
-
-            listAllPhotosCoreString.append(listAllPhotosCoreTemplateProcessor.renderTemplate(Map.of(
-                    "person_id", person.getId().toString(),
-                    "person_name", safeHtml(person.getName()),
-                    "photo_html", photoHtml
-            ))).append("\n");
+    private IResponse listPhotosForPerson(IRequest r, String personId) {
+        Person foundPerson = personEndpoints.getPersonDb().findExactlyOne("id", personId);
+        if (foundPerson == null) {
+            logger.logDebug(() -> "unable to find a person with a personId of " + personId);
+            return Respond.userInputError();
         }
 
-        String listPhotosHtml = listAllPhotosTemplateProcessor.renderTemplate(Map.of(
-                "header", authHeader.renderTemplate(Map.of("edit_this_person", "")),
-                "list_all_photos_core", listAllPhotosCoreString.toString()
+        String photoHtml = renderPhotoRowsService.renderPhotoRows(foundPerson);
+        String myNavHeader = navigationHeader.renderNavigationHeader(r, true, true, personId, true, null);
+
+        String photoTable = photoTableTemplateProcessor.renderTemplate(Map.of(
+                "photo_html", photoHtml
+        ));
+        String listPhotosHtml = listPhotosTemplateProcessor.renderTemplate(Map.of(
+                "navigation_header", myNavHeader,
+                "person_id", personId,
+                "person_name", safeHtml(foundPerson.getName()),
+                "photo_table", photoTable
         ));
         return Respond.htmlOk(listPhotosHtml);
     }
+
+    private final static Pattern IS_JPEG = Pattern.compile("(?i)\\.(jpg|jpeg)$");
+    private final static Pattern IS_PNG = Pattern.compile("(?i)\\.(png)$");
 
     /**
      * Returns a particular photo.
@@ -187,36 +184,79 @@ public class ListPhotos {
             return Response.buildLeanResponse(CODE_404_NOT_FOUND);
         }
 
+        // if the user is sending characters that suggest hacking, return 404
+        if (badFilePathPatterns.matcher(filename).find()) {
+            logger.logDebug(() -> String.format("Bad path requested for grabPhotoGet: %s", filename));
+            return Response.buildLeanResponse(CODE_404_NOT_FOUND);
+        }
+
+        // set the mime for the file we return appropriately
+        String mime;
+        if (IS_JPEG.matcher(filename).find()) {
+            mime = "image/jpeg";
+        } else if (IS_PNG.matcher(filename).find()) {
+            mime = "image/png";
+        } else {
+            logger.logDebug(() -> "The requested photo was not a valid filetype: " + filename);
+            return Response.buildLeanResponse(CODE_404_NOT_FOUND);
+        }
+
         // See docs/image_processing/README.md for more about this design
         Path photoPath;
         var sizeQuery = r.getRequestLine().queryString().get("size");
 
+        // set the sizequery to a non-null value to avoid null-pointer exceptions later
         if (sizeQuery == null) {
             sizeQuery = "";
         }
 
-        // we default to the medium-sized files
-        if (sizeQuery.equals("small")) {
-            photoPath = dbDir.resolve("photo_files_thumbnail").resolve(filename);
-        } else if (sizeQuery.equals("original")) {
-            photoPath = dbDir.resolve("photo_files_original").resolve(filename);
-        } else {
-            photoPath = dbDir.resolve("photo_files_medium").resolve(filename);
+        // check the filename has valid characters.
+        try {
+            FileUtils.checkForBadFilePatterns(filename);
+        } catch (InvariantException ex) {
+            logger.logDebug(() -> "Error with photo filename. " + ex.getMessage());
+            return Respond.userInputError();
         }
 
-        // first, is it already in our cache?
+        // "archive" photos require authentication. If they aren't auth'd, just return 404.
+        if (sizeQuery.equals("archive")) {
+            PrivacyCheckStatus privacyCheckStatus = auth.canShowPrivateInformation(r);
+            if (privacyCheckStatus.canShowPrivateInformation()) {
+                return handleArchivePhoto(r, filename, mime);
+            } else {
+                logger.logDebug(() -> "User requested an archive file of " + filename + " but is not authenticated. Continuing with size set to original");
+                sizeQuery = "original";
+            }
+        }
+
+        // we default to the medium-sized files.
+        photoPath = switch (sizeQuery) {
+            case "small" -> dbDir.resolve("photo_files_thumbnail").resolve(filename);
+            case "original" -> dbDir.resolve("photo_files_original").resolve(filename);
+            case "icon" -> dbDir.resolve("photo_files_icon").resolve(filename);
+            default -> dbDir.resolve("photo_files_medium").resolve(filename);
+        };
+
+        /*
+        The "photo_archive" directory is a special case.  The files there can be
+        huge (more than 5-10 megabytes in some cases).  So, we won't be storing
+        those in the cache at all.  Also, we will only return the archive files
+        if the user is authenticated. So it's a special case - all other image files
+        can be downloaded like normal.
+         */
+
+        // first, is it already in our cache? (by the way, "archive" photos won't ever be in the cache)
         if (lruCache.containsKey(photoPath.toString())) {
             logger.logTrace(() -> "Found " + photoPath + " in the cache. Serving.");
             return Response.buildResponse(CODE_200_OK,
                     Map.of(
                             "Cache-Control","max-age=" + constants.staticFileCacheTime * 60 + ", immutable",
-                            "Content-Type", "image/jpeg"
-                    ), lruCache.get(photoPath.toString()));
+                            "Content-Type", mime
+                    ),
+                    lruCache.get(photoPath.toString()));
         }
 
-        // If the file has not been processed yet, oh well, return 404.  This is better than returning
-        // the original file, which could be huge and would then get stuck in the
-        // user's cache.
+        // It's not in the cache - but if it's also not in the folder, bail with a 404
         if (! Files.exists(photoPath)) {
             logger.logDebug(() -> "User requested a filename of " + photoPath + " that does not exist in the directory");
             return Response.buildLeanResponse(CODE_404_NOT_FOUND);
@@ -249,22 +289,172 @@ public class ListPhotos {
                 String s = finalPhotoPath2 + " photo filesize was " + bytes.length + " bytes.";
                 logger.logDebug(() -> s);
 
+                // we won't store archive photos in the cache, they are too large
                 logger.logDebug(() -> "Storing " + finalPhotoPath2 + " in the cache");
                 lruCache.put(finalPhotoPath2.toString(), bytes);
 
                 return Response.buildResponse(CODE_200_OK,
                         Map.of(
                                 "Cache-Control","max-age=" + constants.staticFileCacheTime * 60,
-                                "Content-Type", "image/jpeg"
-                        ), bytes);
+                                "Content-Type", mime
+                        ),
+                        bytes);
 
             }
         } catch (IOException e){
             logger.logAsyncError(() -> "There was an issue reading a file at " + finalPhotoPath2 + ". " + StacktraceUtils.stackTraceToString(e));
             return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
+        } catch (InvalidPathException ex) {
+            logger.logDebug(() -> "Error reading photo file "+photoPath+" requested by user. " + ex.getMessage());
+            return Respond.userInputError();
+        } catch (Exception ex) {
+            logger.logAsyncError(() -> "There was an issue reading a file at " + photoPath + ". " + StacktraceUtils.stackTraceToString(ex));
+            return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * archive photos require special handling because they can be very large
+     */
+    private IResponse handleArchivePhoto(IRequest r, String filename, String mime) {
+
+        String archivalPhoto = "";
+        try {
+            archivalPhoto = dbDir.resolve("photo_archive").resolve(filename).toString();
+
+            var extraContentHeaders = Map.of(
+                    "Cache-Control","max-age=" + constants.staticFileCacheTime * 60 + ", immutable",
+                    "Content-Type", mime
+            );
+            return Response.buildLargeFileResponse(extraContentHeaders, archivalPhoto, r.getHeaders());
+        } catch (IOException e){
+            // this is the only branch in the logic where we adjust to use a size of "original" and pass
+            // through to the following section of logic.  All the other branches handle edge cases that
+            // are more appropriately handled with 400s and 500s.
+            if (e.getClass().equals(NoSuchFileException.class)) {
+                logger.logDebug(() -> "User requested an archive file of " + filename + " that was not found.  Returning 404 NOT FOUND");
+                return Response.buildLeanResponse(CODE_404_NOT_FOUND);
+            } else {
+                String finalArchivalPhoto = archivalPhoto;
+                logger.logAsyncError(() -> "There was an issue reading a file at " + finalArchivalPhoto + ". " + StacktraceUtils.stackTraceToString(e));
+                return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
+            }
+        } catch (InvalidPathException ex) {
+            String finalArchivalPhoto = archivalPhoto;
+            logger.logDebug(() -> "Error reading photo file "+ finalArchivalPhoto +" requested by user. " + ex.getMessage());
+            return Respond.userInputError();
+        } catch (Exception ex) {
+            String finalArchivalPhoto = archivalPhoto;
+            logger.logAsyncError(() -> "There was an issue reading a file at " + finalArchivalPhoto + ". " + StacktraceUtils.stackTraceToString(ex));
+            return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    public IResponse grabVideoGet(IRequest r) {
+
+        // get the filename from the query string
+        String filename = r.getRequestLine().queryString().get("name");
+
+        logger.logDebug(() -> r.getRemoteRequester() + " is looking for a video named " + filename);
+
+        // if the name query is null or blank, return 404
+        if (filename == null || filename.isBlank()) {
+            return Response.buildLeanResponse(CODE_404_NOT_FOUND);
+        }
+
+        if (badFilePathPatterns.matcher(filename).find()) {
+            logger.logDebug(() -> String.format("Bad path requested for grabVideoGet: %s", filename));
+            return Response.buildLeanResponse(CODE_404_NOT_FOUND);
+        }
+
+        String videoFile = null;
+        try {
+            videoFile = dbDir.resolve("video_files").resolve(filename).toString();
+            var extraContentHeaders = Map.of(
+                    "Content-Type", "video/mp4"
+            );
+            return Response.buildLargeFileResponse(extraContentHeaders, videoFile, r.getHeaders());
+        } catch (IOException e){
+
+            if (e.getClass().equals(NoSuchFileException.class)) {
+                return Response.buildLeanResponse(CODE_404_NOT_FOUND);
+            } else {
+                String finalVideoFile = videoFile;
+                logger.logAsyncError(() -> "There was an issue reading a file at " + finalVideoFile + ". " + StacktraceUtils.stackTraceToString(e));
+                return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
+            }
+        } catch (InvalidPathException ex) {
+            String finalVideoFile = videoFile;
+            logger.logDebug(() -> "Error reading video file "+finalVideoFile+" requested by user. " + ex.getMessage());
+            return Respond.userInputError();
+        } catch (Exception ex) {
+            String finalVideoFile = videoFile;
+            logger.logAsyncError(() -> "There was an issue reading a file at " + finalVideoFile + ". " + StacktraceUtils.stackTraceToString(ex));
+            return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    public IResponse listPhotosPagePhotoRowGet(IRequest r) {
+        AuthResult authResult = auth.processAuth(r);
+        if (!authResult.isAuthenticated()) {
+            return Respond.redirectTo("/");
+        }
+        String photoId = r.getRequestLine().queryString().get("photoid");
+        String personId = r.getRequestLine().queryString().get("personid");
+
+        Person foundPerson = findExactlyOne(personEndpoints.getPersonDb().values().stream(), x -> x.getId().toString().equals(personId));
+        if (foundPerson == null) {
+            logger.logDebug(() -> "unable to find a person with a personId of " + personId);
+            return Respond.userInputError();
+        }
+
+        long photoIdLong;
+        if (photoId == null || photoId.isBlank()) {
+            return Response.buildLeanResponse(CODE_400_BAD_REQUEST);
+        } else {
+            photoIdLong = Long.parseLong(photoId);
+        }
+
+        Set<Long> publishedPhotoIds = renderPhotoRowsService.determinePublishedPhotos(foundPerson);
+        String renderedPhotoRow = renderPhotoRowsService.renderInnerPhotoRowString(foundPerson, List.of(photoIdLong), publishedPhotoIds);
+
+        return Response.buildResponse(
+                CODE_200_OK,
+                Map.of("Content-Type", "text/html"),
+                renderedPhotoRow);
+    }
+
+    public IResponse listPhotosPageVideoRowGet(IRequest r) {
+        AuthResult authResult = auth.processAuth(r);
+        if (!authResult.isAuthenticated()) {
+            return Respond.redirectTo("/");
+        }
+        String videoId = r.getRequestLine().queryString().get("videoid");
+        String personId = r.getRequestLine().queryString().get("personid");
+
+        Person foundPerson = findExactlyOne(personEndpoints.getPersonDb().values().stream(), x -> x.getId().toString().equals(personId));
+        if (foundPerson == null) {
+            logger.logDebug(() -> "unable to find a person with a personId of " + personId);
+            return Respond.userInputError();
+        }
+
+        long videoIdLong;
+        if (videoId == null || videoId.isBlank()) {
+            return Response.buildLeanResponse(CODE_400_BAD_REQUEST);
+        } else {
+            videoIdLong = Long.parseLong(videoId);
+        }
+
+        Set<Long> publishedVideoIds = renderPhotoRowsService.determinePublishedVideos(foundPerson);
+        String renderedVideoRow = renderPhotoRowsService.renderInnerVideoRowString(foundPerson, List.of(videoIdLong), publishedVideoIds);
+
+        return Response.buildResponse(
+                CODE_200_OK,
+                Map.of("Content-Type", "text/html"),
+                renderedVideoRow);
+    }
 
 }
 

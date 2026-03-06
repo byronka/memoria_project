@@ -1,45 +1,40 @@
-/* latin */
-@font-face {
-  font-family: 'Roboto Slab';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(/general/roboto_slab_latin.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-/* Body font */
-/* Roboto Slab */
 body {
-  font-family: "Roboto Slab", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";;
+  font-family: -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Oxygen-Sans,
+                Ubuntu,
+                Cantarell,
+                "Helvetica Neue",
+                sans-serif;
   margin: 0;
   padding: 0;
-}
-
-#logo {
-    position: absolute;
-    top: 10px;
-    left: 4px;
 }
 
 nav {
     height: 55px;
     background: #dcbfad;
     background-image: url('/general/billie-holiday.png');
-    position: relative;
     border-bottom: 3px solid #3d1e07;
-}
-
-a {
-  color: #b9610f;
-}
-
-a:visited {
-  color: #a27700;
+    z-index: 1;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 nav a {
     color: #2a1002 !important;
+}
+
+nav > div {
+    display: flex;
+    padding-left: 10px;
+}
+
+#nav_search_container {
+    flex-grow: 1;
 }
 
 input:focus-visible {
@@ -57,27 +52,24 @@ a#help {
     text-decoration: none;
     font-size: 26px;
     color: white;
-    float: right;
     margin-right: 10px;
-    margin-top: 10px;
 }
 
 
 /* Heading font */
-/* undefined */
 h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
-  font-family: "undefined", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";;
+  font-family: -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Oxygen-Sans,
+                Ubuntu,
+                Cantarell,
+                "Helvetica Neue",
+                sans-serif;
   color: #513525;
+  text-shadow: 1px 1px 0.3px #ffe2cbba;
 }
-
-h2 {
-   text-shadow: 1.4px 1.5px 1px #e9dfd7;
-}
-
-h3 {
-   text-shadow: 0.7px 0.9px 1.4px #ffe2cb;
-}
-
 
 /* This CSS fixes the details element - it's clickable, should show an appropriate pointer */
 details summary {
@@ -89,43 +81,87 @@ details summary > * {
   display: inline;
 }
 
-ul#auth_header {
-    padding-left: 57px;
-    margin: 0;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    width: 400px;
-    font-size: 13px;
-}
+/* for the search field in the header */
 
-ul#auth_header > li {
-    display: inline-flex;
-    padding-right: 4px;
-}
-
-ul#auth_header > li:hover {
+div#nav_search_result_container {
+    position: absolute;
+    font-size: small;
     background: white;
+    border: 1px solid grey;
+    right: -95px;
+    z-index: 999; /* put it on top of everything */
 }
 
-ul#auth_header > li a {
-    text-decoration: none;
+div#nav_search_result_container > ul > li:hover,
+div#nav_search_result_container > ul > li[selected]
+{
+    background: lightblue;
 }
 
-ul#auth_header > li button {
-	background: none;
-	color: inherit;
-	border: none;
-	padding: 0;
-	font: inherit;
-	cursor: pointer;
-	outline: inherit;
+ul#nav_search_result_list {
+    list-style: none;
+    padding-inline-start: 7px;
+    padding-inline-end: 7px;
 }
 
-ul#auth_header > li > form {
-    display: inline
+ul#nav_search_result_list > li {
+    margin-bottom: 4px;
 }
 
-ul#auth_header > li > form > button {
-    display: inline
+input#nav_person_search {
+    font-size: 16px;
+    width: 280px;
+    height: 34px;
+}
+
+#nav_search_container button {
+  background-color: #594cea;
+  box-shadow: 0 5px 0 darkblue;
+  color: white;
+  position: relative;
+  text-decoration: none;
+}
+
+#nav_search_container button:hover,
+#nav_search_container button:focus {
+  background-color: #3f36ac;
+  cursor: pointer;
+}
+
+#nav_search_container button:active {
+  box-shadow: none;
+  top: 5px;
+}
+
+#nav_search_container button {
+    margin-bottom: 5px;
+    font-size: 16px;
+    padding-block-start : 5.1px;
+    padding-block-end : 1.9px;
+}
+
+.print-icon {
+    margin-left: 6px;
+}
+
+@media only screen and (max-width: 600px){
+    body {
+        color: darkslategrey;
+    }
+
+    #nav_search_container input {
+        font-size: 16px;
+        width: 50%;
+    }
+}
+
+@media print {
+    nav {
+        background: initial;
+        background-image: none;
+    }
+
+    ul#auth_header {
+        display: none;
+    }
 }

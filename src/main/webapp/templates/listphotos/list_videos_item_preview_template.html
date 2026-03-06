@@ -1,0 +1,32 @@
+<tr data-photo="{{video_url}}">
+    <td>
+        <a class="caption" href="photo?name={{video_url}}">
+            <img class="thumbnail-image {{is_published}}" width="40" height="64" alt="" src="{{video_poster}}">
+        </a>
+    </td>
+    <td>
+        <div class="short_description_container">
+            <textarea readonly class="short_description" photoid="{{video_url}}">{{short_description}}</textarea>
+        </div>
+    </td>
+    <td>
+        <div class="long_description_container">
+            <textarea readonly class="long_description"  photoid="{{video_url}}">{{description}}</textarea>
+        </div>
+    </td>
+    <td>
+        <div class="filename_container">
+            <textarea readonly class="filename" >{{video_url}}</textarea>
+        </div>
+    </td>
+    <td>
+        &nbsp;
+    </td>
+    <td>
+        &nbsp;
+    </td>
+    <td>
+        <button type="button" onclick="copyTextToClipboard(this, document.getElementById('video_img_{{video_url}}').text)">Copy &lt;video&gt;</button>
+        <script id="video_img_{{video_url}}" type="text/html"><figure class="video-container"><video poster="{{video_poster}}" preload="none" style="width: 100%;" controls><source src="video?name={{video_url}}" type="video/mp4" /><p>Your browser doesn't support HTML video. Here is a <a href="video?name={{video_url}}" download="video?name={{video_url}}">link to the video</a> instead.</p></video><figcaption>{{description_for_figcaption}}</figcaption></figure></script>
+    </td>
+</tr>

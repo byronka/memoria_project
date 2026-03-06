@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Adding relations | Inmra</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/person/add_relation_page.css" >
+    <link rel="stylesheet" href="/general/main.css" >
+    <meta name="filename" content="add_relation_chooser.html" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+{{ navigation_header }}
+<div id="outer">
+    <div id="container">
+        <form method="post" action="addrelation">
+            <input type="hidden" name="person_id" value="{{id}}">
+            <input type="hidden" name="relation_type" value="{{relation_type}}">
+            <input type="hidden" name="other_person_id" value="{{other_person_id}}">
+            <input type="hidden" name="relation_name_input" value="{{relation_name_input}}">
+            <p>
+                Choose how to associate relationships:
+            </p>
+            <fieldset>
+                <legend>Add relations:</legend>
+
+                <div id="simple_container" class="option_container">
+                    <input type="radio" id="simple" name="connection_type" value="simple" />
+                    <label for="simple">Simple</label>
+                    <ul>
+                        {{ simple_description }}
+                    </ul>
+                </div>
+
+                <div id="complete_container" class="option_container">
+                    <input type="radio" id="complete" name="connection_type" value="complete" checked />
+                    <label for="complete">Complete</label>
+                    <ul>
+                        {{ thorough_description }}
+                    </ul>
+                </div>
+
+            </fieldset>
+            <button type="submit">Confirm</button>
+            <a href="/editperson?id={{id}}">Cancel</a>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

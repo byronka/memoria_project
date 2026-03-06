@@ -7,7 +7,7 @@ body > * {
   flex-shrink: 0;
 }
 
-div#persons {
+div#persons, .stats {
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 20px;
@@ -18,9 +18,40 @@ div#persons {
     padding: 20px;
     max-width: 800px;
     padding-top: 10px;
-    background: #dcbfad;
+    background: white;
     box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
     background-image: url('/general/billie-holiday.png');
+    overflow-wrap: break-word;
+}
+
+span.relationship-description {
+    font-size: smaller;
+    font-style: italic;
+}
+
+a.select-for-relation {
+    font-size: x-small;
+    font-family: -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Oxygen-Sans,
+                Ubuntu,
+                Cantarell,
+                "Helvetica Neue",
+                sans-serif;
+    text-shadow: none;
+    color: black;
+    text-decoration: none;
+    border: 1px solid black;
+    border-radius: 6px;
+    padding: 2px;
+    position: relative;
+    top: -9px;
+}
+
+a.select-for-relation:visited {
+    color: black;
 }
 
 div#outer {
@@ -31,6 +62,7 @@ div#outer {
     background-image: url('/general/black-paper.png');
 }
 
+.auth_biography img,
 .biography img
  {
     box-shadow: 0px 1px 3px black;
@@ -38,6 +70,22 @@ div#outer {
     max-width: 70%;
     display: block;
     margin: 0 auto;
+}
+
+/*
+ This is to prevent img style from impacting the preview window,
+ when a user hovers over a link to a person
+*/
+.biography .preview_window img {
+    box-shadow: initial;
+    border: initial;
+    max-width: initial;
+    display: initial;
+    margin: initial;
+}
+
+.preview_window {
+    overflow: hidden;
 }
 
 .name-and-era {
@@ -53,30 +101,14 @@ div#outer {
     font-size: smaller;
 }
 
-ul {
-    padding: 0;
-    margin: auto;
-}
-
-li > span.label {
+span.distance {
     padding-right: 10px;
 }
 
-#persons li {
-    list-style: none;
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px groove lightgray;
-}
-
-#persons .label {
-    font-weight: bold;
-}
-
-
 div.image-container {
     max-width: 200px;
-    margin: 10px;
+    margin-left: 10px;
+    margin-right: 30px;
     float: left;
     border-radius: 19px;
 }
@@ -89,83 +121,6 @@ div.image-container {
     border: 3px solid #2a1002;
 }
 
-#persons button {
-  background-color: #594cea;
-  box-shadow: 0 5px 0 darkblue;
-  color: white;
-  position: relative;
-  text-decoration: none;
-}
-
-#persons button:hover,
-#persons button:focus {
-  background-color: #3f36ac;
-  cursor: pointer;
-}
-
-#persons button:active {
-  box-shadow: none;
-  top: 5px;
-}
-
-span.calculated-relatives {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    justify-content: flex-end;
-}
-
-span.calculated-relatives a {
-    padding-left: 4px;
-    padding-right: 4px;
-    font-size: smaller;
-}
-
-div.calculated-relatives {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    justify-content: flex-end;
-}
-
-div.calculated-relatives > div {
-    position: relative;
-    display: flex;
-    flex-direction: row;
-    border-bottom: 1px groove lightgray;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
-div.calculated-relatives > div > a {
-    padding-left: 4px;
-    padding-right: 4px;
-    font-size: smaller;
-}
-
-div.calculated-relatives > div > span.distance {
-    position: absolute;
-    right: -13px;
-    font-size: 12px;
-    color: grey;
-}
-
-#persons button {
-    border: 0;
-}
-
-a.distance-1 {
-    background-color: white;
-}
-
-a.distance-2 {
-    background-color: #E0E0E0;
-}
-
-a.distance-3 {
-    background-color: #C8C8C8;
-}
-
 .extended-family-item {
     clear: both;
 }
@@ -173,6 +128,10 @@ a.distance-3 {
 div#extended-family-block {
     padding-bottom: 20px;
     width: 100%
+}
+
+div#extended-family-block img.thumbnail {
+    height: 15px;
 }
 
 div#control_panel {
@@ -198,6 +157,255 @@ figcaption {
   margin: 0 auto;
 }
 
+.label {
+    color: darkslategrey
+}
+
+blockquote {
+    display: inline-block;
+    background: darkgrey;
+    margin: 10px;
+    padding: 10px;
+}
+
+.add-relation-action input[name="relation_name_input"] {
+  width: 123px;
+  font-size: 16px;
+}
+
+form.add-relation-action {
+  display: inline;
+}
+
+
+div#search_result_container {
+    position: absolute;
+    font-size: smaller;
+    background: white;
+    border: 1px solid grey;
+    width: 415px;
+    right: 29px;
+    z-index: 999; /* put it on top of everything */
+    font-size: small;
+}
+
+#search_result_container > ul > li:hover,
+#search_result_container > ul > li[selected]
+{
+    background: lightblue;
+}
+
+ul#search_result_list {
+    list-style: none;
+    padding-inline-start: 0;
+    display: inline-block;
+    width: 100%;
+    line-height: 21px;
+}
+
+.input-section {
+    display: inline-block;
+}
+
+.calculated-relatives a,
+ .relation-to-other a {
+    display: inline-block;
+    color: black;
+}
+
+
+ul.descendants-grouped > li,
+ul.ancestors-grouped > li {
+    display: flex;
+    flex-direction: column;
+}
+
+ul.descendants-grouped > li > div,
+ul.ancestors-grouped > li > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+ul.descendants-grouped a > img,
+ul.ancestors-grouped a > img {
+    height: 170px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    border-width: 3px;
+    border-style: solid;
+    border-color: rgb(42, 16, 2);
+    border-image: initial;
+}
+
+.ancestors-grouped a,
+.descendants-grouped a {
+    display: flex;
+    flex-direction: column;
+    color: black;
+    font-size: 10px;
+    width: 170px;
+    text-align: center;
+    margin: 0px 0px 15px;
+    text-decoration: none;
+}
+
+ul.calculated-relatives.tree-graphic img.tree-thumbnail {
+    height: 50px;
+}
+
+ul.calculated-relatives.tree-graphic a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+ul.calculated-relatives.tree-graphic span.name {
+    max-width: 250px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+ul.calculated-relatives.tree-graphic a > img{
+        padding-left: 5px;
+}
+
+span.parents-group {
+    display: flex;
+    flex-direction: column;
+    margin: 2px;
+    border: 1px solid grey;
+    border-radius: 9px;
+}
+
+/*
+This section is for how close someone is related to you, when we do a
+breadth-based search to find your closest relatives.
+*/
+
+a.distance-1 {
+    color: black;
+}
+
+a.distance-2 {
+    color: darkslategrey;
+}
+
+a.distance-3 {
+    color: grey;
+}
+
+a.distance-4 {
+    color: #9f9f9f;
+}
+
+/*
+This section - offsets - is to indicate whether someone is a cousin
+at your generation or once-removed, or twice-removed.
+*/
+
+a.offset-3 {
+    color: #9f9f9f;
+}
+
+a.offset-2 {
+    color: grey;
+}
+
+a.offset-1 {
+    color: darkslategrey;
+}
+a.offset-0 {
+    color: black;
+    border: 1px solid grey;
+    border-radius: 6px;
+}
+
+.missing-person {
+    background: red;
+    color: white;
+}
+
+/* handling deeply-nested lists */
+
+ul.tree-graphic, .tree-graphic ul  {
+  padding-inline-start: 45px;
+}
+
+.tree-graphic ul {
+    border-left: 1px solid black;
+}
+
+.tree-graphic li {
+    list-style: none;
+}
+
+/* These stats show at the bottom of the page when auth'd */
+
+.stats {
+    padding-top: 10px;
+    column-count: 2;
+    flex: 0 0 440px;
+}
+
+.auth_biography {
+    background: darkgrey;
+    margin-top: 2px;
+}
+
+/*
+For styling on the HTML ancestry/descendants view
+*/
+
+.tree-graphic-exterior ::marker, .tree-graphic-exterior ::before::marker, .tree-graphic-exterior ::after::marker
+Specificity: (0,0,1)
+ {
+    unicode-bidi: isolate;
+    font-variant-numeric: tabular-nums;
+    text-transform: none;
+    text-indent: 0px !important;
+    text-align: start !important;
+    text-align-last: auto !important;
+}
+
+.tree-graphic-exterior details summary {
+    cursor: pointer;
+}
+
+.tree-graphic-exterior details[open] > summary:first-of-type {
+    list-style-type: disclosure-open;
+}
+
+.tree-graphic-exterior details > summary:first-of-type {
+    display: list-item;
+    counter-increment: list-item 0;
+    list-style: disclosure-closed;
+}
+
+.tree-graphic-exterior summary {
+    display: block;
+    unicode-bidi: isolate;
+}
+
+/*
+The button at the top when in the extended family version
+*/
+
+#return-to-normal-view a {
+    margin-bottom: 5px;
+    font-size: 16px;
+    padding-block-start: 5.1px;
+    padding-block-end: 1.9px;
+    background-color: #594cea;
+    box-shadow: 0 5px 0 darkblue;
+    color: white;
+    text-decoration: none;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
 @media only screen and (max-width: 600px){
 
     div.image-container {
@@ -210,7 +418,7 @@ figcaption {
         margin: auto;
     }
 
-    div#persons {
+    div#persons, .stats {
         margin: 10px;
         font-size: initial;
         line-height: initial;
@@ -218,13 +426,56 @@ figcaption {
         border-radius: 10px;
         padding: 10px;
     }
-}
 
-@media print {
-    body {
-      background-color: transparent !important;
-      font-family:"Times New Roman", Times, serif !important;
-      font-size: 10pt !important;
-      color:#000000 !important;
+    .auth_biography img,
+    .biography img {
+        box-shadow: none;
+        border: none;
+        max-width: 100%;
     }
+
+    figure {
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    figcaption {
+        width: 100%;
+    }
+
+    ul.tree-graphic, .tree-graphic ul  {
+      padding-inline-start: 20px;
+    }
+
+    ul.calculated-relatives.tree-graphic a {
+        width: 94%;
+    }
+
+    ul.calculated-relatives.tree-graphic span.name {
+        width: 75%;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    ul.calculated-relatives.tree-graphic img.tree-thumbnail {
+        height: 40px;
+    }
+
+    ul.descendants-grouped,
+    ul.ancestors-grouped {
+        padding-inline-start: 0;
+    }
+
+    ul.descendants-grouped a > img,
+    ul.ancestors-grouped a > img {
+        height: 110px;
+        width: 100%;
+    }
+
+    .ancestors-grouped a,
+    .descendants-grouped a {
+        width: 110px;
+    }
+
 }

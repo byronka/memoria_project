@@ -12,7 +12,8 @@ import java.util.regex.Pattern;
  */
 public class Cleaners {
 
-    private static final Pattern scriptPattern = Pattern.compile("< *script.*?>");
+    private static final Pattern scriptPattern = Pattern.compile("< *script.*?>", Pattern.CASE_INSENSITIVE);
+    private static final Pattern scriptEndingPattern = Pattern.compile("</ *script.*?>", Pattern.CASE_INSENSITIVE);
 
     /**
      * This is a utility just to defuse the use of any script elements.
@@ -23,7 +24,17 @@ public class Cleaners {
      * to have a running script.
      */
     public static String cleanScript(String input) {
-        Matcher matcher = scriptPattern.matcher(input);
-        return matcher.replaceAll("SCRIPT_STARTING_TAG");
+        Matcher startScriptMatcher = scriptPattern.matcher(input);
+        String startScriptsReplaced = startScriptMatcher.replaceAll("SCRIPT_STARTING_TAG");
+        Matcher endScriptMatcher = scriptEndingPattern.matcher(startScriptsReplaced);
+        return endScriptMatcher.replaceAll("SCRIPT_ENDING_TAG");
+    }
+
+    /**
+     * This replaces all non-ascii characters with empty string values.
+     * In other words, it removes all non-ascii.
+     */
+    public static String utf8ToAscii(String str) {
+        return str.replaceAll("[^\\x20-\\x7E]", "");
     }
 }

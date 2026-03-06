@@ -1,5 +1,7 @@
 package com.renomad.inmra.featurelogic.persons;
 
+import com.renomad.minum.logging.ILogger;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -82,6 +84,23 @@ public record Date(int year, Month month, int day) {
         return new Date(year, month, day);
     }
 
+
+    /**
+     * This will receive dates in a format from the HTML date input field
+     * like 1921-11-21 and returns {@link Date} values
+     * <p>
+     *     The input must not be null or blank.
+     * </p>
+     * @param logger - a logger for catching parsing exceptions
+     */
+    public static Date extractDate(String dateInput, ILogger logger) {
+        try {
+          return extractDate(dateInput);
+        } catch (Exception ex) {
+            logger.logDebug(() -> "Failed to parse this date: " + dateInput);
+            throw ex;
+        }
+    }
 
     /**
      * This will receive dates in a format from the HTML date input field

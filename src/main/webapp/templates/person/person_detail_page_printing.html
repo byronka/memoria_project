@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{{title_name}} | Inmra</title>
+        <meta charset="utf-8">
+        <meta name="filename" content="person_detail_page_printing.html" >
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/person/person_detail_page_for_printing.css" >
+    </head>
+    <body>
+        <div id="outer">
+            <div id="persons">
+
+                <div id="{{id}}_details">
+                    {{person_image}}
+                    <div class="name-and-era">
+                        <div>
+                            <h2 class="lifespan-name" style="display: inline;">
+                                {{name}}
+                            </h2>
+                        </div>
+                        <span class="lifespan-era">
+                            {{lifespan}}
+                        </span>
+                    </div>
+
+                    <ul style="clear: both;">
+                        <li class="parents-item manual-links">
+                            <span class="label immediate-family relative-type-label">Parents: </span>
+                            <span class="parents">
+                                {{parents}}
+                            </span>
+                        </li>
+
+
+                        <li class="siblings-item manual-links">
+                            <span class="label immediate-family relative-type-label">Siblings: </span>
+                            <span class="siblings">
+                                {{siblings}}
+                            </span>
+                        </li>
+
+
+                        <li class="spouses-item manual-links">
+                            <span class="label immediate-family relative-type-label">Spouses: </span>
+                            <span class="spouses">
+                                {{spouses}}
+                            </span>
+                        </li>
+
+
+                        <li class="children-item manual-links">
+                            <span class="label immediate-family relative-type-label">Children: </span>
+                            <span class="children">
+                                {{children}}
+                            </span>
+                        </li>
+
+
+                        <li>
+                            <span class="label">Gender: </span>
+                            <span class="gender">{{gender}}</span>
+                        </li>
+
+                        {{ extra_fields }}
+
+                    </ul>
+
+                    <div class="biography">
+                        {{biography}}
+                    </div>
+
+                    <div class="auth_biography">
+                        {{auth_biography}}
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </body>
+</html>

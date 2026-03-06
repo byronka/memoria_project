@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Delete Person | Inmra</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/general/main.css" >
+    <link rel="stylesheet" href="/person/person_delete.css" >
+    <meta name="filename" content="delete_person_template.html" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+{{ navigation_header }}
+<div id="outer">
+    <div id="container">
+
+        <h3>Delete a person: {{person_name}}</h3>
+
+        <p>
+            Deleting a person will remove them from the database.  However, some data
+            will remain:
+        </p>
+        <ol>
+            <li>Their data will be stored in a "trash" folder</li>
+            <li>Audits regarding actions will remain for the user who took those actions</li>
+            <li>The log will contain some information about the person for a while</li>
+            <li>The audits for a person will remain in the audit directories</li>
+            <li>Their photos will be deleted.  However, if the photo has been copied to another person, the copy will remain</li>
+            <li>In the relationships section of other persons who link to this person, the dead-link will show in red</li>
+        </ol>
+        <form action="persondelete" method="POST">
+            <input type="hidden" name="id" value="{{id}}" />
+            <button
+                    id="delete_button"
+                    class="delete_button"
+                    data-personid="{{id}}">Delete</button>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

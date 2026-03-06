@@ -15,4 +15,6 @@ public interface ISecurityUtils {
      * suggesting a scripted brute-force attack.
      */
     boolean isScriptedLogin(String clientAddress);
+
+    boolean hasExceededAllowedFailuresInTimeWindow(String remoteRequester);
 }

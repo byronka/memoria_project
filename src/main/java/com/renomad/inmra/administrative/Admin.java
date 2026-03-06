@@ -2,15 +2,18 @@ package com.renomad.inmra.administrative;
 
 import com.renomad.inmra.auth.IAuthUtils;
 import com.renomad.inmra.auth.SessionId;
-import com.renomad.inmra.utils.IFileUtils;
-import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.inmra.utils.Respond;
-import com.renomad.minum.state.Constants;
-import com.renomad.minum.state.Context;
-import com.renomad.minum.database.Db;
+import com.renomad.inmra.featurelogic.persons.Date;
+import com.renomad.inmra.featurelogic.persons.Person;
+import com.renomad.inmra.featurelogic.persons.PersonMetrics;
+import com.renomad.inmra.featurelogic.photo.Photograph;
+import com.renomad.inmra.featurelogic.photo.Video;
+import com.renomad.inmra.utils.*;
+import com.renomad.minum.database.AbstractDb;
 import com.renomad.minum.logging.LoggingLevel;
 import com.renomad.minum.security.ITheBrig;
 import com.renomad.minum.security.Inmate;
+import com.renomad.minum.state.Constants;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.StringUtils;
 import com.renomad.minum.web.*;
@@ -31,18 +34,35 @@ public class Admin {
     private final ITheBrig theBrig;
     private final Constants constants;
     private final IAuthUtils authUtils;
-    private final Db<User> userDb;
-    private final Db<SessionId> sessionDb;
-    private final TemplateProcessor authHeader;
+    private final AbstractDb<User> userDb;
+    private final AbstractDb<SessionId> sessionDb;
+    private final AbstractDb<Person> personDb;
+    private final AbstractDb<Photograph> photoDb;
+    private final AbstractDb<Video> videoDb;
+    private final NavigationHeader navigationHeader;
+    private final AbstractDb<PersonMetrics> personMetricsDb;
 
-    public Admin(IAuthUtils authUtils, Db<User> userDb, Db<SessionId> sessionDb, Context context, MemoriaContext memoriaContext) {
+    public Admin(IAuthUtils authUtils,
+                 AbstractDb<User> userDb,
+                 AbstractDb<SessionId> sessionDb,
+                 Context context,
+                 MemoriaContext memoriaContext,
+                 AbstractDb<Person> personDb,
+                 AbstractDb<Photograph> photoDb,
+                 AbstractDb<Video> videoDb,
+                 NavigationHeader navigationHeader,
+                 AbstractDb<PersonMetrics> personMetricsDb) {
         this.authUtils = authUtils;
         this.userDb = userDb;
         this.sessionDb = sessionDb;
-        IFileUtils fileUtils = memoriaContext.fileUtils();
+        this.personDb = personDb;
+        this.photoDb = photoDb;
+        this.videoDb = videoDb;
+        this.navigationHeader = navigationHeader;
+        this.personMetricsDb = personMetricsDb;
+        IFileUtils fileUtils = memoriaContext.getFileUtils();
         this.constants = context.getConstants();
         String template = fileUtils.readTemplate("admin/admin_page_template.html");
-        authHeader = TemplateProcessor.buildProcessor(fileUtils.readTemplate("general/auth_header.html"));
         this.adminPageProcessor = TemplateProcessor.buildProcessor(template);
         this.theBrig = context.getFullSystem().getTheBrig();
     }
@@ -55,7 +75,7 @@ public class Admin {
         adminPageValues.put(
                 "users",
                 userDb.values().stream().map(
-                        x -> String.format("index: %d name: %s",
+                        x -> String.format("<div><b>index:</b> %d <b>name:</b> %s</div>",
                                 x.getIndex(),
                                 x.getUsername())).collect(Collectors.joining("\n")));
 
@@ -70,15 +90,16 @@ public class Admin {
                 sb.append(user.getUsername()).append(" sessions: ").append(e.getValue()).append("\n");
             }
         }
-        adminPageValues.put("live_sessions", StringUtils.safeHtml(sb.toString()));
+        adminPageValues.put("live_sessions", "<div>" + StringUtils.safeHtml(sb.toString()) + "</div>");
 
         // get the inmates from the brig - client ip's that are considered to be attackers.
+
         String inmates = theBrig == null ? "" : theBrig
                 .getInmates().stream()
                 .sorted(Comparator.comparingLong(Inmate::getReleaseTime).reversed())
-                .map(x -> x.getClientId() + " in jail until " + Instant.ofEpochMilli(x.getReleaseTime()).atZone(ZoneId.systemDefault()).toLocalDateTime())
+                .map(x -> "<div>" + x.getClientId() + " in jail until " + Instant.ofEpochMilli(x.getReleaseTime()).atZone(ZoneId.systemDefault()).toLocalDateTime() + "</div>")
                 .collect(Collectors.joining("\n"));
-        adminPageValues.put("inmates", StringUtils.safeHtml(inmates));
+        adminPageValues.put("inmates", inmates);
 
         List<LoggingLevel> logLevels = constants.logLevels;
         adminPageValues.put("log_settings", StringUtils.safeHtml(logLevels.toString()));
@@ -89,8 +110,34 @@ public class Admin {
         } catch (IOException ex) {
             s = "Exception while reading code_status.txt. " + ex.getMessage();
         }
+
         adminPageValues.put("version_info", StringUtils.safeHtml(s));
-        adminPageValues.put("auth_header", authHeader.renderTemplate(Map.of("edit_this_person", "")));
+        String navHeader = navigationHeader.renderNavigationHeader(request, true, true, "");
+        adminPageValues.put("navigation_header", navHeader);
+
+        // get the number of photographs
+        int photoCount = photoDb.values().size();
+        adminPageValues.put("photo_count", String.valueOf(photoCount));
+
+        // get the number of videos
+        int videoCount = videoDb.values().size();
+        adminPageValues.put("video_count", String.valueOf(videoCount));
+
+        // get the number of persons
+        int personCount = personDb.values().size();
+        adminPageValues.put("person_count", String.valueOf(personCount));
+
+        // get the number of living people
+        long livingPersonCount = personDb.values().stream().filter(x -> x.getDeathday().equals(Date.EMPTY)).count();
+        adminPageValues.put("living_person_count", String.valueOf(livingPersonCount));
+
+        // get the number of deceased people
+        long deceasedPersonCount = personDb.values().stream().filter(x -> ! x.getDeathday().equals(Date.EMPTY)).count();
+        adminPageValues.put("deceased_person_count", String.valueOf(deceasedPersonCount));
+
+        // get the total number of bytes of all biographies in the system
+        long totalBioBytesCount = personMetricsDb.values().stream().mapToInt(PersonMetrics::getBioCharCount).sum();
+        adminPageValues.put("total_bio_bytes", String.valueOf(totalBioBytesCount));
 
         String responseBody = adminPageProcessor.renderTemplate(adminPageValues);
         return Respond.htmlOk(responseBody);

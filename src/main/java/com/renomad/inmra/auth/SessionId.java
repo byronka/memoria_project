@@ -88,7 +88,7 @@ public class SessionId extends DbData<SessionId> {
     }
 
     @Override
-    protected void setIndex(long index) {
+    public void setIndex(long index) {
         this.index = index;
     }
 

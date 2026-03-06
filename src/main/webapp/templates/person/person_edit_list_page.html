@@ -2,81 +2,138 @@
 <html lang="en">
     <head>
         <title>List Persons | Inmra</title>
-        <meta charset="utf-8"/>
-        <link rel="stylesheet" href="person/person_edit_list_page.css" />
-        <link rel="stylesheet" href="general/main.css" />
-        <meta name="filename" content="person_edit_list_page.html" />
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="person/person_edit_list_page.css" >
+        <link rel="stylesheet" href="general/main.css" >
+        <meta name="filename" content="person_edit_list_page.html" >
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="/person/sorting_behavior.js"></script>
+        <script src="/person/filtering_behavior.js"></script>
         <script src="person/person_edit_list_page.js" ></script>
     </head>
     <body>
-        <nav>
-            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
-            <a id="help" href="/general/adminhelp.html">ⓘ</a>
-            {{header}}
-        </nav>
+        {{ navigation_header }}
         <div id="container">
+
             <div id="search_pane">
-                <p id="current_search">Current search: {{current_search}}</p>
+                <p id="current_search">Current search: <em>{{current_search}}</em></p>
                 <form>
                     <label for="search_field">Search:</label>
-                    <input type="text" id="search_field" required name="search" />
-                    <input id="search-submit" type="submit" value="Search" />
-                    <input type="hidden" name="sort" value="{{current_sort_code}}" />
+                    <input type="text" id="search_field" required name="search" size="1" />
+                    <button id="search-submit" type="submit" >Search</button>
+                    <input type="hidden" name="sort" value="{{current_sort_for_attr}}" />
+                    <input type="hidden" name="filter" value="{{current_filter_for_attr}}" />
                 </form>
                 <form>
-                    <input type="hidden" name="sort" value="{{current_sort_code}}" />
-                    <input id="clear-search-submit" type="submit" value="Clear search" />
+                    <input type="hidden" name="filter" value="{{current_filter_for_attr}}" />
+                    <input type="hidden" name="sort" value="{{current_sort_for_attr}}" />
+                    <button id="clear-search-submit" type="submit">Clear search</button>
                 </form>
             </div>
-            <div id="sort_pane">
-                <p id="current_sort" >Current sort: {{current_sort}}</p>
+
+            <div id="filter_pane">
+                <p id="current_filter" >Current filter: <em>{{current_filter}}</em></p>
                 <form>
-                    <label for="sort-select" >Sort: </label>
-                    <select name="sort" id="sort-select">
-                        <option value="" selected disabled hidden>--Please choose an option--</option>
+                    <select name="filter" id="filter-select" size="1">
+                        <option value="" selected disabled hidden>--Choose filter--</option>
+                        <option value="eap" title="This might help find people who are actually deceased">Extremely aged people</option>
+                        <option value="lp">Living people</option>
+                        <option value="lpkb">Living people with known birthdate</option>
+                        <option value="dp">Deceased people</option>
+                        <option value="dpkd">Deceased people with known dates</option>
+                        <option value="na" title="people who have no ancestors listed" >No ancestors</option>
+                        <option value="nd" title="people who have no descendants listed" >No descendants</option>
+                    </select>
+                    <input type="hidden" name="search" value="{{current_search_for_attr}}" />
+                    <input type="hidden" name="sort" value="{{current_sort_for_attr}}" />
+                    <button id="filter-submit" type="submit">Filter</button>
+                    <script>
+                        // if we have JavaScript running, hide the submit button
+                        document.getElementById('filter-submit').style.display = 'none';
+                    </script>
+                </form>
+                <form>
+                    <input type="hidden" name="search" value="{{current_search_for_attr}}" />
+                    <input type="hidden" name="sort" value="{{current_sort_for_attr}}" />
+                    <button id="clear-filter-submit" type="submit" >Clear filter</button>
+                </form>
+            </div>
+
+            <div id="sort_pane">
+                <p id="current_sort" >Current sort: <em>{{current_sort}}</em></p>
+                <form>
+                    <select name="sort" id="sort-select" size="1">
+                        <option value="" selected disabled hidden>--Choose sorting--</option>
                         <option value="bda">birth date ascending</option>
                         <option value="bdd">birth date descending</option>
                         <option value="dda">death date ascending</option>
                         <option value="ddd">death date descending</option>
                         <option value="na">name ascending</option>
                         <option value="nd">name descending</option>
-                        <option value="pca">photo count ascending</option>
-                        <option value="pcd">photo count descending</option>
                         <option value="lma">last modified ascending</option>
                         <option value="lmd">last modified descending</option>
+                        <option value="cbpa">Count of biography photos, ascending</option>
+                        <option value="cbpd">Count of biography photos, descending</option>
+                        <option value="rcbpapa">Ratio of biography photos to all photos, ascending</option>
+                        <option value="rcbpapd">Ratio of biography photos to all photos, descending</option>
+                        <option value="rcapbpa">Ratio of all photos to biography photos, ascending</option>
+                        <option value="rcapbpd">Ratio of all photos to biography photos, descending</option>
+                        <option value="cbva">Count of biography videos, ascending</option>
+                        <option value="cbvd">Count of biography videos, descending</option>
+                        <option value="rcbvava">Ratio of biography videos to all videos, ascending</option>
+                        <option value="rcbvavd">Ratio of biography videos to all videos, descending</option>
+                        <option value="rcavbva">Ratio of all videos to biography videos, ascending</option>
+                        <option value="rcavbvd">Ratio of all videos to biography videos, descending</option>
+                        <option value="pca">count of photos, ascending</option>
+                        <option value="pcd">count of photos, descending</option>
+                        <option value="vca">Count of videos, ascending</option>
+                        <option value="vcd">Count of videos, descending</option>
+                        <option value="ccra">Count of close relatives, ascending</option>
+                        <option value="ccrd">Count of close relatives, descending</option>
+                        <option value="cfca">Count of first cousins, ascending</option>
+                        <option value="cfca">Count of first cousins, descending</option>
+                        <option value="cca">Count of all cousins, ascending</option>
+                        <option value="ccd">Count of all cousins, descending</option>
+                        <option value="rfcaca">Ratio of first cousins to all cousins, ascending</option>
+                        <option value="rfcacd">Ratio of first cousins to all cousins, descending</option>
+                        <option value="caa">Count of ancestors, ascending</option>
+                        <option value="cad">Count of ancestors, descending</option>
+                        <option value="cda">Count of descendants, ascending</option>
+                        <option value="cdd">Count of descendants, descending</option>
+                        <option value="aa">Age, ascending</option>
+                        <option value="ad">Age, descending</option>
+                        <option value="bsa">Biography size, ascending</option>
+                        <option value="bsd">Biography size, descending</option>
+                        <option value="rbsnsa">Ratio of biography size to notes size, ascending</option>
+                        <option value="rbsnsd">Ratio of biography size to notes size, descending</option>
+                        <option value="rnsbsa">Ratio of notes size to biography size, ascending</option>
+                        <option value="rnsbsd">Ratio of notes size to biography size, descending</option>
+                        <option value="inta">Interesting rank (bio / videos / images ), ascending</option>
+                        <option value="intd">Interesting rank (bio / videos / images ), descending</option>
+                        <option value="nsa">Notes size, ascending</option>
+                        <option value="nsd">Notes size, descending</option>
+                        <option value="ftsa">Family tree size, ascending</option>
+                        <option value="ftsd">Family tree size, descending</option>
+                        <option value="ssa">Summary size, ascending</option>
+                        <option value="ssd">Summary size, descending</option>
                     </select>
-                    <input type="hidden" name="search" value="{{current_search_raw}}" />
-                    <input id="sort-submit" type="submit" value="Sort" />
+                    <input type="hidden" name="search" value="{{current_search_for_attr}}" />
+                    <input type="hidden" name="filter" value="{{current_filter_for_attr}}" />
+                    <button id="sort-submit" type="submit">Sort</button>
                     <script>
                         // if we have JavaScript running, hide the submit button
                         document.getElementById('sort-submit').style.display = 'none';
                     </script>
                 </form>
                 <form>
-                    <input type="hidden" name="search" value="{{current_search_raw}}" />
-                    <input id="clear-sort-submit" type="submit" value="Clear sort" />
+                    <input type="hidden" name="search" value="{{current_search_for_attr}}" />
+                    <input type="hidden" name="filter" value="{{current_filter_for_attr}}" />
+                    <button id="clear-sort-submit" type="submit" >Clear sort</button>
                 </form>
             </div>
-            <div id="list_person_pane">
-                {{list_items}}
-            </div>
-            <div id="back_button">
-                <form>
-                    <input type="hidden" name="page" value="{{previous_page}}">
-                    <input type="hidden" name="search" value="{{current_search_raw}}" />
-                    <input type="hidden" name="sort" value="{{current_sort_code}}" />
-                    <button>back</button>
-                </form>
-            </div>
-            <div id="forward_button">
-                <form>
-                    <input type="hidden" name="page" value="{{next_page}}">
-                    <input type="hidden" name="search" value="{{current_search_raw}}" />
-                    <input type="hidden" name="sort" value="{{current_sort_code}}" />
-                    <button>forward</button>
-                </form>
+
+            <div id="list_results_section">
+            {{ list_result_section }}
             </div>
         </div>
     </body>

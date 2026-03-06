@@ -2,14 +2,12 @@ package com.renomad.inmra.auth;
 
 import com.renomad.inmra.auth.services.BruteForceChecker;
 import com.renomad.inmra.security.ISecurityUtils;
-import com.renomad.inmra.utils.IFileUtils;
-import com.renomad.inmra.utils.MemoriaContext;
-import com.renomad.inmra.utils.Respond;
-import com.renomad.minum.state.Constants;
-import com.renomad.minum.state.Context;
-import com.renomad.minum.database.Db;
+import com.renomad.inmra.utils.*;
+import com.renomad.minum.database.AbstractDb;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.security.ITheBrig;
+import com.renomad.minum.state.Constants;
+import com.renomad.minum.state.Context;
 import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.CryptoUtils;
 import com.renomad.minum.utils.StringUtils;
@@ -22,35 +20,42 @@ import java.util.List;
 import java.util.Map;
 
 import static com.renomad.inmra.auth.IAuthUtils.cookieKey;
+import static com.renomad.inmra.auth.PrivacyCheck.PRIVACY_KEY;
 import static com.renomad.inmra.auth.RegisterResultStatus.ALREADY_EXISTING_USER;
 import static com.renomad.minum.utils.SearchUtils.findExactlyOne;
 import static com.renomad.minum.web.StatusLine.StatusCode.*;
 
 public class AuthPages {
 
+    public static final String PRIVACY_PASSWORD_SALT = "this_is_my_salt";
     private final ILogger logger;
-    private final Db<User> userDb;
-    private final Db<SessionId> sessionDiskData;
-    private final String loginPageTemplate;
+    private final AbstractDb<User> userDb;
+    private final AbstractDb<SessionId> sessionDiskData;
+    private final TemplateProcessor loginPageTemplate;
     private final String logoutPageTemplate;
     private final TemplateProcessor registerPageTemplate;
     private final TemplateProcessor resetPasswordTemplate;
+    private final TemplateProcessor privacyLoginTemplate;
+    private final TemplateProcessor privacyLogoutTemplate;
     private final Constants constants;
     private final IAuthUtils authUtils;
-    private final AuthHeader authHeader;
     private final BruteForceChecker bruteForceChecker;
+    private final MemoriaContext memoriaContext;
+    private final Auditor auditor;
+    private final NavigationHeader navigationHeader;
 
 
     public AuthPages(IAuthUtils authUtils,
-                     AuthHeader authHeader,
-                     Db<SessionId> sessionDiskData,
-                     Db<User> userDb,
+                     AbstractDb<SessionId> sessionDiskData,
+                     AbstractDb<User> userDb,
                      Context context,
                      MemoriaContext memoriaContext,
-                     ISecurityUtils securityUtils) {
+                     ISecurityUtils securityUtils,
+                     NavigationHeader navigationHeader) {
         this.authUtils = authUtils;
-        this.authHeader = authHeader;
-        IFileUtils fileUtils = memoriaContext.fileUtils();
+        this.memoriaContext = memoriaContext;
+        this.auditor = memoriaContext.getAuditor();
+        IFileUtils fileUtils = memoriaContext.getFileUtils();
         this.constants = context.getConstants();
         this.userDb = userDb;
         this.sessionDiskData = sessionDiskData;
@@ -63,11 +68,14 @@ public class AuthPages {
             theBrig = null;
         }
 
-        loginPageTemplate = fileUtils.readTemplate("auth/login_page_template.html");
+        loginPageTemplate = TemplateProcessor.buildProcessor(fileUtils.readTemplate("auth/login_page_template.html"));
         logoutPageTemplate = fileUtils.readTemplate("auth/logout_page_template.html");
         registerPageTemplate = TemplateProcessor.buildProcessor(fileUtils.readTemplate("auth/register_page_template.html"));
         resetPasswordTemplate = TemplateProcessor.buildProcessor(fileUtils.readTemplate("auth/reset_user_password_template.html"));
+        privacyLoginTemplate = TemplateProcessor.buildProcessor(fileUtils.readTemplate("auth/privacy_login_page_template.html"));
+        privacyLogoutTemplate = TemplateProcessor.buildProcessor(fileUtils.readTemplate("auth/privacy_logout_page_template.html"));
         this.bruteForceChecker = new BruteForceChecker(securityUtils, theBrig, logger);
+        this.navigationHeader = navigationHeader;
 
     }
 
@@ -149,11 +157,12 @@ public class AuthPages {
      */
     public IResponse loginUserPost(IRequest r) {
         boolean isBruteForcing = bruteForceChecker.check(r.getRemoteRequester());
-        if (isBruteForcing) return Response.buildLeanResponse(CODE_429_TOO_MANY_REQUESTS);
+        boolean hasFailedLoginTooManyTimes = bruteForceChecker.checkForFailedLogins(r.getRemoteRequester());
+        if (isBruteForcing || hasFailedLoginTooManyTimes) return Response.buildLeanResponse(CODE_429_TOO_MANY_REQUESTS);
 
         // if already authenticated, send them to the index
         if (authUtils.processAuth(r).isAuthenticated()) {
-            return Response.redirectTo("/");
+            return Respond.redirectTo("/");
         }
 
         final var username = r.getBody().asString("username");
@@ -162,18 +171,18 @@ public class AuthPages {
 
         return switch (loginResult.status()) {
             case SUCCESS -> {
-                logger.logAudit(() -> String.format("Successful user login for: %s, id: %s", loginResult.user().getUsername(), loginResult.user().getIndex()));
+                auditor.audit(() -> String.format("Successful user login for: %s, id: %s", loginResult.user().getUsername(), loginResult.user().getIndex()), loginResult.user());
                 yield Response.buildLeanResponse(CODE_303_SEE_OTHER, Map.of(
                         "Location","index",
                         "Set-Cookie","%s=%s; Secure; HttpOnly; Domain=%s".formatted(cookieKey, loginResult.sessionId().getSessionCode(), constants.hostName)));
             }
             case DID_NOT_MATCH_PASSWORD -> {
                 logger.logDebug(() -> "Failed login for user named: " + username);
-                yield Response.buildResponse(CODE_403_FORBIDDEN, Map.of("Content-Type","text/plain"), "Invalid account credentials");
+                yield Respond.redirectTo("/login?error=true");
             }
             case NO_USER_FOUND -> {
                 logger.logDebug(() -> "login attempted, but no user named: " + username);
-                yield Response.buildResponse(CODE_403_FORBIDDEN, Map.of("Content-Type","text/plain"), "Invalid account credentials");
+                yield Respond.redirectTo("/login?error=true");
             }
         };
     }
@@ -189,9 +198,12 @@ public class AuthPages {
     public IResponse loginGet(IRequest request) {
         AuthResult authResult = authUtils.processAuth(request);
         if (authResult.isAuthenticated()) {
-            return Response.redirectTo("/");
+            return Respond.redirectTo("/");
         }
-        return Respond.htmlOk(loginPageTemplate);
+        String error = request.getRequestLine().queryString().get("error");
+        Map<String, String> valuesMap = Map.of(
+                "error",  error == null ? "" : "Invalid credentials");
+        return Respond.htmlOk(loginPageTemplate.renderTemplate(valuesMap));
     }
 
 
@@ -202,15 +214,15 @@ public class AuthPages {
         }
         final var username = r.getBody().asString("username");
         final var password = r.getBody().asString("password");
-        logger.logAudit(() -> String.format(
+        auditor.audit(() -> String.format(
                 "%s, id: %d is registering a new user, %s",
                 authResult.user().getUsername(),
                 authResult.user().getIndex(),
-                username));
+                username), authResult.user());
         final var registrationResult = registerUserPost(username, password);
 
         if (registrationResult.status() == ALREADY_EXISTING_USER) {
-            logger.logAudit(() -> String.format("registration for %s failed - already registered", username));
+            auditor.audit(() -> String.format("registration for %s failed - already registered", username), authResult.user());
             return Response.buildResponse(
                     CODE_401_UNAUTHORIZED,
                     Map.of("content-type","text/html"),
@@ -225,8 +237,8 @@ public class AuthPages {
         if (! authResult.isAuthenticated()) {
             return authUtils.htmlForbidden();
         }
-        String renderedAuthHeader = authHeader.getRenderedAuthHeader(request);
-        Map<String, String> templateValues = Map.of("header", renderedAuthHeader);
+        String renderedAuthHeader = navigationHeader.renderNavigationHeader(request, true, true, "");
+        Map<String, String> templateValues = Map.of("navigation_header", renderedAuthHeader);
         String renderedTemplate = registerPageTemplate.renderTemplate(templateValues);
         return Response.htmlOk(renderedTemplate);
     }
@@ -243,10 +255,10 @@ public class AuthPages {
         final var authResult = authUtils.processAuth(request);
         if (authResult.isAuthenticated()) {
             User user = authResult.user();
-            logger.logAudit(() -> "User logged out - named: " + user.getUsername() + " id: " + user.getIndex());
+            auditor.audit(() -> "User logged out - named: " + user.getUsername() + " id: " + user.getIndex(), user);
             logoutUser(user);
         }
-        return Response.redirectTo("loggedout");
+        return Respond.redirectTo("loggedout");
     }
 
     public IResponse loggedoutGet(IRequest request) {
@@ -257,9 +269,10 @@ public class AuthPages {
         final var authResult = authUtils.processAuth(request);
         if (authResult.isAuthenticated()) {
             String newPassword = StringUtils.generateSecureRandomString(20);
+            String myNavHeader = navigationHeader.renderNavigationHeader(request, true, true, "");
             Map<String, String> templateValues = Map.of(
                     "newpassword", newPassword,
-                    "header", authHeader.getRenderedAuthHeader(request)
+                    "navigation_header", myNavHeader
             );
             String renderedTemplate = resetPasswordTemplate.renderTemplate(templateValues);
             return Respond.htmlOk(renderedTemplate);
@@ -296,6 +309,55 @@ public class AuthPages {
                 newSalt);
         userDb.write(updatedUser);
 
-        return Response.redirectTo("/auth/passwordchanged.html");
+        auditor.audit(() -> String.format("user %s has reset their password", authResult.user().getUsername()), authResult.user());
+
+        return Respond.redirectTo("/auth/passwordchanged.html");
+}
+
+    /**
+     * Returns the page for entering a password, in order to view private content
+     */
+    public IResponse privacyLoginGet(IRequest request) {
+        String backref = request.getRequestLine().queryString().get("backref");
+        String error = request.getRequestLine().queryString().get("error");
+        Map<String, String> valuesMap = Map.of(
+                "backref", backref == null ? "" : StringUtils.safeAttr(backref),
+                "error",  error == null ? "" : "Invalid password");
+        String template = privacyLoginTemplate.renderTemplate(valuesMap);
+        return Respond.htmlOk(template);
+    }
+
+    /**
+     * Receives the password, providing a cookie for access to private data, and
+     * returning the user to the referencing page.
+     */
+    public IResponse privacyLoginPost(IRequest request) {
+        boolean isBruteForcing = bruteForceChecker.check(request.getRemoteRequester());
+        boolean hasFailedLoginTooManyTimes = bruteForceChecker.checkForFailedLogins(request.getRemoteRequester());
+        if (isBruteForcing || hasFailedLoginTooManyTimes) return Response.buildLeanResponse(CODE_429_TOO_MANY_REQUESTS);
+        String backref = request.getBody().asString("backref");
+        // convert to ascii because headers must be ascii (not UTF-8) and we're about to use this in the location header
+        String asciiBackRef = Cleaners.utf8ToAscii(backref);
+        String password = request.getBody().asString("password");
+        String passwordHash = CryptoUtils.createPasswordHash(password, PRIVACY_PASSWORD_SALT);
+        if (passwordHash.equals(memoriaContext.getHashedPrivacyPassword())) {
+            logger.logAudit(() -> String.format("%s has entered the privacy password", request.getRemoteRequester()));
+            return Response.buildLeanResponse(CODE_303_SEE_OTHER, Map.of(
+                    "location", "/" + asciiBackRef,
+                    "Set-Cookie","%s=%s; Secure; HttpOnly; Domain=%s; Max-Age=%d".formatted(PRIVACY_KEY, passwordHash, constants.hostName, memoriaContext.getConstants().PRIVACY_COOKIE_MAX_AGE)));
+        } else {
+            logger.logAudit(() -> String.format("%s has failed to enter the correct privacy password", request.getRemoteRequester()));
+            return Respond.redirectTo("/privacylogin?backref=" + StringUtils.encode(asciiBackRef) + "&error=true");
+        }
+    }
+
+    /**
+     * Returns the page for clearing the privacy cookie and informing the user
+     */
+    public IResponse privacyLogoutGet(IRequest request) {
+        String backref = request.getRequestLine().queryString().get("backref");
+        String template = privacyLogoutTemplate.renderTemplate(Map.of("backref", backref == null ? "" : StringUtils.safeAttr(backref)));
+        logger.logAudit(() -> String.format("%s has removed their privacy password", request.getRemoteRequester()));
+        return Response.buildResponse(CODE_200_OK, Map.of("Content-Type", "text/html; charset=UTF-8", "Set-Cookie","%s=%s; Secure; HttpOnly; Domain=%s; Max-Age=%d".formatted(PRIVACY_KEY, "removing_this_cookie", constants.hostName, 0)), template);
     }
 }

@@ -1,0 +1,1 @@
+These are files used for the tests in com.renomad.inmra.utils.diff

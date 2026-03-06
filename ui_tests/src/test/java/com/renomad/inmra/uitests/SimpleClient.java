@@ -35,13 +35,18 @@ public class SimpleClient {
      *                Otherwise an exception gets thrown
      */
     public static HttpResponse<String> post(String url, String body, List<String> headers) {
-        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .timeout(Duration.ofMinutes(1))
                 .header("Content-Type", "application/x-www-form-urlencoded")
-                .headers(headers.toArray(new String[0]))
-                .POST(HttpRequest.BodyPublishers.ofString(body))
-                .build();
+                .POST(HttpRequest.BodyPublishers.ofString(body));
+
+        if (! headers.isEmpty()) {
+            requestBuilder.headers(headers.toArray(new String[0]));
+        }
+
+        HttpRequest request = requestBuilder.build();
+
         try (HttpClient client = HttpClient.newHttpClient()) {
             try {
                 return client.send(request, HttpResponse.BodyHandlers.ofString());

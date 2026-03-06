@@ -1,60 +1,68 @@
 "use strict";
 
-/***************************************
-*        Delete buttons                *
-***************************************/
+class NavigationButtonHandling {
 
-class DeleteButtonsHandling {
-    // every delete button on the page
-    all_delete_buttons
+    pagingActionForms;
+    listResultsSection;
 
     constructor() {
-        this.all_delete_buttons = document.querySelectorAll('.delete_button');
+        this.pagingActionForms = document.querySelectorAll('.paging_action');
+        this.listResultsSection = document.getElementById('list_results_section');
     }
 
-    // add a click event to every delete button on the page
     applyClickEvents = () => {
-
-        this.all_delete_buttons.forEach(
-            x => x.addEventListener(
-                'click',
-
-                // this event will get the person's id, and send a DELETE request
-                // to the server.
-                async event => {
-
-                    // if the user has JavaScript enabled, we only want to use that,
-                    // instead of letting the browser send a form action
-                    event.preventDefault();
-
-                    // get the person's id off the "personid" attribute on the button
-                    const personid = event.target.getAttribute('data-personid')
-
-                    // get the photoRow of the photo to delete, to operate on later.
-                    const personDiv = document.getElementById(`${personid}_details`);
-
-                    // build a request
-                    const request = new Request("person?id=" + personid, {
-                      method: "DELETE",
-                    });
-
-                    // send the request, then reload the page
-                    try {
-                        // send the request, then delete that row
-                        await fetch(request);
-                        personDiv.remove();
-                    } catch (error) {
-                        console.error(`deletion error: ${error.message}`);
-                        personDiv.classList.add('failed-border')
-                    }
-                }
-            )
+        this.pagingActionForms.forEach(
+            this.createHandlerClosure()
         )
+    };
+
+    /**
+     * builds a closure for wiring up the click event on the
+     * paging buttons.
+     */
+    createHandlerClosure() {
+        return x => x.addEventListener(
+           'click',
+            this.createInnerEventCode(),
+           {capture: true, once: true}
+       )
+    }
+
+    createInnerEventCode() {
+       return async event => {
+
+           // if the user has JavaScript enabled, we only want to use that,
+           // instead of letting the browser send a form action
+           event.preventDefault();
+
+           const page = event.currentTarget.querySelector('input[name=page]').getAttribute('value')
+           const search = event.currentTarget.querySelector('input[name=search]').getAttribute('value')
+           const sort = event.currentTarget.querySelector('input[name=sort]').getAttribute('value')
+           const filter = event.currentTarget.querySelector('input[name=filter]').getAttribute('value')
+
+           // build a request
+           const request = new Request(`/personlist?page=${page}&search=${search}&sort=${sort}&filter=${filter}`, {
+             method: "GET",
+           });
+
+           try {
+               // send the request, then incorporate the new data into the dom
+               const response = await fetch(request);
+               const newData = await response.text();
+               this.listResultsSection.innerHTML = newData;
+
+               // initialize the code for replacing the list of results when paging
+               const navigationButtonHandling = new NavigationButtonHandling();
+               navigationButtonHandling.applyClickEvents();
+           } catch (error) {
+               console.error(`error: ${error.message}`);
+           }
+       }
     }
 }
 
-
 addEventListener("load", (event) => {
-    const deleteButtonsHandling = new DeleteButtonsHandling();
-    deleteButtonsHandling.applyClickEvents();
+    // initialize the code for replacing the list of results when paging
+    const navigationButtonHandling = new NavigationButtonHandling();
+    navigationButtonHandling.applyClickEvents();
 });

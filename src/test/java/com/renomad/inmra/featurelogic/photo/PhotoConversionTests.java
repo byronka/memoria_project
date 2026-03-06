@@ -25,14 +25,13 @@ public class PhotoConversionTests {
 
     private static PhotoResizing photoResizing;
     private static ILogger logger;
-    private static IFileUtils fileUtils;
 
     @BeforeClass
     public static void initClass() throws IOException {
         var context = buildTestingContext("unit_tests");
         logger = context.getLogger();
         MemoriaContext memoriaContext = MemoriaContext.buildMemoriaContext(context);
-        fileUtils = memoriaContext.fileUtils();
+        IFileUtils fileUtils = memoriaContext.getFileUtils();
         fileUtils.makeDirectory(Path.of("target/testing_image_conversion/"));
         photoResizing = new PhotoResizing(context);
     }
@@ -107,6 +106,8 @@ public class PhotoConversionTests {
             }
             MyThread.sleep(100);
         }
+        // Give the file a bit of time to close
+        MyThread.sleep(50);
         BufferedImage img = ImageIO.read(mediumFile.toFile());
         assertEquals(img.getHeight(), 599);
         assertEquals(img.getWidth(), 600);

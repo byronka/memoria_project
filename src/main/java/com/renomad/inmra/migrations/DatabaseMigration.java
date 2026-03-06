@@ -2,9 +2,9 @@ package com.renomad.inmra.migrations;
 
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.MemoriaContext;
+import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.state.Constants;
 import com.renomad.minum.state.Context;
-import com.renomad.minum.logging.ILogger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,10 +33,16 @@ public class DatabaseMigration {
     private final Migration12 migration12;
     private final Migration13 migration13;
     private final Migration14 migration14;
+    private final Migration15 migration15;
+    private final Migration16 migration16;
+    private final Migration17 migration17;
+    private final Migration18 migration18;
+    private final Migration19 migration19;
+    private final Migration20 migration20;
 
     public DatabaseMigration(Context context, MemoriaContext memoriaContext) {
         this.logger = context.getLogger();
-        this.fileUtils = memoriaContext.fileUtils();
+        this.fileUtils = memoriaContext.getFileUtils();
         this.constants = context.getConstants();
         Path dbDirectory = Path.of(constants.dbDirectory);
         migrationsRecords = dbDirectory.resolve("migrations.ddps");
@@ -55,6 +61,12 @@ public class DatabaseMigration {
         this.migration12 = new Migration12(dbDirectory, logger);
         this.migration13 = new Migration13(dbDirectory, logger);
         this.migration14 = new Migration14(dbDirectory, logger, context);
+        this.migration15 = new Migration15(dbDirectory, logger, context);
+        this.migration16 = new Migration16(dbDirectory, logger);
+        this.migration17 = new Migration17(dbDirectory, logger);
+        this.migration18 = new Migration18(dbDirectory, logger);
+        this.migration19 = new Migration19(dbDirectory, logger);
+        this.migration20 = new Migration20(dbDirectory, logger);
     }
 
     /**
@@ -119,6 +131,30 @@ public class DatabaseMigration {
         if (needsToRun("migration14")) {
             migration14.run();
             Files.writeString(migrationsRecords, "migration14\n", StandardOpenOption.APPEND);
+        }
+        if (needsToRun("migration15")) {
+            migration15.run();
+            Files.writeString(migrationsRecords, "migration15\n", StandardOpenOption.APPEND);
+        }
+        if (needsToRun("migration16")) {
+            migration16.run();
+            Files.writeString(migrationsRecords, "migration16\n", StandardOpenOption.APPEND);
+        }
+        if (needsToRun("migration17")) {
+            migration17.run();
+            Files.writeString(migrationsRecords, "migration17\n", StandardOpenOption.APPEND);
+        }
+        if (needsToRun("migration18")) {
+            migration18.run();
+            Files.writeString(migrationsRecords, "migration18\n", StandardOpenOption.APPEND);
+        }
+        if (needsToRun("migration19")) {
+            migration19.run();
+            Files.writeString(migrationsRecords, "migration19\n", StandardOpenOption.APPEND);
+        }
+        if (needsToRun("migration20")) {
+            migration20.run();
+            Files.writeString(migrationsRecords, "migration20\n", StandardOpenOption.APPEND);
         }
     }
 

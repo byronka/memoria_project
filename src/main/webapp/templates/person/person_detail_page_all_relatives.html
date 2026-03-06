@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{{title_name}} - all relatives | Inmra</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="/person/person_detail_page.css" >
+        <link rel="stylesheet" href="/general/main.css" >
+        <link rel="stylesheet" href="/general/tooltips.css" >
+        <link rel="stylesheet" href="/person/show_preview.css" >
+        <meta name="filename" content="person_detail_page_all_relatives.html" >
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="/person/show_preview.js"></script>
+        <script src="/person/header_person_search.js"></script>
+    </head>
+    <body>
+    {{ navigation_header }}
+        <div id="outer">
+            <div id="persons">
+                <div id="person-navigation-block">
+                    <div id="return-to-normal-view">
+                        <a title="Return to ordinary person view, with biography section" href="/person?id={{id}}{{oid}}">Return to normal view</a>
+                    </div>
+
+                    <h3>Sections</h3>
+                    <ul>
+                        <li><a href="#close_relatives">Close relatives</a></li>
+                        <li><a href="#blood_relatives">Blood relatives</a></li>
+                        <li><a href="#ancestors">Ancestors</a></li>
+                        <li><a href="#descendants">Descendants</a></li>
+                    </ul>
+                </div>
+                <div id="{{id}}_details">
+
+                    {{person_image}}
+
+                    <div class="name-and-era">
+                        <div>
+                            <h2 class="lifespan-name" style="display: inline;">
+                                {{name}}
+                            </h2>
+                            {{ relation_to_other_person_link }}
+                        </div>
+                        <span class="lifespan-era">
+                            {{lifespan}}
+                        </span>
+                    </div>
+
+                    {{relationship}}
+
+                    <ul style="clear: both;">
+                        <li class="parents-item manual-links">
+                            <span class="label immediate-family relative-type-label">Parents: </span>
+                            <span class="parents">
+                                {{parents}}
+                            </span>
+                        </li>
+
+
+                        <li class="siblings-item manual-links">
+                            <span class="label immediate-family relative-type-label">Siblings: </span>
+                            <span class="siblings">
+                                {{siblings}}
+                            </span>
+                        </li>
+
+
+                        <li class="spouses-item manual-links">
+                            <span class="label immediate-family relative-type-label">Spouses: </span>
+                            <span class="spouses">
+                                {{spouses}}
+                            </span>
+                        </li>
+
+
+                        <li class="children-item manual-links">
+                            <span class="label immediate-family relative-type-label">Children: </span>
+                            <span class="children">
+                                {{children}}
+                            </span>
+                        </li>
+
+                    </ul>
+
+                    <h3 id="close_relatives">Close relatives (including marriage) <span><a class="back-to-top" href="#persons" style=" font-size: 12px; position: absolute;">[Back to top]</a></span></h3>
+                    <div class="calculated-relatives close_relatives">
+                        <ul>
+                            {{relatives}}
+                        </ul>
+                    </div>
+
+                    <h3 id="blood_relatives">Extended blood relatives <span><a class="back-to-top" href="#persons" style=" font-size: 12px; position: absolute;">[Back to top]</a></span></h3>
+                    <ul class="calculated-relatives blood_relatives">
+                        {{blood_relatives}}
+                    </ul>
+
+                    <h3 id="ancestors" style="clear: both;">Ancestors <span><a class="back-to-top" href="#persons" style=" font-size: 12px; position: absolute;">[Back to top]</a></span></h3>
+                    {{ printable_ancestors }}
+
+                        <script type="text/javascript">
+                            // adding as a script so if the user has javascript disabled, they
+                            // won't see this.  It only works with javascript.  Fortunately, it is
+                            // optional.
+                            const ancestorsElement = document.getElementById("ancestors");
+                            const ancestorToggleBoxLabel = document.createElement('label');
+                            ancestorToggleBoxLabel.innerText = 'Show as tree'
+
+                            const ancestorToggleBox = document.createElement('input');
+                            ancestorToggleBox.setAttribute('id','ancestor-graphic-toggle');
+                            ancestorToggleBox.setAttribute('type','checkbox');
+                            ancestorToggleBox.setAttribute('onchange','toggleAncestorGraphic(this)');
+                            ancestorToggleBoxLabel.append(ancestorToggleBox);
+                            ancestorToggleBoxLabel.after(ancestorsElement);
+                            ancestorsElement.insertAdjacentElement("afterend", ancestorToggleBoxLabel);
+
+                            function toggleAncestorGraphic(elem) {
+                                const grouped = document.getElementById('ancestors-grouped');
+                                const tree = document.getElementById('ancestor-tree-graphic');
+                                if (elem.checked) {
+                                    grouped.style.display = 'none';
+                                    tree.style.display = 'block';
+                                } else {
+                                   grouped.style.display = 'block';
+                                    tree.style.display = 'none';
+                                }
+                            }
+                        </script>
+
+                    <div id="ancestors-grouped">
+                        <h4>Grouped by generation</h4>
+                        <ul class="ancestors-grouped">
+                            {{ancestors}}
+                        </ul>
+                    </div>
+
+                    <div id="ancestor-tree-graphic" class="tree-graphic-exterior">
+                        <h4>Tree visualization</h4>
+                        <div id="ancestor-tree-graphic-interior" class="tree-graphic-interior">
+                            <ul class="calculated-relatives tree-graphic ancestors" >
+                                {{ancestors_tree_graphic}}
+                            </ul>
+                        </div>
+                    </div>
+                    <script>
+                        const ancestorTreeGraphic = document.getElementById('ancestor-tree-graphic');
+                        ancestorTreeGraphic.style.display = 'none';
+                    </script>
+
+                    <h3 id="descendants">Descendants <span><a class="back-to-top" href="#persons" style=" font-size: 12px; position: absolute;">[Back to top]</a></span></h3>
+
+                    {{ printable_descendants }}
+
+                    <script type="text/javascript">
+                        // adding as a script so if the user has javascript disabled, they
+                        // won't see this.  It only works with javascript.  Fortunately, it is
+                        // optional.
+                        const descendantsElement = document.getElementById("descendants");
+                        const descendantToggleBoxLabel = document.createElement('label');
+                        descendantToggleBoxLabel.innerText = 'Show as tree'
+
+                        const descendantToggleBox = document.createElement('input');
+                        descendantToggleBox.setAttribute('id','descendant-graphic-toggle');
+                        descendantToggleBox.setAttribute('type','checkbox');
+                        descendantToggleBox.setAttribute('onchange','toggleDescendantGraphic(this)');
+                        descendantToggleBoxLabel.append(descendantToggleBox);
+                        descendantToggleBoxLabel.after(descendantsElement);
+                        descendantsElement.insertAdjacentElement("afterend", descendantToggleBoxLabel);
+
+                        function toggleDescendantGraphic(elem) {
+                            const grouped = document.getElementById('descendants-grouped');
+                            const tree = document.getElementById('descendant-tree-graphic');
+                            if (elem.checked) {
+                                grouped.style.display = 'none';
+                                tree.style.display = 'block';
+                            } else {
+                               grouped.style.display = 'block';
+                                tree.style.display = 'none';
+                            }
+                      }
+                    </script>
+
+                    <div id="descendants-grouped">
+                        <h4>Grouped by generation</h4>
+                        <ul class="descendants-grouped">
+                            {{descendants}}
+                        </ul>
+                    </div>
+
+                    <div id="descendant-tree-graphic" class="tree-graphic-exterior">
+                        <h4>Tree visualization</h4>
+                        <div class="tree-graphic-interior">
+                            <ul class="calculated-relatives tree-graphic descendants" >
+                                {{ descendants_tree_graphic }}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <script>
+                        const descendantTreeGraphic = document.getElementById('descendant-tree-graphic');
+                        descendantTreeGraphic.style.display = 'none';
+                    </script>
+
+
+                </div>
+            </div>
+        </div>
+    <script>
+        // This value is used by the script in show_preview.js to show a preview window
+        // over the relatives listed on this page.
+        const relatives_data = { {{relatives_javascript_array}} };
+    </script>
+    </body>
+</html>

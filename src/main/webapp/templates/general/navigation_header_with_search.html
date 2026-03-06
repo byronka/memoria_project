@@ -1,0 +1,27 @@
+<nav>
+    <div id="nav_logo_container">
+        <a href="/" id="logo">
+            <img width=40 height=32 src="/general/tree_small.webp" alt="memoria homepage">
+        </a>
+    </div>
+    {{navigation_menu}}
+    {{ link_page_for_printing }}
+    <div id="nav_search_container">
+        <form method="get" action="headersearch">
+            <input type="hidden" name="oid" value="{{oid}}">
+            <input type="hidden" id="found_person_id" name="id">
+            <input required placeholder="Search relatives..." autocomplete="off" type="search" id="nav_person_search" name="personname" style="position: relative;">
+            <button type="submit">Go</button>
+            <div id="nav_search_result_container" style="display: none;">
+                <ul id="nav_search_result_list"></ul>
+            </div>
+        </form>
+    </div>
+    <div id="nav_login_container">
+        {{privacy_auth_control}}
+    </div>
+    <div id="nav_help_link">
+        {{help_link}}
+    </div>
+
+</nav>

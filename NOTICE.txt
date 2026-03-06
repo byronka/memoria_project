@@ -1,0 +1,12 @@
+External software projects that are incorporated:
+------------------------------------------------
+
+Includes files from:
+Google/diff-match-patch, found at https://github.com/google/diff-match-patch
+author: fraser@google.com (Neil Fraser)
+files: DiffMatchPatch.java
+
+Includes files from:
+Apache foundation
+Apache commons-codec, found at https://github.com/apache/commons-codec
+files: DaitchMokotoffSoundex.java

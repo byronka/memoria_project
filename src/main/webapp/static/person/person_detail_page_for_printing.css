@@ -1,0 +1,74 @@
+
+
+ul {
+   page-break-inside: avoid;
+}
+
+h1, h2, h3, h4 {
+   page-break-after: avoid;
+   text-align: center;
+}
+
+/*
+No need to show the video controls on the print,
+they just obscure the view
+*/
+video::-webkit-media-controls {
+    display: none;
+}
+
+a {
+    text-decoration: none;
+    color: black !important;
+    border: none !important;
+}
+
+html {
+  font-family: helvetica, arial, sans-serif;
+}
+
+body {
+  width: 100%;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 3rem;
+  letter-spacing: 2px;
+  column-span: all;
+}
+
+h1 + p {
+  margin-top: 0;
+}
+
+p {
+  line-height: 1.5;
+  break-after: column;
+}
+
+figure {
+  break-inside: avoid;
+}
+
+img {
+  max-width: 4in;
+  display: block;
+  margin: 0 auto;
+  break-inside: avoid;
+}
+
+video {
+  max-width: 4in;
+  display: block;
+  margin: 0 auto;
+  break-inside: avoid;
+}
+
+figcaption {
+  font-style: italic;
+  font-size: 0.8rem;
+  max-width: 4in;
+  margin: 0 auto;
+}
+

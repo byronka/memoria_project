@@ -1,12 +1,13 @@
 package com.renomad.inmra.utils;
 
-import java.io.IOException;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 public final class FileUtils implements IFileUtils {
 
     private final com.renomad.minum.utils.FileUtils fileUtils;
     private final Constants constants;
+    public static final Pattern badFilePathPatterns = Pattern.compile("//|\\.\\.|:|^/|^\\\\");
 
     public FileUtils(com.renomad.minum.utils.FileUtils fileUtils, Constants constants) {
         this.fileUtils = fileUtils;
@@ -17,7 +18,7 @@ public final class FileUtils implements IFileUtils {
      * See {@link com.renomad.minum.utils.FileUtils#makeDirectory(Path)}
      */
     @Override
-    public void makeDirectory(Path path) throws IOException {
+    public void makeDirectory(Path path) {
         fileUtils.makeDirectory(path);
     }
 

@@ -7,7 +7,6 @@ import com.renomad.minum.templating.TemplateProcessor;
 import com.renomad.minum.utils.StringUtils;
 import com.renomad.minum.web.IRequest;
 import com.renomad.minum.web.IResponse;
-import com.renomad.minum.web.Response;
 
 import java.net.URLEncoder;
 import java.util.Map;
@@ -25,7 +24,7 @@ public class Message {
     private final TemplateProcessor messageTemplateProcessor;
 
     public Message(MemoriaContext memoriaContext) {
-        IFileUtils fileUtils = memoriaContext.fileUtils();
+        IFileUtils fileUtils = memoriaContext.getFileUtils();
         messageTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("general/message_template.html"));
     }
 
@@ -36,7 +35,7 @@ public class Message {
     public static IResponse redirect(String message, String redirectLocation) {
         String encodedMessage = URLEncoder.encode(message, UTF_8);
         String encodedRedirect = URLEncoder.encode(redirectLocation, UTF_8);
-        return Response.redirectTo(String.format("/message?message=%s&redirect=%s", encodedMessage, encodedRedirect));
+        return Respond.redirectTo(String.format("/message?message=%s&redirect=%s", encodedMessage, encodedRedirect));
     }
 
     public IResponse messagePageGet(IRequest request) {

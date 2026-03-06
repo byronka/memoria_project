@@ -1,7 +1,9 @@
 package com.renomad.inmra.featurelogic.persons.services;
 
+import com.renomad.inmra.featurelogic.persons.Month;
 import com.renomad.inmra.featurelogic.persons.PersonFile;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 import com.renomad.inmra.featurelogic.persons.Date;
@@ -55,6 +57,22 @@ public class Lifespan {
                 }
 
                 lifespan = "%s to %s (%d years)".formatted(renderedBornString, renderedDeathString, age);
+            } else if (
+                    ! deserializedPersonFile.getBorn().equals(Date.EMPTY) &&
+                    ! deserializedPersonFile.getBorn().equals(Date.EXISTS_BUT_UNKNOWN) &&
+                      deserializedPersonFile.getDied().equals(Date.EMPTY)
+            ) {
+                long age;
+                var now = LocalDate.now();
+                var nowDate = new Date(now.getYear(), Month.getByOrdinal(now.getMonthValue()), now.getDayOfMonth());
+                try {
+                    age = Date.calcYearsBetween(deserializedPersonFile.getBorn(), nowDate);
+                } catch (DateTimeParseException ex) {
+                    logger.logAsyncError(() -> "Failed to parse dates in addLifespanToTemplate. " + ex);
+                    throw ex;
+                }
+
+                lifespan = "born %s (%d years old)".formatted(renderedBornString, age);
             } else {
                 lifespan = "%s to %s".formatted(renderedBornString, renderedDeathString);
             }

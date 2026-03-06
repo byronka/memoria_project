@@ -1,59 +1,44 @@
-<tr data-photoid="{{photo_id}}">
-    <td>
-        <a class="caption" href="photo?name={{photo_url}}">
-            <img class="thumbnail-image" width=40 height=64 src="photo?name={{photo_url}}&size=small" alt="thumbnail of {{short_description_attr}}">
-        </a>
-    </td>
-    <td>
-        <div class="short_description_container">
-            <form action="photocaptionupdate" method="POST">
-                <input type="hidden" name="photoid" value="{{photo_id}}">
-                <textarea class="short_description" name="caption" data-photoid="{{photo_id}}">{{short_description}}</textarea>
-                <button type="button" class="short_description_save_button" data-photoid="{{photo_id}}">Save</button>
-            </form>
-        </div>
-    </td>
-    <td>
-        <div class="long_description_container">
-            <form action="photolongdescupdate" method="POST">
-                <input type="hidden" name="photoid" value="{{photo_id}}">
-                <textarea class="long_description" name="long_description" data-photoid="{{photo_id}}">{{description}}</textarea>
-                <button type="button" class="long_description_save_button" data-photoid="{{photo_id}}">Save</button>
-            </form>
-        </div>
-    </td>
-    <td>
-        <button type="button" onclick="copyTextToClipboard(document.getElementById('photo_img_{{photo_url}}').text)">Copy &lt;img&gt;</button>
-        <script id="photo_img_{{photo_url}}" type="text/html"><img loading="lazy" src="photo?name={{photo_url}}" alt="{{short_description_attr}}"></script>
-    </td>
-    <td>
-        <button type="button" onclick="copyTextToClipboard('photo?name={{photo_url}}')">Copy URL</button>
-    </td>
-    <td>
-        <button type="button" onclick="copyTextToClipboard(document.getElementById('photo_figure_{{photo_url}}').text)">Copy &lt;figure&gt;</button>
-        <script id="photo_figure_{{photo_url}}" type="text/html" >
-            <figure>
-                <img loading="lazy" src="photo?name={{photo_url_html}}" alt="">
-                <figcaption>
-                    {{description_for_figcaption}}
-                </figcaption>
-            </figure>
-        </script>
-    </td>
-    <td>
-        <details>
-            <summary>Delete</summary>
-            <form action="deletephoto" method="post">
-                <input type="hidden" name="photoid" value="{{photo_id}}" />
-                <button type="button" class="delete_button" data-photoid="{{photo_id}}">Delete</button>
-            </form>
-        </details>
-    </td>
-    <td>
-        <form action="copyphoto" method="GET">
-            <input type="hidden" name="photo_url" value="{{photo_url}}" />
-            <button type="submit" class="copy_to_other_person_button">Copy to person</button>
+<td>
+    <a class="caption" href="photo?name={{photo_url}}&size=archive">
+        <img class="thumbnail-image {{is_published}}" width=40 height=64 src="photo?name={{photo_url}}&size=small" alt="thumbnail of {{short_description_attr}}">
+    </a>
+</td>
+<td>
+    {{ copied_to_persons }}
+</td>
+<td>
+    <div class="description_container" data-photoid="{{photo_id}}">
+        <form action="/photodescriptionupdate" class="enabled_through_javascript" method="POST" data-photoid="{{photo_id}}">
+            <input type="hidden" name="photoid" value="{{photo_id}}">
+            <textarea placeholder="alt text..." class="short_description" name="caption" data-photoid="{{photo_id}}">{{short_description}}</textarea>
+            <textarea placeholder="description..." class="long_description" name="long_description" data-photoid="{{photo_id}}">{{description}}</textarea>
+            <button type="submit" class="description_save_button photo" data-photoid="{{photo_id}}">Save</button>
         </form>
-    </td>
-
-</tr>
+    </div>
+</td>
+<td>
+    <button title="copy html text to the clipboard" type="button" onclick="copyTextToClipboard(this, document.getElementById('photo_img_{{photo_url}}').text)">Copy &lt;img&gt;</button>
+    <script id="photo_img_{{photo_url}}" type="text/html"><img loading="lazy" src="photo?name={{photo_url}}" alt="{{short_description_attr}}"></script>
+</td>
+<td>
+    <button title="copy html text to the clipboard" type="button" onclick="copyTextToClipboard(this, 'photo?name={{photo_url}}')">Copy URL</button>
+</td>
+<td>
+    <button title="copy html text to the clipboard" type="button" onclick="copyTextToClipboard(this, document.getElementById('photo_figure_{{photo_url}}').text)">Copy &lt;figure&gt;</button>
+    <script id="photo_figure_{{photo_url}}" type="text/html" > <figure><img loading="lazy" src="photo?name={{photo_url_html}}" alt="{{short_description_attr}}"><figcaption>{{description_for_figcaption}}</figcaption></figure></script>
+</td>
+<td class="delete_section">
+    <details data-photoid="{{photo_id}}">
+        <summary>Delete</summary>
+        <form action="deletephoto" method="post" class="delete-form">
+            <input type="hidden" name="photoid" value="{{photo_id}}" />
+            <button type="submit" class="delete_button photo" data-photoid="{{photo_id}}">Delete</button>
+        </form>
+    </details>
+</td>
+<td class="copy_photo_section" data-photoid="{{photo_id}}">
+    <form action="copyphoto" method="GET">
+        <input type="hidden" name="photoid" value="{{photo_id}}" />
+        <button title="copy this media to another person" type="submit" class="copy_to_other_person_button">Copy to person</button>
+    </form>
+</td>

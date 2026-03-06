@@ -1,98 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>{{name}} | Inmra</title>
-        <meta charset="utf-8"/>
-        <link rel="stylesheet" href="person/person_detail_page.css" />
-        <link rel="stylesheet" href="general/main.css" />
-        <link rel="stylesheet" href="person/show_preview.css" />
-        <meta name="filename" content="person_detail_page.html" />
+        <title>{{title_name}} | Inmra</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="/person/person_detail_page.css" >
+        <link rel="stylesheet" href="/general/main.css" >
+        <link rel="stylesheet" href="/person/show_preview.css" >
+        <meta name="filename" content="person_detail_page.html" >
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="/person/show_preview.js"></script>
+        <script src="/person/header_person_search.js"></script>
     </head>
     <body>
-        <nav>
-            <a href="/" id="logo"><img width=40 height=32 src="general/tree_small.webp" alt="memoria homepage"></a>
-            {{help_link}}
-            {{header}}
-        </nav>
+        {{ navigation_header }}
         <div id="outer">
             <div id="persons">
+
                 <div id="{{id}}_details">
-                    <div class="image-container">
-                        {{person_image}}
-                    </div>
+
+                    {{person_image}}
+
                     <div class="name-and-era">
-                        <h2 class="lifespan-name">
-                            {{name}}
-                        </h2>
+                        <div>
+                            <h2 class="lifespan-name" style="display: inline;">
+                                {{name}}
+                            </h2>
+                            {{ relation_to_other_person_link }}
+                        </div>
                         <span class="lifespan-era">
                             {{lifespan}}
                         </span>
                     </div>
 
-                    <ul>
+                    {{relationship}}
+
+                    <ul style="clear: both;">
                         <li class="parents-item manual-links">
-                            <span class="label">Parents</span>
-                            <span class="parents">{{parents}}</span>
+                            <span class="label immediate-family relative-type-label">Parents: </span>
+                            <span class="parents">
+                                {{parents}}
+                            </span>
                         </li>
+
 
                         <li class="siblings-item manual-links">
-                            <span class="label">Siblings</span>
-                            <span class="siblings">{{siblings}}</span>
+                            <span class="label immediate-family relative-type-label">Siblings: </span>
+                            <span class="siblings">
+                                {{siblings}}
+                            </span>
                         </li>
+
 
                         <li class="spouses-item manual-links">
-                            <span class="label">Spouses</span>
-                            <span class="spouses">{{spouses}}</span>
+                            <span class="label immediate-family relative-type-label">Spouses: </span>
+                            <span class="spouses">
+                                {{spouses}}
+                            </span>
                         </li>
+
 
                         <li class="children-item manual-links">
-                            <span class="label">Children</span>
-                            <span class="children">{{children}}</span>
+                            <span class="label immediate-family relative-type-label">Children: </span>
+                            <span class="children">
+                                {{children}}
+                            </span>
                         </li>
 
-                        <li class="extended-family-item">
-                            <div id="extended-family-block">
-                                <details>
-                                    <summary>
-                                    <span class="label">
-                                        Extended family (click to expand)
-                                    </span>
-                                    </summary>
-                                    <ul>
-                                        <li>
-                                            <span class="label">Descendants</span>
-                                            <div class="descendants calculated-relatives">{{descendants}}</div>
-                                        </li>
-
-                                        <li>
-                                            <span class="label">Ancestors</span>
-                                            <div class="ancestors calculated-relatives">{{ancestors}}</div>
-                                        </li>
-
-                                        <li>
-                                            <span class="label">close relatives (including marriage)</span>
-                                            <span class="close-relatives-include-marriage calculated-relatives">{{relatives}}</span>
-                                        </li>
-                                    </ul>
-                                </details>
-                            </div>
-                        </li>
+                        <div id="person-navigation-block">
+                            {{ link_to_extended_relatives }}
+                        </div>
 
                         <li>
-                            <span class="label">Gender</span>
+                            <span class="label">Gender: </span>
                             <span class="gender">{{gender}}</span>
                         </li>
+
                         {{ extra_fields }}
-                        </ul>
+
+                    </ul>
 
                     <div class="biography">
                     {{biography}}
                     </div>
+
+                    <div class="auth_biography">
+                        {{auth_biography}}
+                    </div>
+
                 </div>
+                {{ extra_info_blurb }}
+            </div>
+            {{ stats }}
+
+            <div id="search_result_container" style="display: none;">
+                <ul id="search_result_list"></ul>
             </div>
             <div class="last-modified">This page was last modified on {{last_modified}} by {{last_modified_by}}</div>
         </div>
+    <script>
+        // This value is used by the script in show_preview.js to show a preview window
+        // over the relatives listed on this page.
+        const relatives_data = { {{relatives_javascript_array}} };
+    </script>
     </body>
 </html>

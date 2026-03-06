@@ -3,31 +3,24 @@ package com.renomad.inmra.auth;
 import com.renomad.inmra.utils.IFileUtils;
 import com.renomad.inmra.utils.MemoriaContext;
 import com.renomad.minum.templating.TemplateProcessor;
-import com.renomad.minum.web.IRequest;
 
 import java.util.Map;
 
 /**
- * This class is responsible for generating the header seen at the top of the
+ * This class is responsible for generating the navigation menu seen at the top of the
  * page when the user is authenticated.
  */
 public class AuthHeader {
 
     private final TemplateProcessor authHeader;
-    private final IAuthUtils auth;
 
-    public AuthHeader(IAuthUtils auth, MemoriaContext memoriaContext) {
-        this.auth = auth;
-        IFileUtils fileUtils = memoriaContext.fileUtils();
+    public AuthHeader(MemoriaContext memoriaContext) {
+        IFileUtils fileUtils = memoriaContext.getFileUtils();
         authHeader = TemplateProcessor.buildProcessor(fileUtils.readTemplate("general/auth_header.html"));
     }
 
-    public String getRenderedAuthHeader(IRequest r) {
-        return getRenderedAuthHeader(r, null);
-    }
-
     /**
-     * handles the processing of the auth header - if they are not
+     * handles the processing of the auth header (a navigation menu) - if they are not
      * authenticated, the header is just an empty string. If they
      * are auth'd, show a navigation bar.
      * <br>
@@ -38,23 +31,15 @@ public class AuthHeader {
      *               or null, we'll simply not include the "edit" link.
      *               Otherwise, we'll create an appropriate link.
      */
-    public String getRenderedAuthHeader(IRequest r, String personId) {
-        AuthResult authResult = this.auth.processAuth(r);
+    public String getRenderedAuthHeader(boolean isAuthenticatedAsAdmin, String personId) {
         String authHeaderRendered;
-        if (authResult.isAuthenticated()) {
+        if (isAuthenticatedAsAdmin) {
             if (personId != null && ! personId.isBlank()) {
                 String extraLink = String.format("""
-                        <li>
-                            <a href="/editperson?id=%s">Edit Person</a>
-                        </li>
-                        <li>
-                            <a href="/photos?personid=%s">Edit Photos</a>
-                        </li>
-                        <li>
-                            <a href="/editpersons?id=%s">In list</a>
-                        </li>
+                        <a id="edit_navigation_link" class="nav-icon" href="/editperson?id=%s"><img src="/general/edit_icon.svg" width="24" alt="Edit" title="Edit"></a>
+                        &nbsp;
+                        <a id="photo_navigation_link" class="nav-icon" href="/photos?personid=%s"><img src="/general/upload.svg" width="24" alt="Photos" title="Photos"></a>
                         """,
-                        personId,
                         personId,
                         personId
                 );
