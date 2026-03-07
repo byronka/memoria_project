@@ -66,7 +66,7 @@ run:
 
 .PHONY: runjar
 #: run the system off the jar
-runjar:
+runjar: jar
 	 java $(JMX_PROPERTIES) -jar target/inmra/inmra.jar
 
 .PHONY: runjlink
@@ -81,7 +81,7 @@ rundebug:
 
 .PHONY: runjardebug
 #: run the system off the jar in debug mode
-runjardebug: jlink
+runjardebug: jar
 	 java $(DEBUG_PROPERTIES) $(JMX_PROPERTIES) -jar target/inmra/inmra.jar
 
 .PHONY: runjlinkdebug
@@ -119,15 +119,17 @@ backup_sampledb:
 test_coverage:
 	 @./mvnw jacoco:prepare-agent test jacoco:report
 
-.PHONY: jar
-#: jar up the program
-jar:
+target/inmra/inmra.jar:
 	 ./mvnw package -Dmaven.test.skip
 	 @echo "create a directory of target/$(PROJ_NAME)"
 	 mkdir -p target/$(PROJ_NAME)
 	 @echo "copy jar to target/$(PROJ_NAME)"
 	 cp target/inmra-*-jar-with-dependencies.jar target/$(PROJ_NAME)/inmra.jar
 	 @echo "Your new jar is at target/inmra/inmra.jar"
+
+.PHONY: jar
+#: jar up the program
+jar: target/inmra/inmra.jar
 
 .PHONY: jlink
 #: create a custom java runtime

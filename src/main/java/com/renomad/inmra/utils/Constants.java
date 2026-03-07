@@ -1,9 +1,13 @@
 package com.renomad.inmra.utils;
 
 import com.renomad.minum.utils.MyThread;
+import com.renomad.minum.utils.StringUtils;
 import com.renomad.minum.utils.TimeUtils;
 
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -30,36 +34,59 @@ public class Constants {
     public static Properties getConfiguredProperties() {
         var properties = new Properties();
         String fileName = "memoria.config";
+        Path memoriaConfigPath = Path.of(fileName);
+        if (!Files.exists(memoriaConfigPath)) {
+            showWarningAndCreateDefaultConfig(memoriaConfigPath);
+        }
         try (FileInputStream fis = new FileInputStream(fileName)) {
+
             System.out.println(TimeUtils.getTimestampIsoInstant() +
                     " found properties file at ./memoria.config.  Loading properties");
             properties.load(fis);
         } catch (Exception ex) {
-            System.out.println("""
-
-                    ********************
-
-                    failed to successfully read memoria.config: using built-in defaults
-
-                    ***************************
-
-
-                    """);
-            MyThread.sleep(1000);
-            System.out.print("Continuing in 5...");
-            MyThread.sleep(1000);
-            System.out.print("4...");
-            MyThread.sleep(1000);
-            System.out.print("3...");
-            MyThread.sleep(1000);
-            System.out.print("2...");
-            MyThread.sleep(1000);
-            System.out.print("1...");
-            MyThread.sleep(1000);
-            System.out.print("\n\n");
-            return new Properties();
+            throw new RuntimeException(ex);
         }
+
         return properties;
+    }
+
+    /**
+     * Shows the user a warning that we can't find their
+     * memoria.config file, and we're going to make them one.
+     */
+    private static void showWarningAndCreateDefaultConfig(Path memoriaConfigPath) {
+        String privacyPassword = StringUtils.generateSecureRandomString(6);
+        System.out.printf("""
+                
+                ***************************
+                
+                Failed to find memoria.config.  Adding one to this directory
+                with contents as follows.  Please change the password to something unique
+                and easily remembered - this will be the shared password for your family
+                members to use when accessing the site, it does not provide administrative
+                privileges so it is not a critical security risk.  Still, to avoid private
+                information being publicly available, this is necessary.
+                
+                PRIVACY_PASSWORD=%s
+                
+                Again, this will be written to your current directory, at memoria.config. The
+                value is applied when the server starts.
+                
+                ***************************
+                
+                %n""", privacyPassword);
+        MyThread.sleep(1000);
+        System.out.print("Continuing in 20...");
+        MyThread.sleep(1000);
+        for (int i = 19; i > 0; i--) {
+            System.out.print(i + "...");
+            MyThread.sleep(1000);
+        }
+        try {
+            Files.writeString(memoriaConfigPath, "PRIVACY_PASSWORD=" + privacyPassword);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

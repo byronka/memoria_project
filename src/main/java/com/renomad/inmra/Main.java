@@ -1,5 +1,6 @@
 package com.renomad.inmra;
 
+import com.renomad.inmra.auth.MissingPrivacyPasswordException;
 import com.renomad.inmra.migrations.DatabaseMigration;
 import com.renomad.inmra.utils.MemoriaContext;
 import com.renomad.minum.state.Constants;
@@ -30,7 +31,16 @@ public class Main {
         fullSystem.start();
 
         // Register some endpoints
-        new TheRegister(fullSystem.getContext(), memoriaContext).registerDomains();
+        try {
+            new TheRegister(fullSystem.getContext(), memoriaContext).registerDomains();
+        } catch (MissingPrivacyPasswordException ex) {
+            System.out.println();
+            System.out.println("No privacy password was set.  Ensure there is a \"memoria.config\" file in the");
+            System.out.println("directory where you started the application, with content of at least one line:");
+            System.out.println();
+            System.out.println("PRIVACY_PASSWORD=myPassword");
+            throw ex;
+        }
 
         // show an indicator that the system is ready to use
         Constants constants = context.getConstants();

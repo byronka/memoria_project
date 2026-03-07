@@ -1,6 +1,7 @@
 package com.renomad.inmra.utils;
 
 
+import com.renomad.inmra.auth.MissingPrivacyPasswordException;
 import com.renomad.inmra.security.ISecurityUtils;
 import com.renomad.minum.logging.ILogger;
 import com.renomad.minum.state.Context;
@@ -49,6 +50,9 @@ public class MemoriaContext {
     }
 
     public String getHashedPrivacyPassword() {
+        if (constants.PRIVACY_PASSWORD == null || constants.PRIVACY_PASSWORD.isBlank()) {
+            throw new MissingPrivacyPasswordException();
+        }
         return CryptoUtils.createPasswordHash(constants.PRIVACY_PASSWORD, "this_is_my_salt");
     }
 

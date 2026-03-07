@@ -9,6 +9,8 @@ Memoria, a site for memories
 * To run tests: `make test`
 * For help: `make`
 
+See the [User manual](https://renomad.com/blogposts/using_memoria.html)
+
 See the [development handbook](docs/development_handbook.md)
 
 System requirements: 

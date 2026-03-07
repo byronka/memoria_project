@@ -253,18 +253,30 @@ public class TheRegister {
     private void registerTheAdminUser(AbstractDb<User> userDb, AuthPages authPages) {
 
         if (userDb.values().stream().noneMatch(x -> x.getUsername().equals("admin"))) {
+
             String newPassword = StringUtils.generateSecureRandomString(20);
             try {
                 MyThread.sleep(500);
                 System.out.println("\n****************************************\n\n");
-                System.out.println("Creating a new admin password, see generated file \"admin_password\"");
-                System.out.println("use a username of \"admin\" at localhost:8080\\login");
+                System.out.println("Creating a new admin password, see generated file \"admin_password\"\n\n");
+                System.out.println("use a username of \"admin\" at http://localhost:8080/login with this password");
                 System.out.println("\n\n************************************************\n\n");
+                showAlertInLogs();
                 Files.writeString(Path.of("admin_password"), newPassword);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
             authPages.registerUserPost("admin", newPassword);
+        }
+    }
+
+    private void showAlertInLogs() {
+        MyThread.sleep(1000);
+        System.out.print("Continuing in 10...");
+        MyThread.sleep(1000);
+        for (int i = 9; i > 0; i--) {
+            System.out.print(i + "...");
+            MyThread.sleep(1000);
         }
     }
 
