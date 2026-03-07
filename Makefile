@@ -143,18 +143,6 @@ ifeq (,$(wildcard ./target/jrt/bin/java))
 	 du -sh ./target/jrt
 endif
 
-.PHONY: bundle
-#: bundle up all the files we need on the cloud server
-bundle: jar
-	 @echo "copy the scripts from cloud_operations/scripts/ into target/$(PROJ_NAME)"
-	 cp cloud_operations/scripts/* target/$(PROJ_NAME)
-	 @echo "output the most recent git status and store it in code_status.txt"
-	 git log --oneline|head -1 > target/$(PROJ_NAME)/code_status.txt && git diff >> target/$(PROJ_NAME)/code_status.txt
-	 @echo "copy webapp resources into the target/$(PROJ_NAME) directory"
-	 rsync --recursive --update --perms src/main/webapp/ target/$(PROJ_NAME)
-	 @echo "create a compressed tar of the contents in target/$(PROJ_NAME)"
-	 cd target/$(PROJ_NAME) && tar -czf "../$(PROJ_NAME).tar.gz" *
-
 # a handy debugging tool.  If you want to see the value of any
 # variable in this file, run something like this from the
 # command line:
