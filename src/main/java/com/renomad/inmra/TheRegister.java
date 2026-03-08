@@ -261,7 +261,9 @@ public class TheRegister {
                 System.out.println("Creating a new admin password, see generated file \"admin_password\"\n\n");
                 System.out.println("use a username of \"admin\" at http://localhost:8080/login with this password");
                 System.out.println("\n\n************************************************\n\n");
-                showAlertInLogs();
+                if (memoriaContext.getConstants().DO_NEW_PASSWORD_COUNTDOWN) {
+                    showAlertInLogs();
+                }
                 Files.writeString(Path.of("admin_password"), newPassword);
             } catch (IOException e) {
                 throw new RuntimeException(e);

@@ -25,6 +25,7 @@ public class Constants {
         PRIVACY_PASSWORD = properties.getProperty("PRIVACY_PASSWORD");
         PRIVACY_COOKIE_MAX_AGE = getProp("PRIVACY_COOKIE_MAX_AGE", 60 * 60 * 24 * 3); // three days
         REGISTER_PREHANDLER = getProp("REGISTER_PREHANDLER", false);
+        DO_NEW_PASSWORD_COUNTDOWN = getProp("DO_NEW_PASSWORD_COUNTDOWN", true);
     }
 
     /**
@@ -109,6 +110,12 @@ public class Constants {
      * the TheRegister class.
      */
     public final boolean REGISTER_PREHANDLER;
+
+    /**
+     * Whether to run a 10-second countdown in the logs when there is
+     * no initial admin password.
+     */
+    public final boolean DO_NEW_PASSWORD_COUNTDOWN;
 
     /**
      * A helper method to remove some redundant boilerplate code for grabbing
