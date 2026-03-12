@@ -189,7 +189,7 @@ public class Test1 {
     driver.findElement(By.linkText("Dan")).click(); waitForUi();
     driver.findElement(By.linkText("Paul")).click(); waitForUi();
     driver.findElement(By.linkText("Tina")).click(); waitForUi();
-    driver.get("http://localhost:8080/index?search=katz");
+    driver.get("http://localhost:8080/index?search=katz"); waitForUi();
     assertTrue(driver.findElement(By.id("ab1e7835-e6df-49ac-8492-9cf8b1686d7d_details")).isDisplayed());
   }
 

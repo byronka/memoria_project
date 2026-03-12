@@ -172,7 +172,6 @@ public class DetailedViewRenderer {
             myMap.put("extra_fields", "");
             myMap.put("lifespan", "");
             myMap.put("link_to_extended_relatives", "");
-            myMap.put("extra_info_blurb", "");
         } else {
             myMap.put("title_name", safeHtml(personFile.getName()));
             myMap.put("name", safeHtml(personFile.getName()));
@@ -182,11 +181,6 @@ public class DetailedViewRenderer {
             addExtraFieldsToTemplate(personFile, myMap);
             String renderedLifespan = lifespan.renderLifespan(personFile);
             myMap.put("lifespan", renderedLifespan);
-            myMap.put("extra_info_blurb", """
-                    <p id="extra_info_request">
-                        Extra information may be sent or requested by emailing the <a href="mailto:inmra_help@outlook.com">site administrator</a>.
-                    </p>
-                    """);
             myMap.put("link_to_extended_relatives", String.format("""
 
                         <div id="extended_relatives_link_list_item">
