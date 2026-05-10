@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -49,7 +50,7 @@ public class DiffMatchPatchTests {
     }
 
     @Test
-    public void testBasics() {
+    public void testBasics() throws IOException {
         String text1 = fileUtils.readTextFile("src/test/resources/diff_test_files/diff_speedtest1.txt");
         String text2 = fileUtils.readTextFile("src/test/resources/diff_test_files/diff_speedtest2.txt");
 

@@ -74,7 +74,7 @@ public class FunctionalTests {
     }
 
     @AfterClass
-    public static void cleanup() {
+    public static void cleanup() throws IOException {
         var fs = context.getFullSystem();
         fs.shutdown();
         context.getLogger().stop();

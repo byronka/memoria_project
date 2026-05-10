@@ -1,5 +1,6 @@
 package com.renomad.inmra.utils;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
 
@@ -19,7 +20,11 @@ public final class FileUtils implements IFileUtils {
      */
     @Override
     public void makeDirectory(Path path) {
-        fileUtils.makeDirectory(path);
+        try {
+            fileUtils.makeDirectory(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -27,7 +32,11 @@ public final class FileUtils implements IFileUtils {
      */
     @Override
     public String readTemplate(String path) {
-        return fileUtils.readTextFile(constants.TEMPLATE_DIRECTORY + path);
+        try {
+            return fileUtils.readTextFile(constants.TEMPLATE_DIRECTORY + path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
