@@ -1,5 +1,32 @@
-Memoria, a site for memories
-============================
+Memoria, a family tree photo/video sharing web application
+==========================================================
+
+
+Features
+--------
+
+* Provides recent birthdays and anniversaries of passing for family members
+* Photos of any size can be added - scaled-down copies are made for improved performance, 
+  original is made available to family members for download
+* Public information is discoverable by search engines
+* Information on living persons is kept private by family password
+* Generates graphical family tree relationships
+* Highly performant with minimal resource needs
+* Designed for universal usability, ensuring a seamless experience for users of all abilities.
+* Videos of any size can be shared
+* Biographies can be added to either of two sections - public, or family private
+* Highly customizable - HTML template pages use simple CSS style sheets
+
+
+System requirements: 
+--------------------
+* Developed on a MacBook Pro with OS 12.0.1, with OpenJDK 21, GNU Make 3.81 and Rsync 2.6.9
+and on a Windows 10 64-bit professional, on Cygwin, OpenJDK 21, Gnu Make 4.4 and Rsync 3.2.7
+* Runs in production on a CentOS Linux server with 1 GB of ram and 2 cpus, handles up to 500 requests / second
+
+
+Running
+--------
 
 * To run with a sample database: `make local_dev`, wait until the
   message "System is ready" and then hit http://localhost:8080
@@ -9,14 +36,8 @@ Memoria, a site for memories
 * To run tests: `make test`
 * For help: `make`
 
-See the [User manual](https://renomad.com/blogposts/using_memoria.html)
-
 See the [development handbook](docs/development_handbook.md)
 
-System requirements: 
---------------------
-Developed on a MacBook Pro with OS 12.0.1, with OpenJDK 21, GNU Make 3.81 and Rsync 2.6.9
-and on a Windows 10 64-bit professional, on Cygwin, OpenJDK 21, Gnu Make 4.4 and Rsync 3.2.7
 
 Tech stack:
 -----------
@@ -34,7 +55,6 @@ Directories:
 ------------
 
 - docs: documentation for the project
-- cloud_operations: documents and scripts for deployment to the cloud
 - .git: necessary files for Git.
 - sample_db: a test database
 - scripts: scripts that are run during compilation / analyzing / preparation for deployment
