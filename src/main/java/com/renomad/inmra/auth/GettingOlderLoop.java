@@ -90,8 +90,6 @@ public class GettingOlderLoop {
             Thread.currentThread().setName("GettingOlderLoop");
             while (true) {
                 try {
-                    Thread.sleep(sleepTime);
-
                     var stopwatch = new StopwatchUtils().startTimer();
                     processMetrics();
                     logger.logDebug(() -> "Took %d milliseconds to process the metrics".formatted(stopwatch.stopTimer()));
@@ -105,20 +103,27 @@ public class GettingOlderLoop {
                     var stopwatch3 = new StopwatchUtils().startTimer();
                     cacheInterestingPeople();
                     logger.logDebug(() -> "Took %d milliseconds to build a cache of interesting people".formatted(stopwatch3.stopTimer()));
-                } catch (InterruptedException ex) {
 
-                    /*
-                    this is what we expect to happen.
-                    once this happens, we just continue on.
-                    this only gets called when we are trying to shut everything
-                    down cleanly
-                     */
-
-                    if (constants.logLevels.contains(LoggingLevel.DEBUG)) System.out.printf(TimeUtils.getTimestampIsoInstant() + " GettingOlderLoop is stopped.%n");
-                    Thread.currentThread().interrupt();
-                    return null;
                 } catch (Throwable ex) {
                     logger.logAsyncError(() -> "Error while processing GettingOlderLoop: " + StacktraceUtils.stackTraceToString(ex));
+                }
+
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException ex) {
+
+                /*
+                this is what we expect to happen.
+                once this happens, we just continue on.
+                this only gets called when we are trying to shut everything
+                down cleanly
+                 */
+
+                    if (constants.logLevels.contains(LoggingLevel.DEBUG)) {
+                        System.out.printf(TimeUtils.getTimestampIsoInstant() + " GettingOlderLoop is stopped.%n");
+                    }
+                    Thread.currentThread().interrupt();
+                    return null;
                 }
             }
         };
