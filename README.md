@@ -17,6 +17,9 @@ Features
 * Biographies can be added to either of two sections - public, or family private
 * Highly customizable - HTML template pages use simple CSS style sheets
 
+[Features with photos](https://renomad.com/blogposts/memoria_features.html)
+
+
 
 System requirements: 
 --------------------
