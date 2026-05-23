@@ -514,11 +514,15 @@ public class PersonListEndpoints {
         }
         Map<PersonNode, Integer> personNodeOrdinalMap = calculateOrdinals(myPersonNode, "child", this.personDb);
         String summary = FamilyGraph.renderPosterityShort(myPersonNode, personLruCache, personNodeOrdinalMap);
-        String fullLength = FamilyGraph.renderPosterityLong(personLruCache, personNodeOrdinalMap);
+        List<Map.Entry<PersonNode, Integer>> sortedPersonsToList = personNodeOrdinalMap.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
+        String fullLength = FamilyGraph.renderPosterityLong(personLruCache, sortedPersonsToList);
         String result = printableTreeTemplateProcessor.renderTemplate(
                 Map.of(
+                        "ancestors_or_descendants", "Descendants",
+                        "name", StringUtils.safeHtml(myPersonNode.getName()),
                         "summary", summary,
-                        "full_length", fullLength
+                        "full_length", fullLength,
+                        "long_form_summaries", buildLongFormSummaries(sortedPersonsToList)
                 ));
         return Respond.htmlOk(result);
     }
@@ -545,13 +549,36 @@ public class PersonListEndpoints {
         }
         Map<PersonNode, Integer> personNodeOrdinalMap = calculateOrdinals(myPersonNode, "parent", this.personDb);
         String summary = FamilyGraph.renderAncestryShort(myPersonNode, personNodeOrdinalMap);
-        String fullLength = FamilyGraph.renderAncestryLong(personLruCache, personNodeOrdinalMap);
+        List<Map.Entry<PersonNode, Integer>> sortedPersonsToList = personNodeOrdinalMap.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
+        String fullLength = FamilyGraph.renderAncestryLong(personLruCache, sortedPersonsToList);
+
         String result = printableTreeTemplateProcessor.renderTemplate(
                 Map.of(
+                        "ancestors_or_descendants", "Ancestors",
+                        "name", StringUtils.safeHtml(myPersonNode.getName()),
                         "summary", summary,
-                        "full_length", fullLength
+                        "full_length", fullLength,
+                        "long_form_summaries", buildLongFormSummaries(sortedPersonsToList)
                 ));
         return Respond.htmlOk(result);
+    }
+
+    /**
+     * This method provides the same print-page output as provided when
+     * selecting the "print person" button in the header on person pages,
+     * except we append it all to one string and render for the ancestors
+     * and descendants printable page
+     */
+    private String buildLongFormSummaries(List<Map.Entry<PersonNode, Integer>> sortedPersonsToList) {
+        StringBuilder longFormSummaryBuilder = new StringBuilder(sortedPersonsToList.size() * 8 * 1024);
+        for (Map.Entry<PersonNode, Integer> entry : sortedPersonsToList) {
+            PersonFile cachedPersonFile = personLruCache.getCachedPersonFile(entry.getKey().getId().toString());
+            if (cachedPersonFile.getBiography().isBlank() && cachedPersonFile.getAuthBio().isBlank()) continue;
+            String closeRelatives = detailedViewRenderer.generateCloseRelatives(cachedPersonFile);
+            String renderedTemplate = detailedViewRenderer.renderPersonViewForSummaryPrint(cachedPersonFile, closeRelatives);
+            longFormSummaryBuilder.append(renderedTemplate);
+        }
+        return longFormSummaryBuilder.toString();
     }
 
 }

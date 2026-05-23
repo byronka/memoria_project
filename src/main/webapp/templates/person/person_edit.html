@@ -31,99 +31,94 @@
                 document.getElementById('javascript-warning').style.display='none';
             </script>
 
-            <h4>Person details</h4>
+            <h2>Person details</h2>
 
             <div class="relationship_adder">
-                <details open>
-                    <summary>Relationships</summary>
+                <h3>Relationships</h3>
 
-                    <span><b>Siblings:</b></span>
-                    <span id="sibling_list">{{ sibling_list }}</span>
-                    {{ add_sibling_action }}
+                <span><b>Siblings:</b></span>
+                <span id="sibling_list">{{ sibling_list }}</span>
+                {{ add_sibling_action }}
 
-                    <hr>
+                <hr>
 
-                    <span><b>Spouses:</b></span>
-                    <span id="spouse_list">{{ spouse_list }}</span>
-                    {{ add_spouse_action }}
+                <span><b>Spouses:</b></span>
+                <span id="spouse_list">{{ spouse_list }}</span>
+                {{ add_spouse_action }}
 
-                    <hr>
+                <hr>
 
-                    <span><b>Parents:</b></span>
-                    <span id="parent_list">{{ parent_list }}</span>
-                    {{ add_parent_action }}
+                <span><b>Parents:</b></span>
+                <span id="parent_list">{{ parent_list }}</span>
+                {{ add_parent_action }}
 
-                    <hr>
+                <hr>
 
-                    <span><b>Children:</b></span>
-                    <span id="child_list">{{ child_list }}</span>
-                    {{ add_child_action }}
-                </details>
+                <span><b>Children:</b></span>
+                <span id="child_list">{{ child_list }}</span>
+                {{ add_child_action }}
             </div>
             <form id="editperson-form" action="editperson" method="post">
-                <details open>
-                    <summary>Core details</summary>
-                    <fieldset>
-                        <input type="hidden" name="id" value="{{id}}" >
-                        <div id="essential_info">
-                            <div>
-                                <div id="name_section" class="detail_component">
-                                    <label for="name_input">* Name</label>
-                                    <input required type="text" placeholder="person name (required)" id="name_input" name="name_input" value="{{name_input_value}}" />
-                                </div>
-
-                                <div id="image_section" class="detail_component">
-                                    <label for="image_input">Image url</label>
-                                    <input type="text" placeholder="image URL" id="image_input" name="image_input" value="{{image_input_value}}" />
-                                </div>
-
-                                <div class="detail_component lifespan_dates">
-                                    <div id="birthdate_section" data-bornordied="born" class="date_section" >
-                                        <label for="born_input">Born:</label>
-                                        <input type="{{born_date_input_type}}" class="date-input" name="born_input" id="born_input" value="{{born_input_value}}" {{is_born_date_unknown}}  />
-                                        <label for="born_date_unknown_checkbox" title="check this when the date exists but is unknown">
-                                            <input class="unknown-date-checkbox" id="born_date_unknown_checkbox" type="checkbox" name="born_date_unknown" {{is_born_date_unknown_checked}} /> Unknown
-                                        </label>
-                                        <label for="born_date_year_only_checkbox" title="check this when the only known date is a year">
-                                            <input class="year-only-checkbox" id="born_date_year_only_checkbox" type="checkbox" name="born_date_year_only" {{is_born_date_year_only_checked}} {{is_born_date_unknown}} /> Year-only
-                                        </label>
-                                    </div>
-
-                                    <div id="deathdate_section" data-bornordied="died" class="date_section" >
-                                        <label for="died_input">Died:</label>
-                                        <input type="{{died_date_input_type}}" class="date-input" name="died_input" id="died_input" value="{{died_input_value}}" {{is_died_date_unknown}}  />
-                                        <label for="death_date_unknown_checkbox" title="check this when the date exists but is unknown">
-                                            <input class="unknown-date-checkbox" id="death_date_unknown_checkbox" type="checkbox" name="death_date_unknown" {{is_died_date_unknown_checked}} /> Unknown
-                                        </label>
-                                        <label for="died_date_year_only_checkbox" title="check this when the only known date is a year">
-                                            <input class="year-only-checkbox" id="died_date_year_only_checkbox" type="checkbox" name="death_date_year_only" {{is_died_date_year_only_checked}} {{is_died_date_unknown}} /> Year-only
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="detail_component gender">
-                                    <legend>Gender:</legend>
-                                    <div>
-                                        <input type="radio" id="unset" name="gender_input" value="" {{ unset_checked }} />
-                                        <label for="unset">unset</label>
-                                    </div>
-                                    <div>
-                                        <input type="radio" id="male" name="gender_input" value="male" {{ male_checked }}  />
-                                        <label for="male">male</label>
-                                    </div>
-                                    <div>
-                                        <input type="radio" id="female" name="gender_input" value="female" {{ female_checked }}  />
-                                        <label for="female">female</label>
-                                    </div>
-                                </div>
+                <h3>Core details</h3>
+                <fieldset>
+                    <input type="hidden" name="id" value="{{id}}" >
+                    <div id="essential_info">
+                        <div>
+                            <div id="name_section" class="detail_component">
+                                <label for="name_input">Name</label>
+                                <input required type="text" placeholder="name" id="name_input" name="name_input" value="{{name_input_value}}" />
                             </div>
 
-                            <div>
-                                <img id="preview_thumbnail_image_in_edit" height="190" src="{{image_input_value}}">
+                            <div id="image_section" class="detail_component">
+                                <label for="image_input">Image url</label>
+                                <input type="text" placeholder="image URL" id="image_input" name="image_input" value="{{image_input_value}}" />
+                            </div>
+
+                            <div class="detail_component lifespan_dates">
+                                <div id="birthdate_section" data-bornordied="born" class="date_section" >
+                                    <label for="born_input">Born:</label>
+                                    <input type="{{born_date_input_type}}" class="date-input" name="born_input" id="born_input" value="{{born_input_value}}" {{is_born_date_unknown}}  />
+                                    <label for="born_date_unknown_checkbox" title="check this when the date exists but is unknown">
+                                        <input class="unknown-date-checkbox" id="born_date_unknown_checkbox" type="checkbox" name="born_date_unknown" {{is_born_date_unknown_checked}} /> Unknown
+                                    </label>
+                                    <label for="born_date_year_only_checkbox" title="check this when the only known date is a year">
+                                        <input class="year-only-checkbox" id="born_date_year_only_checkbox" type="checkbox" name="born_date_year_only" {{is_born_date_year_only_checked}} {{is_born_date_unknown}} /> Year-only
+                                    </label>
+                                </div>
+
+                                <div id="deathdate_section" data-bornordied="died" class="date_section" >
+                                    <label for="died_input">Died:</label>
+                                    <input type="{{died_date_input_type}}" class="date-input" name="died_input" id="died_input" value="{{died_input_value}}" {{is_died_date_unknown}}  />
+                                    <label for="death_date_unknown_checkbox" title="check this when the date exists but is unknown">
+                                        <input class="unknown-date-checkbox" id="death_date_unknown_checkbox" type="checkbox" name="death_date_unknown" {{is_died_date_unknown_checked}} /> Unknown
+                                    </label>
+                                    <label for="died_date_year_only_checkbox" title="check this when the only known date is a year">
+                                        <input class="year-only-checkbox" id="died_date_year_only_checkbox" type="checkbox" name="death_date_year_only" {{is_died_date_year_only_checked}} {{is_died_date_unknown}} /> Year-only
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="detail_component gender">
+                                <legend>Gender:</legend>
+                                <div>
+                                    <input type="radio" id="unset" name="gender_input" value="" {{ unset_checked }} />
+                                    <label for="unset">unset</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="male" name="gender_input" value="male" {{ male_checked }}  />
+                                    <label for="male">male</label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="female" name="gender_input" value="female" {{ female_checked }}  />
+                                    <label for="female">female</label>
+                                </div>
                             </div>
                         </div>
 
-                    </fieldset>
-                </details>
+                        <div>
+                            <img id="preview_thumbnail_image_in_edit" height="190" src="{{image_input_value}}">
+                        </div>
+                    </div>
+                </fieldset>
 
                 <!-- Raw relationship information - these are links pointing to their relatives -->
                 <input type="hidden" name="siblings_input" id="siblings_input" value="{{siblings_input_value}}">
@@ -243,39 +238,37 @@
 {{notes_input_value}}</textarea>
                     </details>
                 </div>
-                <details id="extra_fields_details">
-                    <summary>Extra fields section</summary>
+                    <h3>Extra fields section</h3>
                     <div id="notes_section">
 
 
-                        <input id="extra_field_count" type="hidden" name="extra_field_count" value="{{ extra_field_count }}"/>
-                        <input id="extra_field_array" type="hidden" name="extra_field_array" value="{{ extra_field_array }}"/>
+                    <input id="extra_field_count" type="hidden" name="extra_field_count" value="{{ extra_field_count }}"/>
+                    <input id="extra_field_array" type="hidden" name="extra_field_array" value="{{ extra_field_array }}"/>
 
-                        <ul id="extra_fields_list">
-                            {{ extra_fields }}
-                        </ul>
+                    <ul id="extra_fields_list">
+                        {{ extra_fields }}
+                    </ul>
 
-                        <datalist id="extra_key_options">
-                            <option value="Wedding date"></option>
-                            <option value="Graduation date"></option>
-                            <option value="Birthplace"></option>
-                            <option value="Deathplace"></option>
-                            <option value="Occupation"></option>
-                            <option value="Immigration date"></option>
-                        </datalist>
-                        <script>
-                            // adding as a script so if the user has javascript disabled, they
-                            // won't see this.  It only works with javascript.  Fortunately, it is
-                            // optional.
-                            const extraFieldButton = document.createElement('button');
-                            extraFieldButton.setAttribute('id','add_extra_field_button');
-                            extraFieldButton.setAttribute('type','button');
-                            extraFieldButton.innerText = 'Add Extra Field';
-                            const notesSection = document.getElementById('notes_section');
-                            notesSection.prepend(extraFieldButton);
-                        </script>
-                    </div>
-                </details>
+                    <datalist id="extra_key_options">
+                        <option value="Wedding date"></option>
+                        <option value="Graduation date"></option>
+                        <option value="Birthplace"></option>
+                        <option value="Deathplace"></option>
+                        <option value="Occupation"></option>
+                        <option value="Immigration date"></option>
+                    </datalist>
+                    <script>
+                        // adding as a script so if the user has javascript disabled, they
+                        // won't see this.  It only works with javascript.  Fortunately, it is
+                        // optional.
+                        const extraFieldButton = document.createElement('button');
+                        extraFieldButton.setAttribute('id','add_extra_field_button');
+                        extraFieldButton.setAttribute('type','button');
+                        extraFieldButton.innerText = 'Add Extra Field';
+                        const notesSection = document.getElementById('notes_section');
+                        notesSection.prepend(extraFieldButton);
+                    </script>
+                </div>
 
                 <div id="person_edit_form_buttons">
                     <input id="form_submit_button" type="submit" value="Save" >

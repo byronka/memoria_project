@@ -6,7 +6,6 @@ import com.renomad.minum.logging.ThrowingSupplier;
 import com.renomad.minum.queue.ActionQueue;
 import com.renomad.minum.state.Context;
 import com.renomad.minum.utils.StacktraceUtils;
-import com.renomad.minum.utils.UtilsException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,7 +43,7 @@ public class Auditor {
             try {
                 Files.createDirectories(auditsDirectory);
             } catch (Exception e) {
-                throw new UtilsException(e);
+                throw new RuntimeException(e);
             }
             logger.logDebug(() -> "Directory: " + auditsDirectory + " created");
         }

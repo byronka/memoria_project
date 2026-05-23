@@ -1,9 +1,7 @@
-body {
-    font-size: 10px;
-}
-
 #details {
-    columns: 1;
+    columns: 2;
+    page-break-after: always;
+    font-size: 8pt;
 }
 
 #summary {
@@ -55,10 +53,86 @@ span.label {
     font-style: italic;
 }
 
+/*
+These are the controls for the number of columns to show on the page
+*/
 @media print {
-
     .controls {
         display: none;
     }
+}
 
+#person_information .person_detail_page_container {
+  font-family: helvetica, arial, sans-serif;
+  font-size: 10pt;
+  width: 100%;
+  margin: 0 auto;
+  page-break-after: always;
+}
+
+#person_information ul {
+   page-break-inside: avoid;
+}
+
+#person_information h1,
+#person_information h2,
+#person_information h3,
+#person_information h4 {
+   page-break-after: avoid;
+   text-align: center;
+}
+
+/*
+No need to show the video controls on the print,
+they just obscure the view
+*/
+#person_information video::-webkit-media-controls {
+    display: none;
+}
+
+#person_information a {
+    text-decoration: none;
+    color: black !important;
+    border: none !important;
+}
+
+
+#person_information h1 {
+  font-size: 12pt;
+  letter-spacing: 2px;
+  column-span: all;
+}
+
+#person_information h1 + p {
+  margin-top: 0;
+}
+
+#person_information p {
+  line-height: 1.5;
+  break-after: column;
+}
+
+#person_information figure {
+  break-inside: avoid;
+}
+
+#person_information img {
+  max-width: 4in;
+  display: block;
+  margin: 0 auto;
+  break-inside: avoid;
+}
+
+#person_information video {
+  max-width: 4in;
+  display: block;
+  margin: 0 auto;
+  break-inside: avoid;
+}
+
+#person_information figcaption {
+  font-style: italic;
+  font-size: 10pt;
+  max-width: 4in;
+  margin: 0 auto;
 }

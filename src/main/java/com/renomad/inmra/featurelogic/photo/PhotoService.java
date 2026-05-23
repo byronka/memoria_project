@@ -107,8 +107,8 @@ public class PhotoService {
 
         // we will store old data for photos in the audit directory.  Yes, each time an
         // edit takes place, we'll add the whole data as an audit entry.
-        this.photoAuditDirectory = Path.of(context.getConstants().dbDirectory).resolve("photo_audit_logs");
-        this.videoAuditDirectory = Path.of(context.getConstants().dbDirectory).resolve("video_audit_logs");
+        this.photoAuditDirectory = dbDir.resolve("photo_audit_logs");
+        this.videoAuditDirectory = dbDir.resolve("video_audit_logs");
 
         fileWriteStringWrapper = new FileWriteStringWrapper();
 

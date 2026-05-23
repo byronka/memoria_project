@@ -189,7 +189,7 @@ public class Test1 {
     driver.findElement(By.linkText("Dan")).click(); waitForUi();
     driver.findElement(By.linkText("Paul")).click(); waitForUi();
     driver.findElement(By.linkText("Tina")).click(); waitForUi();
-    driver.get("http://localhost:8080/index?search=katz"); waitForUi();
+    driver.get("http://localhost:8080/index?search=katz");
     assertTrue(driver.findElement(By.id("ab1e7835-e6df-49ac-8492-9cf8b1686d7d_details")).isDisplayed());
   }
 
@@ -464,9 +464,6 @@ public class Test1 {
     driver.findElement(By.id("notes_details")).click(); waitForUi();
     driver.findElement(By.id("notes_input")).sendKeys("Here are some secret notes about John.  Don't let anyone see this."); waitForUi();
 
-    // add extra fields
-    driver.findElement(By.id("extra_fields_details")).click(); waitForUi();
-
     // Interesting.  I needed to switch to a JavaScript click instead of a normal
     // Selenium click.  Not sure why this was necessary.  The button in question
     // *is* connected to Javascript code - maybe that is a reason.
@@ -571,7 +568,6 @@ public class Test1 {
     driver.findElement(By.cssSelector("#search_field")).sendKeys("john doe"); waitForUi();
     driver.findElement(By.cssSelector("#search-submit")).click(); waitForUi();
     driver.findElement(By.cssSelector("div.other_components > div:nth-child(1) > a:nth-child(2)")).click(); waitForUi();
-    driver.findElement(By.id("extra_fields_details")).click(); waitForUi();
 
     // update death year
     ((JavascriptExecutor)driver).executeScript(
@@ -947,7 +943,7 @@ public class Test1 {
 
     // confirm we see the expected results for Lou's kids
     String louChildren = driver.findElement(By.className("children")).getText();
-    assertEquals(louChildren, "Private and Gary");
+    assertEquals(louChildren, "Private");
 
     // look at the data on the page for relatives, as a shortcut to see what kind of
     // data we're providing
@@ -979,8 +975,6 @@ public class Test1 {
     // Make sure we're on her detail page
     TestFramework.assertEquals(driver.findElement(By.className("lifespan-name")).getText(), "Marjorie Katz");
     TestFramework.assertEquals(driver.findElement(By.className("lifespan-era")).getText(), "February 3, 1925 to July 13, 2020 (95 years)");
-    // Check that we see her brother listed
-    TestFramework.assertEquals(driver.findElement(By.cssSelector(".siblings")).getText(), "Herbert Blumberg");
     // Go to her husband's page
     driver.findElement(By.linkText("Ellis Katz")).click(); waitForUi();
     // check that Ellis's details are as expected

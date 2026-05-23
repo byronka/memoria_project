@@ -36,7 +36,7 @@ public class Respond {
      * A helper to return an HTML message with a 200 ok status
      */
     public static IResponse htmlOk(String body) {
-        return respond(StatusLine.StatusCode.CODE_200_OK, Map.of("Content-Type", "text/html; charset=UTF-8"), body.getBytes(StandardCharsets.UTF_8));
+        return Response.htmlOk(body);
     }
 
     /**

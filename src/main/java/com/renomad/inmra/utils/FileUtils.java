@@ -35,7 +35,7 @@ public final class FileUtils implements IFileUtils {
         try {
             return fileUtils.readTextFile(constants.TEMPLATE_DIRECTORY + path);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error: Template file not found", e);
         }
     }
 

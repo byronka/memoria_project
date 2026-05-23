@@ -1,0 +1,73 @@
+<div class="person_detail_page_container">
+
+    <div id="{{id}}_details">
+        {{person_image}}
+        <div class="name-and-era">
+            <div>
+                <h2 class="lifespan-name" style="display: inline;">
+                    {{name}}
+                </h2>
+            </div>
+            <span class="lifespan-era">
+                {{lifespan}}
+            </span>
+        </div>
+
+        <ul style="clear: both;">
+            <li class="parents-item manual-links">
+                <span class="label immediate-family relative-type-label">Parents: </span>
+                <span class="parents">
+                    {{parents}}
+                </span>
+            </li>
+
+
+            <li class="siblings-item manual-links">
+                <span class="label immediate-family relative-type-label">Siblings: </span>
+                <span class="siblings">
+                    {{siblings}}
+                </span>
+            </li>
+
+
+            <li class="spouses-item manual-links">
+                <span class="label immediate-family relative-type-label">Spouses: </span>
+                <span class="spouses">
+                    {{spouses}}
+                </span>
+            </li>
+
+
+            <li class="children-item manual-links">
+                <span class="label immediate-family relative-type-label">Children: </span>
+                <span class="children">
+                    {{children}}
+                </span>
+            </li>
+
+
+            <li>
+                <span class="label">Gender: </span>
+                <span class="gender">{{gender}}</span>
+            </li>
+
+            {{ extra_fields }}
+
+        </ul>
+
+        <h3>Biography of {{name}}</h3>
+
+        <div class="biography">
+            {{biography}}
+        </div>
+
+        <div class="auth_biography">
+            {{auth_biography}}
+        </div>
+
+        <h3>Close relatives of {{name}}, including by marriage</h3>
+        <ul>
+            {{relatives}}
+        </ul>
+    </div>
+</div>

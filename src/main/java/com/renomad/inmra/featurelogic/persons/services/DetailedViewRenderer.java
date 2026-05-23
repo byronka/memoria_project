@@ -36,6 +36,7 @@ public class DetailedViewRenderer {
     private final FamilyGraphBuilder familyGraphBuilder;
     private final Lifespan lifespan;
     private final TemplateProcessor personDetailPageTemplateProcessor;
+    private final TemplateProcessor personDetailPrintSummaryTemplateProcessor;
     private final TemplateProcessor personDetailPrintPageTemplateProcessor;
     private final TemplateProcessor otherPersonRelationshipTemplateProcessor;
     private final TemplateProcessor personAllRelativesPageTemplateProcessor;
@@ -65,6 +66,7 @@ public class DetailedViewRenderer {
         this.lifespan = lifespan;
         personDetailPageTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("person/person_detail_page.html"));
         personDetailPrintPageTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("person/person_detail_page_printing.html"));
+        personDetailPrintSummaryTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("person/person_detail_print_summary.html"));
         personAllRelativesPageTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("person/person_detail_page_all_relatives.html"));
         otherPersonRelationshipTemplateProcessor = TemplateProcessor.buildProcessor(fileUtils.readTemplate("person/relation_to_other_template.html"));
         this.personDb = personDb;
@@ -95,6 +97,31 @@ public class DetailedViewRenderer {
         String renderedLifespan = lifespan.renderLifespan(personFile);
         myMap.put("lifespan", renderedLifespan);
         return personDetailPrintPageTemplateProcessor.renderTemplate(myMap);
+    }
+
+    /**
+     * Renders the detailed view of a person, with details necessary for the print view.  This is what typical users
+     * get to see - the point of all our work. This is similar to {@link #renderPersonViewForPrint(PersonFile)}
+     * except it is intended for the family tree print page, so it excludes information from the headers
+     */
+    public String renderPersonViewForSummaryPrint(PersonFile personFile, String closeRelatives) {
+
+        var myMap = new HashMap<String, String>();
+        myMap.put("id", safeAttr(personFile.getId().toString()));
+        myMap.put("siblings", renderImmediateRelationsForPrinting(personFile.getSiblings()));
+        myMap.put("spouses", renderImmediateRelationsForPrinting(personFile.getSpouses()));
+        myMap.put("parents", renderImmediateRelationsForPrinting(personFile.getParents()));
+        myMap.put("children",renderImmediateRelationsForPrinting(personFile.getChildren()));
+        myMap.put("auth_biography", Cleaners.cleanScript(personFile.getAuthBio()));
+        myMap.put("name", safeHtml(personFile.getName()));
+        myMap.put("gender", personFile.getGender().serialize());
+        myMap.put("biography", Cleaners.cleanScript(personFile.getBiography()));
+        addImageToTemplate(personFile, myMap);
+        addExtraFieldsToTemplate(personFile, myMap);
+        String renderedLifespan = lifespan.renderLifespan(personFile);
+        myMap.put("lifespan", renderedLifespan);
+        myMap.put("relatives", closeRelatives);
+        return personDetailPrintSummaryTemplateProcessor.renderTemplate(myMap);
     }
 
     /**
@@ -256,7 +283,7 @@ public class DetailedViewRenderer {
                     }
                 }
 
-            }).sorted().collect(Collectors.joining("\n"));
+            }).sorted().collect(Collectors.joining(", \n"));
 
             sb.append("<li>");
             // don't show the whole "once-removed" thing for nephews and nieces
@@ -346,7 +373,7 @@ public class DetailedViewRenderer {
                 }
             }
 
-        }).sorted().collect(Collectors.joining("\n"));
+        }).sorted().collect(Collectors.joining(", \n"));
         if (collectedUncles.isBlank()) {
             sb.append("(None found)");
         } else {
@@ -474,6 +501,25 @@ public class DetailedViewRenderer {
         }
 
         return personAllRelativesPageTemplateProcessor.renderTemplate(myMap);
+    }
+
+    /**
+     * Generate close relatives of a person for the family-tree print page.
+     */
+    public String generateCloseRelatives(PersonFile personFile) {
+        // get the PersonNode for this person, as a first step to calculating their relatives
+        // in the family graph.
+        PersonNode myPersonNode = SearchUtils.findExactlyOne(
+                familyGraphBuilder.getPersonNodes().values().stream(), x -> x.getId().equals(personFile.getId()));
+
+        // add relatives like cousins and uncles
+        List<ShortRelationship> crim = closeRelativesIncludingMarriage(myPersonNode, 2, false, true);
+        if (!crim.isEmpty()) {
+            crim.removeFirst();
+        }
+        Set<ShortRelationship> crimSet = new HashSet<>(crim);
+
+        return generateListItemsForPrintingCloseRelatives(crimSet);
     }
 
     /**
@@ -778,6 +824,35 @@ public class DetailedViewRenderer {
                 .collect(Collectors.joining("\n")));
     }
 
+
+    /**
+     * Generates a list of html5 "li" items with the close relatives, for use
+     * in the print page.
+     */
+    private String generateListItemsForPrintingCloseRelatives(Set<ShortRelationship> closeRelatives) {
+        // we'll only keep the outer layer of relatives - the inner layer is already shown on the page.
+        Set<ShortRelationship> adjustedCloseRelatives = closeRelatives.stream().filter(x -> x.distance() == 2).collect(Collectors.toSet());
+        return adjustedCloseRelatives
+                .stream()
+                .sorted(Comparator.comparing(ShortRelationship::distance).thenComparing(x -> x.personNode().getName()))
+
+                .map(x -> {
+                    String name = "";
+                    String relationDescription = "";
+                    name = safeHtml(x.personNode().getName());
+                    relationDescription = "&nbsp;<span class=\"relationship-description\">%s</span>".formatted(x.relationDescription());
+
+                    return String.format("<li><a href=\"person?id=%s\" class=\"distance-%d\">%s</a>%s</li>\n",
+                            x.personNode().getId().toString(),
+                            x.distance(),
+                            name,
+                            relationDescription
+                    );
+                })
+                .collect(Collectors.joining("\n"));
+    }
+
+
     /**
      * This method will add data so the preview window works.  It will
      * generate JavaScript objects for all the people it is given
@@ -907,7 +982,7 @@ public class DetailedViewRenderer {
         group 6: </a>
 
          */
-        StringBuilder sb = new StringBuilder();
+        List<String> replacementValues = new ArrayList<>();
         while (matcher.find()) {
             String personid = matcher.group("personid");
             Person person = this.personDb.findExactlyOne("id", personid);
@@ -915,28 +990,27 @@ public class DetailedViewRenderer {
             if (person == null) {
                 logger.logDebug(() -> "Error: at renderImmediateRelations, person was null when searching by id of " + personid + ".");
                 replacementText = "<span title=\"The URL for this person did not point to a person - they may have been deleted\" class=\"missing-person\" href=\"#\">(MISSING)</span>";
-                matcher.appendReplacement(sb, replacementText);
+                replacementValues.add(replacementText);
                 continue;
             }
             // if they are living, and the user is not authenticated, replace their name with "private"
             if (oip.shouldObscureInformation(person.getBirthday(), person.getDeathday(), shouldShowPrivateInformation)) {
                 if (otherPerson != null) {
-                    replacementText = "<a href=\"$3$4&oid="+otherPerson+"\">Private$6";
+                    replacementText = "<a href=\"person?id=%s&oid=%s\">Private</a>".formatted(personid, otherPerson);
                 } else {
-                    replacementText = "<a href=\"$3$4 \">Private$6";
+                    replacementText = "<a href=\"person?id=%s\">Private</a>".formatted(personid);
                 }
             } else {
                 if (otherPerson != null) {
-                    replacementText = "<a href=\"$3$4&oid="+otherPerson+"\">"+person.getName()+"$6";
+                    replacementText = "<a href=\"person?id=%s&oid=%s\">%s</a>".formatted(personid, otherPerson, person.getName());
                 } else {
-                    replacementText = "<a href=\"$3$4\">"+person.getName()+"$6";
+                    replacementText = "<a href=\"person?id=%s\">%s</a>".formatted(personid, person.getName());
                 }
             }
 
-            matcher.appendReplacement(sb, replacementText);
+            replacementValues.add(replacementText);
         }
-        matcher.appendTail(sb);
-        return sb.toString();
+        return String.join(", ", replacementValues);
     }
 
 

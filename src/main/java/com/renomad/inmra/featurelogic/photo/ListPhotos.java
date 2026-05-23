@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
 import static com.renomad.inmra.utils.FileUtils.badFilePathPatterns;
@@ -49,10 +50,12 @@ public class ListPhotos {
 
     private final IAuthUtils auth;
     private final Map<String, byte[]> lruCache;
+    private final ReentrantLock cacheLock = new ReentrantLock();
     private final PersonEndpoints personEndpoints;
     private final Constants constants;
     private final RenderPhotoRowsService renderPhotoRowsService;
-    private final com.renomad.minum.utils.IFileUtils minumFileUtils;
+    private final IFileUtils fileUtils;
+    private final FileUtils minumFileUtils;
 
     public ListPhotos(
             Context context,
@@ -69,7 +72,7 @@ public class ListPhotos {
             PersonLruCache personLruCache) {
         this.logger = context.getLogger();
         this.navigationHeader = navigationHeader;
-        IFileUtils fileUtils = memoriaContext.getFileUtils();
+        this.fileUtils = memoriaContext.getFileUtils();
         this.constants = context.getConstants();
         this.minumFileUtils = new FileUtils(logger, constants);
         this.dbDir = Path.of(constants.dbDirectory);
@@ -250,12 +253,20 @@ public class ListPhotos {
         // first, is it already in our cache? (by the way, "archive" photos won't ever be in the cache)
         if (lruCache.containsKey(photoPath.toString())) {
             logger.logTrace(() -> "Found " + photoPath + " in the cache. Serving.");
+            cacheLock.lock();
+            byte[] photo;
+            try {
+                photo = lruCache.get(photoPath.toString());
+            } finally {
+                cacheLock.unlock();
+            }
+
             return Response.buildResponse(CODE_200_OK,
                     Map.of(
                             "Cache-Control","max-age=" + constants.staticFileCacheTime * 60 + ", immutable",
                             "Content-Type", mime
                     ),
-                    lruCache.get(photoPath.toString()));
+                    photo);
         }
 
         // It's not in the cache - but if it's also not in the folder, bail with a 404
@@ -293,7 +304,12 @@ public class ListPhotos {
 
                 // we won't store archive photos in the cache, they are too large
                 logger.logDebug(() -> "Storing " + finalPhotoPath2 + " in the cache");
-                lruCache.put(finalPhotoPath2.toString(), bytes);
+                cacheLock.lock();
+                try {
+                    lruCache.put(finalPhotoPath2.toString(), bytes);
+                } finally {
+                    cacheLock.unlock();
+                }
 
                 return Response.buildResponse(CODE_200_OK,
                         Map.of(
@@ -329,22 +345,26 @@ public class ListPhotos {
                     "Content-Type", mime
             );
             return Response.buildLargeFileResponse(extraContentHeaders, archivalPhoto, r.getHeaders(), minumFileUtils);
+        } catch (WebServerException e){
+            // this is the only branch in the logic where we adjust to use a size of "original" and pass
+            // through to the following section of logic.  All the other branches handle edge cases that
+            // are more appropriately handled with 400s and 500s.
+            if (e.getCause().getClass().equals(NoSuchFileException.class)) {
+                logger.logDebug(() -> "User requested an archive file of " + filename + " that was not found.  Returning 404 NOT FOUND");
+                return Response.buildLeanResponse(CODE_404_NOT_FOUND);
+            } else {
+                String finalArchivalPhoto = archivalPhoto;
+                logger.logAsyncError(() -> "There was an issue reading a file at " + finalArchivalPhoto + ". " + StacktraceUtils.stackTraceToString(e));
+                return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
+            }
         } catch (InvalidPathException ex) {
             String finalArchivalPhoto = archivalPhoto;
             logger.logDebug(() -> "Error reading photo file "+ finalArchivalPhoto +" requested by user. " + ex.getMessage());
             return Respond.userInputError();
         } catch (Exception ex) {
-            // this is the only branch in the logic where we adjust to use a size of "original" and pass
-            // through to the following section of logic.  All the other branches handle edge cases that
-            // are more appropriately handled with 400s and 500s.
-            if (ex.getCause().getClass().equals(NoSuchFileException.class)) {
-                logger.logDebug(() -> "User requested an archive file of " + filename + " that was not found.  Returning 404 NOT FOUND");
-                return Response.buildLeanResponse(CODE_404_NOT_FOUND);
-            } else {
-                String finalArchivalPhoto = archivalPhoto;
-                logger.logAsyncError(() -> "There was an issue reading a file at " + finalArchivalPhoto + ". " + StacktraceUtils.stackTraceToString(ex));
-                return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
-            }
+            String finalArchivalPhoto = archivalPhoto;
+            logger.logAsyncError(() -> "There was an issue reading a file at " + finalArchivalPhoto + ". " + StacktraceUtils.stackTraceToString(ex));
+            return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -373,18 +393,22 @@ public class ListPhotos {
                     "Content-Type", "video/mp4"
             );
             return Response.buildLargeFileResponse(extraContentHeaders, videoFile, r.getHeaders(), minumFileUtils);
+        } catch (WebServerException e){
+            if (e.getCause().getClass().equals(NoSuchFileException.class)) {
+                return Response.buildLeanResponse(CODE_404_NOT_FOUND);
+            } else {
+                String finalVideoFile = videoFile;
+                logger.logAsyncError(() -> "There was an issue reading a file at " + finalVideoFile + ". " + StacktraceUtils.stackTraceToString(e));
+                return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
+            }
         } catch (InvalidPathException ex) {
             String finalVideoFile = videoFile;
             logger.logDebug(() -> "Error reading video file "+finalVideoFile+" requested by user. " + ex.getMessage());
             return Respond.userInputError();
         } catch (Exception ex) {
-            if (ex.getCause().getClass().equals(NoSuchFileException.class)) {
-                return Response.buildLeanResponse(CODE_404_NOT_FOUND);
-            } else {
-                String finalVideoFile = videoFile;
-                logger.logAsyncError(() -> "There was an issue reading a file at " + finalVideoFile + ". " + StacktraceUtils.stackTraceToString(ex));
-                return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
-            }
+            String finalVideoFile = videoFile;
+            logger.logAsyncError(() -> "There was an issue reading a file at " + finalVideoFile + ". " + StacktraceUtils.stackTraceToString(ex));
+            return Response.buildLeanResponse(CODE_500_INTERNAL_SERVER_ERROR);
         }
 
     }

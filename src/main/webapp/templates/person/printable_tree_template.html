@@ -20,6 +20,8 @@
         <option value="4">4</option>
     </select>
 
+    <h1>{{ancestors_or_descendants}} of {{name}}</h1>
+
     <div id="summary">
         <pre>
 {{ summary }}
@@ -30,7 +32,7 @@
     <label for="details_column_count" class="controls">Column count:</label>
     <select id="details_column_count" class="controls">
         <option value="1">1</option>
-        <option value="2">2</option>
+        <option value="2" selected="selected">2</option>
         <option value="3">3</option>
         <option value="4">4</option>
     </select>
@@ -38,8 +40,14 @@
     <label for="include_pictures_checkbox" style="padding-left: 20px;" class="controls">Include pictures:</label>
     <input id="include_pictures_checkbox" type="checkbox" class="controls" checked>
 
+    <!-- short summaries of each person in the family tree -->
     <div id="details">
         {{ full_length }}
+    </div>
+
+    <!-- long-form summaries -->
+    <div id="person_information">
+        {{ long_form_summaries }}
     </div>
 </body>
 </html>

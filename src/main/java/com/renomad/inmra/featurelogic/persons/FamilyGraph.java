@@ -609,12 +609,11 @@ public class FamilyGraph {
      * Renders a similar list to {@link #renderPosterityShort(PersonNode, IPersonLruCache, Map)} except
      * that it includes more detail per person and is not in a list format.
      *
-     * @param personNodeOrdinalMap A mapping between persons and their ordinal in the tree, to enable us
+     * @param sortedPersonsToList A sorted mapping between persons and their ordinal in the tree, to enable us
      *                             to easily indicate, roughly, a distance in relationship to the original node
      */
-    public static String renderPosterityLong(IPersonLruCache personLruCache, Map<PersonNode, Integer> personNodeOrdinalMap) {
+    public static String renderPosterityLong(IPersonLruCache personLruCache, List<Map.Entry<PersonNode, Integer>> sortedPersonsToList) {
         StringBuilder sb = new StringBuilder();
-        List<Map.Entry<PersonNode, Integer>> sortedPersonsToList = personNodeOrdinalMap.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
         for (Map.Entry<PersonNode, Integer> entry : sortedPersonsToList) {
             printExpandedDescendantPersonDetails(entry.getKey(), sb, personLruCache, entry.getValue());
         }
@@ -624,7 +623,9 @@ public class FamilyGraph {
     private static void printExpandedDescendantPersonDetails(PersonNode node, StringBuilder sb, IPersonLruCache personLruCache, int ordinal) {
         PersonFile personFile = personLruCache.getCachedPersonFile(node.getId().toString());
         String spouses = node.getConnections().stream().filter(x -> x.getKey().equals("spouse")).map(x -> StringUtils.safeHtml(x.getValue().getName())).collect(Collectors.joining(", "));
+        String parents = node.getConnections().stream().filter(x -> x.getKey().equals("parent")).map(x -> StringUtils.safeHtml(x.getValue().getName())).collect(Collectors.joining(", "));
         String children = node.getConnections().stream().filter(x -> x.getKey().equals("child")).map(x -> StringUtils.safeHtml(x.getValue().getName())).collect(Collectors.joining(", "));
+        String siblings = node.getConnections().stream().filter(x -> x.getKey().equals("sibling")).map(x -> StringUtils.safeHtml(x.getValue().getName())).collect(Collectors.joining(", "));
 
         sb.append("<div class=\"person-data\">\n");
         sb.append(String.format("""
@@ -647,6 +648,18 @@ public class FamilyGraph {
         }
         if (!children.isEmpty()) {
             sb.append("<li><span class=\"label\">Children:</span> ").append(children).append("</li>\n");
+        }
+        if (!parents.isEmpty()) {
+            sb.append("<li><span class=\"label\">Parents:</span> ").append(parents).append("</li>\n");
+        }
+        if (!siblings.isEmpty()) {
+            sb.append("<li><span class=\"label\">Siblings:</span> ").append(siblings).append("</li>\n");
+        }
+        // if the person has a biography, we will print it below on the printing
+        // page (see PersonListEndpoints.buildLongFormSummaries)
+        // if so, add a remark here so they will know to look for it.
+        if (!personFile.getBiography().isBlank() || !personFile.getAuthBio().isBlank()) {
+            sb.append("<li><em>(has biography)</em></li>");
         }
         sb.append("</ul></div>\n");
         if (personFile.getImageUrl() != null && !personFile.getImageUrl().isBlank()) sb.append("<img class=\"person-thumbnail-image\" src=\"/").append(personFile.getImageUrl()).append("&size=small\">");
@@ -735,11 +748,10 @@ public class FamilyGraph {
      * Renders a similar list to {@link #renderPosterityShort} except
      * that it includes more detail per person.
      *
-     * @param personNodeOrdinalMap a mapping between persons and their ordinal in the tree
+     * @param sortedPersonsToList a sorted list of pairings between persons and their ordinal in the tree
      */
-    public static String renderAncestryLong(IPersonLruCache personLruCache, Map<PersonNode, Integer> personNodeOrdinalMap) {
+    public static String renderAncestryLong(IPersonLruCache personLruCache, List<Map.Entry<PersonNode, Integer>> sortedPersonsToList) {
         StringBuilder sb = new StringBuilder();
-        List<Map.Entry<PersonNode, Integer>> sortedPersonsToList = personNodeOrdinalMap.entrySet().stream().sorted(Map.Entry.comparingByValue()).toList();
         for (Map.Entry<PersonNode, Integer> entry : sortedPersonsToList) {
             printExpandedAncestorPersonDetails(entry.getKey(), sb, personLruCache, entry.getValue());
         }
@@ -750,6 +762,8 @@ public class FamilyGraph {
         PersonFile personFile = personLruCache.getCachedPersonFile(node.getId().toString());
         String spouses = node.getConnections().stream().filter(x -> x.getKey().equals("spouse")).map(x -> StringUtils.safeHtml(x.getValue().getName())).collect(Collectors.joining(", "));
         String parents = node.getConnections().stream().filter(x -> x.getKey().equals("parent")).map(x -> StringUtils.safeHtml(x.getValue().getName())).collect(Collectors.joining(", "));
+        String children = node.getConnections().stream().filter(x -> x.getKey().equals("child")).map(x -> StringUtils.safeHtml(x.getValue().getName())).collect(Collectors.joining(", "));
+        String siblings = node.getConnections().stream().filter(x -> x.getKey().equals("sibling")).map(x -> StringUtils.safeHtml(x.getValue().getName())).collect(Collectors.joining(", "));
 
         sb.append("<div class=\"person-data\">\n");
         sb.append(String.format("""
@@ -768,8 +782,14 @@ public class FamilyGraph {
         if (!spouses.isEmpty()) {
             sb.append("<li><span class=\"label\">Spouses:</span> ").append(spouses).append("</li>\n");
         }
+        if (!children.isEmpty()) {
+            sb.append("<li><span class=\"label\">Children:</span> ").append(children).append("</li>\n");
+        }
         if (!parents.isEmpty()) {
             sb.append("<li><span class=\"label\">Parents:</span> ").append(parents).append("</li>\n");
+        }
+        if (!siblings.isEmpty()) {
+            sb.append("<li><span class=\"label\">Siblings:</span> ").append(siblings).append("</li>\n");
         }
         sb.append("</ul></div>\n");
         if (personFile.getImageUrl() != null && !personFile.getImageUrl().isBlank()) sb.append("<img class=\"person-thumbnail-image\" src=\"/").append(personFile.getImageUrl()).append("&size=small\">");
