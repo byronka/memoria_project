@@ -98,7 +98,12 @@ public class PersonLruCache implements IPersonLruCache {
             putToPersonFileLruCache(uuidForPerson, deserializedPersonFile);
         }
 
-        return personFileLruCache.get(uuidForPerson);
+        personFileLruCacheLock.lock();
+        try {
+            return personFileLruCache.get(uuidForPerson);
+        } finally {
+            personFileLruCacheLock.unlock();
+        }
     }
 
 }
