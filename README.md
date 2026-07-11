@@ -39,8 +39,6 @@ Running
 * To run tests: `make test`
 * For help: `make`
 
-See the [development handbook](docs/development_handbook.md)
-
 
 Tech stack:
 -----------
