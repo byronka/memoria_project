@@ -19,7 +19,7 @@ Features
 
 [Features with photos](https://renomad.com/blogposts/memoria_features.html)
 
-
+[The Memoria administrator manual, a work in progress](https://renomad.com/blogposts/using_memoria.html)
 
 System requirements: 
 --------------------

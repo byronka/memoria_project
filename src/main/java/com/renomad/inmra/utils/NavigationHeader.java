@@ -70,9 +70,10 @@ public class NavigationHeader {
             }
             // the reference back to where we started
             String backref = isolatedPath + queryStringEncoded;
-            privacyAuthControl = shouldShowPrivateInformation ?
-                    "<a class=\"privacy-auth-control\" id=\"privacy-logout\" href=\"/privacylogout?backref="+ backref +"\">Logout</a>" :
-                    "<a class=\"privacy-auth-control\" id=\"privacy-login\" href=\"/privacylogin?backref="+backref+"\">Login</a>";
+            String adminLoginText = "<a class=\"privacy-auth-control\" id=\"administrator-login-link\" href=\"/login\">Admin login</a>\n";
+            privacyAuthControl = adminLoginText + (shouldShowPrivateInformation ?
+                    "<a class=\"privacy-auth-control\" id=\"privacy-logout\" href=\"/privacylogout?backref="+ backref +"\">Family Logout</a>" :
+                    "<a class=\"privacy-auth-control\" id=\"privacy-login\" href=\"/privacylogin?backref="+backref+"\">Family login</a>");
         }
 
         String renderedAuthHeader = authHeader.getRenderedAuthHeader(isAdminAuthenticated, currentPersonId);

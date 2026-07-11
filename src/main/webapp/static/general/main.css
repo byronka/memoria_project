@@ -33,6 +33,10 @@ nav > div {
     padding-left: 10px;
 }
 
+#nav_login_container {
+    flex-direction: column;
+}
+
 #nav_search_container {
     flex-grow: 1;
 }
