@@ -19,9 +19,8 @@ import static com.renomad.minum.utils.SerializationUtils.serializeHelper;
 
 public class Migration15 {
 
-    private final AbstractDb<Photograph> photographDb;
-    private final AbstractDb<Video> videoDb;
     private final ILogger logger;
+    private final Context context;
     private final Path dbDirectory;
 
     /**
@@ -31,9 +30,8 @@ public class Migration15 {
      */
     public Migration15(Path dbDirectory, ILogger logger, Context context) {
         this.dbDirectory = dbDirectory;
-        this.photographDb = new Db<>(dbDirectory.resolve("photos"), context, Photograph.EMPTY);
-        this.videoDb = new Db<>(dbDirectory.resolve("videos"), context, Video.EMPTY);
         this.logger = logger;
+        this.context = context;
     }
 
 
@@ -49,11 +47,15 @@ public class Migration15 {
     }
 
     private void run(boolean runReverse) throws IOException {
-        convertPhoto(runReverse);
-        convertVideo(runReverse);
+        Db<Photograph> photographDb = new Db<>(dbDirectory.resolve("photos"), context, Photograph.EMPTY);
+        Db<Video> videoDb = new Db<>(dbDirectory.resolve("videos"), context, Video.EMPTY);
+        convertPhoto(runReverse, photographDb);
+        convertVideo(runReverse, videoDb);
+        photographDb.stop();
+        videoDb.stop();
     }
 
-    private void convertPhoto(boolean runReverse) throws IOException {
+    private void convertPhoto(boolean runReverse, Db<Photograph> photographDb) throws IOException {
         Path photoToPersonDirectory = dbDirectory.resolve("photo_to_person");
         if (!Files.exists(photoToPersonDirectory)) return;
 
@@ -92,7 +94,7 @@ public class Migration15 {
         }
     }
 
-    private void convertVideo(boolean runReverse) throws IOException {
+    private void convertVideo(boolean runReverse, Db<Video> videoDb) throws IOException {
         Path videoToPersonDirectory = dbDirectory.resolve("video_to_person");
         if (!Files.exists(videoToPersonDirectory)) return;
 

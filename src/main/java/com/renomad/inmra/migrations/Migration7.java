@@ -61,6 +61,9 @@ public class Migration7 {
                 photoToPersonDb.delete(ptp);
             }
         }
+        photoDb.stop();
+        personsDb.stop();
+        photoToPersonDb.stop();
     }
 
     /**
