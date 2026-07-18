@@ -7,6 +7,7 @@ import com.renomad.inmra.utils.IFileWriteStringWrapper;
 
 import com.renomad.inmra.utils.MemoriaContext;
 import com.renomad.minum.database.AbstractDb;
+import com.renomad.minum.database.Db;
 import com.renomad.minum.logging.TestLogger;
 import com.renomad.minum.state.Context;
 import com.renomad.minum.testing.StopwatchUtils;
@@ -15,10 +16,7 @@ import com.renomad.minum.utils.FileUtils;
 import com.renomad.minum.utils.LRUCache;
 import com.renomad.minum.utils.MyThread;
 import com.renomad.minum.web.*;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -43,6 +41,11 @@ public class PhotoServiceTests {
     private AuthResult authResult;
     private Body requestBody;
     private RequestLine requestLine;
+    private Db<Photograph> photoDb;
+    private Db<Video> videoDb;
+    private Db<PhotoToPerson> photoToPersonDb;
+    private Db<VideoToPerson> videoToPersonDb;
+    private Db<Person> personDb;
 
     @BeforeClass
     public static void init() throws IOException {
@@ -66,18 +69,18 @@ public class PhotoServiceTests {
     }
 
     @AfterClass
-    public static void cleanup() {
+    public static void afterSuiteCleanup() {
         TestFramework.shutdownTestingContext(context);
     }
 
     @Before
     public void before() {
         var memoriaContext = MemoriaContext.buildMemoriaContext(context);
-        AbstractDb<Photograph> photoDb = context.getDb("photos", Photograph.EMPTY);
-        AbstractDb<Video> videoDb = context.getDb("videos", Video.EMPTY);
-        AbstractDb<PhotoToPerson> photoToPersonDb = context.getDb("photo_to_person", PhotoToPerson.EMPTY);
-        AbstractDb<VideoToPerson> videoToPersonDb = context.getDb("video_to_person", VideoToPerson.EMPTY);
-        AbstractDb<Person> personDb = context.getDb("persons", Person.EMPTY);
+        this.photoDb = context.getDb("photos", Photograph.EMPTY);
+        this.videoDb = context.getDb("videos", Video.EMPTY);
+        this.photoToPersonDb = context.getDb("photo_to_person", PhotoToPerson.EMPTY);
+        this.videoToPersonDb = context.getDb("video_to_person", VideoToPerson.EMPTY);
+        this.personDb = context.getDb("persons", Person.EMPTY);
         IAuthUtils au = new IAuthUtils(){
             @Override public AuthResult processAuth(IRequest request) {return authResult;}
             @Override public String getForbiddenPage() {return null;}
@@ -86,6 +89,15 @@ public class PhotoServiceTests {
         };
         Map<String, byte[]> photoLruCache = LRUCache.getLruCache();
         photoService = new PhotoService(context, memoriaContext, photoDb, videoDb, photoLruCache, photoToPersonDb, videoToPersonDb, personDb, au);
+    }
+
+    @After
+    public void afterTestCleanup() {
+        this.photoDb.stop();
+        this.videoDb.stop();
+        this.photoToPersonDb.stop();
+        this.videoToPersonDb.stop();
+        this.personDb.stop();
     }
 
     /**
@@ -230,6 +242,8 @@ public class PhotoServiceTests {
             @Override public Iterable<UrlEncodedKeyValue> getUrlEncodedIterable() {return null;}
             @Override public Iterable<StreamingMultipartPartition> getMultipartIterable() {return null;}
             @Override public boolean hasAccessedBody() {return false;}
+            @Override public IBodyProcessor getBodyProcessor() {return null;}
+            @Override public boolean isHasStartedReadingBody() {return false;}
         };
     }
 

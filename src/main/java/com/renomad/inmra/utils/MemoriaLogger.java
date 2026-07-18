@@ -57,21 +57,4 @@ public class MemoriaLogger extends Logger {
         }
     }
 
-    /**
-     * Given a string that may have whitespace chars, render it in a way we can see
-     */
-    static String showWhiteSpace(String msg) {
-        if (msg == null) return "(NULL)";
-        if (msg.isEmpty()) return "(EMPTY)";
-
-        // if we have tabs, returns, newlines in the text, show them
-        String text = msg
-                .replace("\t", "\\t")
-                .replace("\r", "\\r")
-                .replace("\n", "\\n");
-
-        if (text.isBlank()) return "(BLANK)";
-        return text;
-    }
-
 }
