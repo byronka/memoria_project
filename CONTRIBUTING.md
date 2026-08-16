@@ -42,6 +42,13 @@ always possible to reset the database by stopping the application, running `make
 and then starting it again with `make run` - although you will need to check the `admin_password`
 file again to get your password.
 
+Links for further context:
+
+* An old (2024) walkthrough of the project.  Still valuable for 
+  general practices: https://renomad.com/blogposts/exploring_memoria_1.html
+* A page listing the features of the application: https://renomad.com/blogposts/memoria_features.html
+* A page with a video of the full test suite: https://renomad.com/blogposts/deploy_process2.html
+
 Enjoy! Let me know if you have any questions.
 
 - Byron
