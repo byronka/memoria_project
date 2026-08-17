@@ -1,29 +1,4 @@
 package com.renomad.inmra;
-
-import com.renomad.inmra.auth.*;
-import com.renomad.inmra.featurelogic.letsencrypt.LetsEncrypt;
-import com.renomad.inmra.featurelogic.misc.Help;
-import com.renomad.inmra.featurelogic.misc.Message;
-import com.renomad.inmra.featurelogic.persons.PersonLruCache;
-import com.renomad.inmra.featurelogic.persons.PersonMetrics;
-import com.renomad.inmra.featurelogic.persons.services.FamilyGraphBuilder;
-import com.renomad.inmra.featurelogic.photo.*;
-import com.renomad.inmra.security.ISecurityUtils;
-import com.renomad.inmra.security.SecurityUtils;
-import com.renomad.inmra.utils.*;
-import com.renomad.minum.database.AbstractDb;
-import com.renomad.minum.logging.Logger;
-import com.renomad.minum.state.Context;
-import com.renomad.minum.utils.LRUCache;
-import com.renomad.minum.utils.MyThread;
-import com.renomad.minum.utils.StacktraceUtils;
-import com.renomad.minum.utils.StringUtils;
-import com.renomad.minum.web.*;
-import com.renomad.inmra.administrative.Admin;
-import com.renomad.inmra.featurelogic.persons.PersonEndpoints;
-import com.renomad.inmra.featurelogic.persons.Person;
-import com.renomad.inmra.featurelogic.version.Versioning;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,9 +6,58 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import static com.renomad.minum.web.RequestLine.Method.*;
+import com.renomad.inmra.administrative.Admin;
+import com.renomad.inmra.auth.AuthHeader;
+import com.renomad.inmra.auth.AuthPages;
+import com.renomad.inmra.auth.AuthUtils;
+import com.renomad.inmra.auth.GettingOlderLoop;
+import com.renomad.inmra.auth.LoopingSessionReviewing;
+import com.renomad.inmra.auth.SessionId;
+import com.renomad.inmra.auth.User;
+import com.renomad.inmra.featurelogic.letsencrypt.LetsEncrypt;
+import com.renomad.inmra.featurelogic.misc.Help;
+import com.renomad.inmra.featurelogic.misc.Message;
+import com.renomad.inmra.featurelogic.persons.Person;
+import com.renomad.inmra.featurelogic.persons.PersonEndpoints;
+import com.renomad.inmra.featurelogic.persons.PersonLruCache;
+import com.renomad.inmra.featurelogic.persons.PersonMetrics;
+import com.renomad.inmra.featurelogic.persons.services.FamilyGraphBuilder;
+import com.renomad.inmra.featurelogic.photo.ListPhotos;
+import com.renomad.inmra.featurelogic.photo.PhotoService;
+import com.renomad.inmra.featurelogic.photo.PhotoToPerson;
+import com.renomad.inmra.featurelogic.photo.Photograph;
+import com.renomad.inmra.featurelogic.photo.UploadPhoto;
+import com.renomad.inmra.featurelogic.photo.Video;
+import com.renomad.inmra.featurelogic.photo.VideoToPerson;
+import com.renomad.inmra.featurelogic.version.Versioning;
+import com.renomad.inmra.security.ISecurityUtils;
+import com.renomad.inmra.security.SecurityUtils;
+import com.renomad.inmra.utils.MemoriaContext;
+import com.renomad.inmra.utils.MemoriaLogger;
+import com.renomad.inmra.utils.NavigationHeader;
+import com.renomad.inmra.utils.Respond;
+import com.renomad.minum.database.AbstractDb;
+import com.renomad.minum.logging.Logger;
+import com.renomad.minum.state.Context;
+import com.renomad.minum.utils.LRUCache;
+import com.renomad.minum.utils.MyThread;
+import com.renomad.minum.utils.StacktraceUtils;
+import com.renomad.minum.utils.StringUtils;
+import com.renomad.minum.web.HttpServerType;
+import com.renomad.minum.web.IRequest;
+import com.renomad.minum.web.IResponse;
+import com.renomad.minum.web.ISocketWrapper;
+import com.renomad.minum.web.LastMinuteHandlerInputs;
+import com.renomad.minum.web.PreHandlerInputs;
+import static com.renomad.minum.web.RequestLine.Method.DELETE;
+import static com.renomad.minum.web.RequestLine.Method.GET;
+import static com.renomad.minum.web.RequestLine.Method.PATCH;
+import static com.renomad.minum.web.RequestLine.Method.POST;
+import com.renomad.minum.web.Response;
+import static com.renomad.minum.web.StatusLine.StatusCode.CODE_404_NOT_FOUND;
+import com.renomad.minum.web.ThrowingFunction;
+import com.renomad.minum.web.WebFramework;
 
 /**
  * This class is where all code gets registered to work
@@ -69,6 +93,7 @@ public class TheRegister {
         registerTheAdminUser(userDb, ap);
 
         webFramework.registerPreHandler(this::preHandlerCode);
+        webFramework.registerLastMinuteHandler(this::lastMinuteHandlerCode);
 
         // general pages
         webFramework.registerPath(GET, "index", personEndpoints::listAllPersonsGet);
@@ -189,6 +214,27 @@ public class TheRegister {
         ));
         return response;
     }
+    private String response404;
+
+private IResponse lastMinuteHandlerCode(LastMinuteHandlerInputs inputs) {
+    return switch (inputs.response().getStatusCode()) {
+        case CODE_404_NOT_FOUND -> {
+            var fileUtils = memoriaContext.getFileUtils();
+
+            if (response404 == null) {
+                response404 = fileUtils.readTemplate("general/404_response.html");
+            }
+
+            yield Response.buildResponse(
+                    CODE_404_NOT_FOUND,
+                    Map.of("Content-Type", "text/html; charset=UTF-8"),
+                    response404);
+        }
+
+        
+        default -> inputs.response();
+    };
+}
 
     public TheRegister(Context context, MemoriaContext memoriaContext) {
         this.memoriaContext = memoriaContext;
