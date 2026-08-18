@@ -34,6 +34,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.renomad.minum.web.RequestLine.Method.*;
+import static com.renomad.minum.web.StatusLine.StatusCode.CODE_404_NOT_FOUND;
 
 /**
  * This class is where all code gets registered to work
@@ -69,6 +70,7 @@ public class TheRegister {
         registerTheAdminUser(userDb, ap);
 
         webFramework.registerPreHandler(this::preHandlerCode);
+        webFramework.registerLastMinuteHandler(this::lastMinuteHandlerCode);
 
         // general pages
         webFramework.registerPath(GET, "index", personEndpoints::listAllPersonsGet);
@@ -188,6 +190,25 @@ public class TheRegister {
                 processingTime
         ));
         return response;
+    }
+
+    private String response404;
+
+    private IResponse lastMinuteHandlerCode(LastMinuteHandlerInputs inputs) {
+        return switch (inputs.response().getStatusCode()) {
+            case CODE_404_NOT_FOUND -> {
+                var fileUtils = memoriaContext.getFileUtils();
+                if (response404 == null) {
+                    response404 = fileUtils.readTemplate("general/404_response.html");
+                }
+                yield Response.buildResponse(
+                        CODE_404_NOT_FOUND,
+                        Map.of("Content-Type", "text/html; charset=UTF-8"),
+                        response404);
+
+            }
+            default -> inputs.response();
+        };
     }
 
     public TheRegister(Context context, MemoriaContext memoriaContext) {

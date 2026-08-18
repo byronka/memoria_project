@@ -890,6 +890,13 @@ public class FunctionalTests {
             assertEquals(response.headers().valueByKey("location").getFirst(), "/person?id=79cdb440-caff-4ac9-91cb-ba91fcbbef67");
         }
 
+        logger.test("Requesting an unknown page returns custom 404 response page");
+        {
+            var response = ft.get("some_nonexistent_page_url");
+            assertEquals(response.statusLine().status(), CODE_404_NOT_FOUND);
+            assertFalse(searchOne(response.body(), TagName.META, Map.of("name", "filename", "content", "404_response.html")) == HtmlParseNode.EMPTY);
+        }
+
     }
 
 }
