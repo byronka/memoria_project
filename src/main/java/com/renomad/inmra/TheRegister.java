@@ -216,28 +216,24 @@ public class TheRegister {
     }
     private String response404;
 
-private IResponse lastMinuteHandlerCode(LastMinuteHandlerInputs inputs) {
-    return switch (inputs.response().getStatusCode()) {
-        case CODE_404_NOT_FOUND -> {
-            var fileUtils = memoriaContext.getFileUtils();
-
-            if (response404 == null) {
-                response404 = fileUtils.readTemplate("general/404_response.html");
+    private IResponse lastMinuteHandlerCode(LastMinuteHandlerInputs inputs) {
+        return switch (inputs.response().getStatusCode()) {
+            case CODE_404_NOT_FOUND -> {
+                yield Response.buildResponse(
+                        CODE_404_NOT_FOUND,
+                        Map.of("Content-Type", "text/html; charset=UTF-8"),
+                        response404);
             }
 
-            yield Response.buildResponse(
-                    CODE_404_NOT_FOUND,
-                    Map.of("Content-Type", "text/html; charset=UTF-8"),
-                    response404);
-        }
-
-        
-        default -> inputs.response();
-    };
-}
+            default -> inputs.response();
+        };
+    }
 
     public TheRegister(Context context, MemoriaContext memoriaContext) {
         this.memoriaContext = memoriaContext;
+        this.response404 = memoriaContext.getFileUtils()
+                .readTemplate("general/404_response.html");
+
         this.webFramework = context.getFullSystem().getWebFramework();
         this.logger = new MemoriaLogger((Logger)context.getLogger());
 
