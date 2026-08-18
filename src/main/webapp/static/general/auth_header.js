@@ -18,6 +18,13 @@ class AuthHeader {
         };
         this.menuButton.addEventListener("click", handleMenuButtonClick);
         this.overlay.addEventListener("click", handleMenuButtonClick);
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                this.responsiveMenu.classList.remove('expand');
+                this.overlay.classList.remove('open');
+            }
+        });
     };
 }
 
