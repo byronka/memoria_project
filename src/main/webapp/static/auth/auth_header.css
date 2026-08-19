@@ -33,7 +33,7 @@
   transition: all .10s;
   position: absolute;
   text-align: left;
-  z-index: 1;
+  z-index: 100;
 }
 
 .responsive-menu ul {
@@ -63,6 +63,9 @@
   display: none;
   top: 0;
   left: 0;
+  /* sit above the page content so the overlay reliably receives clicks
+     outside the menu.  Kept below the menu button (99) so it stays visible. */
+  z-index: 98;
 }
 
 .overlay.open {
