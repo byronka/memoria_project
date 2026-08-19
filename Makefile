@@ -49,7 +49,7 @@ run_with_coverage:
 .PHONY: uitests
 #: starts the system, runs the ui tests, stops the system
 uitests: jar restore_sampledb
-	 bash -c "trap 'echo STOPPING && cd .. && JACOCO_FILENAME=jacoco_ui_1.exec scripts/stop.sh' EXIT; scripts/start.sh && cd ui_tests && ./mvnw -Dtest=Test1 test"
+	 bash -c "trap 'echo STOPPING && cd .. && JACOCO_FILENAME=jacoco_ui_1.exec scripts/stop.sh' EXIT; scripts/start.sh && cd ui_tests && ./mvnw -Dtest=Test1,MenuTest test"
 
 .PHONY: migrationtests
 #: starts the system with an old database, causing many of the migrations to run
