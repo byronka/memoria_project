@@ -169,3 +169,14 @@ help:
      | sed 'N;s/\n/###/' \
      | sed -n 's/^#: \(.*\)###\(.*\):.*/\2###\1/p' \
      | column -t  -s '###'
+
+# This configures Make to show a more helpful message when the
+# user enters an invalid target.
+%:
+	@echo ""
+	@echo "Error: Invalid target '$@'."
+	@echo ""
+	@$(MAKE) --silent --no-print-directory help
+	@echo ""
+	@echo ""
+	@exit 0
